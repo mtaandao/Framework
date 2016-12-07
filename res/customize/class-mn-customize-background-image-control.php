@@ -1,0 +1,49 @@
+<?php
+/**
+ * Customize API: MN_Customize_Background_Image_Control class
+ *
+ * @package Mtaandao
+ * @subpackage Customize
+ * @since 4.4.0
+ */
+
+/**
+ * Customize Background Image Control class.
+ *
+ * @since 3.4.0
+ *
+ * @see MN_Customize_Image_Control
+ */
+class MN_Customize_Background_Image_Control extends MN_Customize_Image_Control {
+	public $type = 'background';
+
+	/**
+	 * Constructor.
+	 *
+	 * @since 3.4.0
+	 * @uses MN_Customize_Image_Control::__construct()
+	 *
+	 * @param MN_Customize_Manager $manager Customizer bootstrap instance.
+	 */
+	public function __construct( $manager ) {
+		parent::__construct( $manager, 'background_image', array(
+			'label'    => __( 'Background Image' ),
+			'section'  => 'background_image',
+		) );
+	}
+
+	/**
+	 * Enqueue control related scripts/styles.
+	 *
+	 * @since 4.1.0
+	 */
+	public function enqueue() {
+		parent::enqueue();
+
+		mn_localize_script( 'customize-controls', '_mnCustomizeBackground', array(
+			'nonces' => array(
+				'add' => mn_create_nonce( 'background-add' ),
+			),
+		) );
+	}
+}

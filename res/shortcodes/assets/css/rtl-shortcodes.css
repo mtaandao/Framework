@@ -1,0 +1,98 @@
+/*** Mtaandao Shortcodes - RTL support - front ***/
+
+/*		Tabs + Tab
+---------------------------------------------------------------*/
+
+.sm-tabs-nav span {
+	margin-right: 0;
+	margin-left: 3px;
+}
+.sm-tabs-vertical .sm-tabs-nav {
+	float: right;
+}
+.sm-tabs-vertical .sm-tabs-panes {
+	float: right;
+}
+.sm-tabs-vertical .sm-tabs-nav span {
+	margin-left: 0;
+}
+@media only screen and (max-width: 768px) {
+	.sm-tabs-vertical .sm-tabs-nav,
+	.sm-tabs-vertical .sm-tabs-panes {
+		float: none;
+	}
+}
+
+/*		Spoiler + Accordion
+---------------------------------------------------------------*/
+
+.sm-spoiler-title {
+	padding: 7px 34px 7px 7px;
+}
+.sm-spoiler-icon {
+	right: 7px;
+}
+.sm-spoiler-style-default > .sm-spoiler-title {
+	padding-right: 27px;
+	padding-left: 0;
+}
+.sm-spoiler-style-default > .sm-spoiler-title > .sm-spoiler-icon { right: 0; }
+
+/*		Quote
+---------------------------------------------------------------*/
+
+.sm-quote .sm-quote-cite {
+	text-align: left;
+}
+
+/*		Row + Column
+---------------------------------------------------------------*/
+
+.sm-column {
+	margin: 0 0 0 4%;
+	float: right;
+}
+.sm-column-last { margin-left: 0; }
+.sm-row .sm-column { margin: 0 4% 0 0; }
+.sm-row .sm-column.sm-column-size-1-1 { margin-left: 0; margin-right: 0; }
+.sm-row .sm-column:first-child { margin-right: 0; }
+@media only screen {
+	[class*="sm-column"] + [class*="sm-column"]:last-child { float: left; }
+}
+
+/*		Service
+---------------------------------------------------------------*/
+
+.sm-service-title img,
+.sm-service-title i {
+	left: auto;
+	right: 0;
+}
+
+/*		Label
+---------------------------------------------------------------*/
+
+.sm-label {
+	margin-right: 0;
+	margin-left: 0.3em;
+}
+
+/*		Dropcap
+---------------------------------------------------------------*/
+
+.sm-dropcap {
+	float: right;
+	margin: 0.2em 0 0.2em 0.5em;
+}
+
+/*		List
+---------------------------------------------------------------*/
+
+.sm-list ul li {
+	padding: 4px 2em 4px 0 !important;
+}
+.sm-list ul li > img,
+.sm-list ul li i {
+	left: auto;
+	right: 0;
+}

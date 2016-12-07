@@ -1,0 +1,59 @@
+<h2>Unlimited sizes</h2>
+
+[%sm_button size="1"] Click me [/%sm_button] [%sm_button size="2"] Click me [/%sm_button]
+
+[%sm_button size="3"] Click me [/%sm_button] [%sm_button size="4"] Click me [/%sm_button]
+
+[%sm_button size="5"] Click me [/%sm_button] [%sm_button size="6"] Click me [/%sm_button]
+
+[%sm_button size="7"] Click me [/%sm_button] [%sm_button size="8"] Click me [/%sm_button]
+
+[%sm_button size="9"] Click me [/%sm_button] [%sm_button size="10"] Click me [/%sm_button]
+
+[%sm_button size="32"] Unlimited sizes! [/%sm_button]
+
+-----
+
+<h2>Unlimited colors</h2>
+
+[%sm_button background="#2D89EF"] Click me [/%sm_button] [%sm_button background="#9E2DEF"] Click me [/%sm_button] [%sm_button background="#F72EBA"] Click me [/%sm_button]
+
+[%sm_button background="#FF2F3B"] Click me [/%sm_button] [%sm_button background="#FF742F"] Click me [/%sm_button] [%sm_button background="#FFA52F"] Click me [/%sm_button]
+
+[%sm_button background="#FFCF2F"] Click me [/%sm_button] [%sm_button background="#FFF92F"] Click me [/%sm_button] [%sm_button background="#C5ED2C"] Click me [/%sm_button]
+
+[%sm_button background="#3AD828"] Click me [/%sm_button] [%sm_button background="#27CBD5"] Click me [/%sm_button] [%sm_button background="#000000"] Click me [/%sm_button]
+
+[%sm_button background="#eee" color="#2D89EF"] Click me [/%sm_button] [%sm_button background="#eee" color="#9E2DEF"] Click me [/%sm_button] [%sm_button background="#eee" color="#F72EBA"] Click me [/%sm_button]
+
+[%sm_button background="#eee" color="#FF2F3B"] Click me [/%sm_button] [%sm_button background="#eee" color="#FF742F"] Click me [/%sm_button] [%sm_button background="#eee" color="#FFA52F"] Click me [/%sm_button]
+
+[%sm_button background="#eee" color="#FFCF2F"] Click me [/%sm_button] [%sm_button background="#eee" color="#FFF92F"] Click me [/%sm_button] [%sm_button background="#eee" color="#C5ED2C"] Click me [/%sm_button]
+
+[%sm_button background="#eee" color="#3AD828"] Click me [/%sm_button] [%sm_button background="#eee" color="#27CBD5"] Click me [/%sm_button] [%sm_button background="#eee" color="#000000"] Click me [/%sm_button]
+
+-----
+
+<h2>Different background styles</h2>
+
+[%sm_button style="default"] Click me [/%sm_button] [%sm_button style="flat"] Click me [/%sm_button] [%sm_button style="glass"] Click me [/%sm_button]
+
+[%sm_button style="noise"] Click me [/%sm_button] [%sm_button style="bubbles"] Click me [/%sm_button] [%sm_button style="soft"] Click me [/%sm_button]
+
+[%sm_button style="stroked"] Click me [/%sm_button] [%sm_button style="3d"] Click me [/%sm_button] [%sm_button style="ghost" color="#2D89EF"] Click me [/%sm_button]
+
+-----
+
+<h2>Customizable border radius</h2>
+
+[%sm_button radius="square"] Click me [/%sm_button] [%sm_button radius="auto"] Click me [/%sm_button] [%sm_button radius="10"] Click me [/%sm_button] [%sm_button radius="round"] Click me [/%sm_button]
+
+-----
+
+<h2>Built-in icon font</h2>
+
+<a href="http://fortawesome.github.io/Font-Awesome/icons/" target="_blank">List of built-in icons</a>
+
+[%sm_button icon="icon: check"] Click me [/%sm_button] [%sm_button icon="icon: arrow-right"] Click me [/%sm_button] [%sm_button icon="icon: shopping-cart"] Click me [/%sm_button]
+
+[%sm_button icon="icon: cogs" color="#000000" icon_color="#000000"] Click me [/%sm_button] [%sm_button icon="icon: comments" color="#000000" icon_color="#000000"] Click me [/%sm_button] [%sm_button icon="icon: cloud-download" color="#000000" icon_color="#000000"] Click me [/%sm_button]

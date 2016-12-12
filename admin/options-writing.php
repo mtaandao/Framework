@@ -42,18 +42,16 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Settings_Writing_Screen" target="_blank">Documentation on Writing Settings</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Settings_Writing_Screen">Documentation on Writing Settings</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 include( ABSPATH . 'admin/admin-header.php' );
 ?>
 
 <div class="wrap">
-<h2 class="nav-tab-wrapper mn-clearfix">
-			<a href="options-writing.php" class="nav-tab nav-tab-active"><?php _e( 'Writing Options' ); ?></a>
-			<a href="options-reading.php" class="nav-tab"><?php _e( 'Reading Options' ); ?></a>
-</h2>
+<h1><?php echo esc_html( $title ); ?></h1>
+
 <form method="post" action="options.php">
 <?php settings_fields('writing'); ?>
 
@@ -170,13 +168,13 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 
 <?php if ( 1 == get_option('blog_public') ) : ?>
 
-<p><label for="ping_sites"><?php _e( 'When you publish a new post, Mtaandao automatically notifies the following site update services. For more about this, see <a href="https://mtaandao.co.ke/docs/Update_Services">Update Services</a> on the Codex. Separate multiple service URLs with line breaks.' ) ?></label></p>
+<p><label for="ping_sites"><?php _e( 'When you publish a new post, Mtaandao automatically notifies the following site update services. For more about this, see <a href="https://mtaandao.github.io/Update_Services">Update Services</a> on the Codex. Separate multiple service URLs with line breaks.' ) ?></label></p>
 
 <textarea name="ping_sites" id="ping_sites" class="large-text code" rows="3"><?php echo esc_textarea( get_option('ping_sites') ); ?></textarea>
 
 <?php else : ?>
 
-	<p><?php printf(__('Mtaandao is not notifying any <a href="https://mtaandao.co.ke/docs/Update_Services">Update Services</a> because of your site&#8217;s <a href="%s">visibility settings</a>.'), 'options-reading.php'); ?></p>
+	<p><?php printf(__('Mtaandao is not notifying any <a href="https://mtaandao.github.io/Update_Services">Update Services</a> because of your site&#8217;s <a href="%s">visibility settings</a>.'), 'options-reading.php'); ?></p>
 
 <?php endif; ?>
 <?php } // multisite ?>

@@ -4,7 +4,7 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
@@ -14,7 +14,7 @@
  * is captured and stored for the caller to process and log/email/discard.
  *
  * @since 3.7.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
  *
  * @see Bulk_Upgrader_Skin
  */
@@ -26,7 +26,7 @@ class Automatic_Upgrader_Skin extends MN_Upgrader_Skin {
 	 * to the filesystem.
 	 *
 	 * @since 3.7.0
-	 * @since 16.10.0 The `$context` parameter default changed from `false` to an empty string.
+	 * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
 	 *
 	 * @see request_filesystem_credentials()
 	 *

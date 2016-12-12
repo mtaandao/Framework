@@ -4,14 +4,14 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
  * Generic Bulk Upgrader Skin for Mtaandao Upgrades.
  *
  * @since 3.0.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
  *
  * @see MN_Upgrader_Skin
  */

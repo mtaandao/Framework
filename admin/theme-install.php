@@ -37,22 +37,28 @@ foreach ( $installed_themes as $k => $v ) {
 mn_localize_script( 'theme', '_mnThemeSettings', array(
 	'themes'   => false,
 	'settings' => array(
-		'isInstall'     => true,
-		'canInstall'    => current_user_can( 'install_themes' ),
-		'installURI'    => current_user_can( 'install_themes' ) ? self_admin_url( 'theme-install.php' ) : null,
-		'adminUrl'      => parse_url( self_admin_url(), PHP_URL_PATH )
+		'isInstall'  => true,
+		'canInstall' => current_user_can( 'install_themes' ),
+		'installURI' => current_user_can( 'install_themes' ) ? self_admin_url( 'theme-install.php' ) : null,
+		'adminUrl'   => parse_url( self_admin_url(), PHP_URL_PATH )
 	),
 	'l10n' => array(
-		'addNew' => __( 'Add New Theme' ),
-		'search' => __( 'Search Themes' ),
-		'searchPlaceholder' => __( 'Search themes...' ), // placeholder (no ellipsis)
-		'upload' => __( 'Upload Theme' ),
-		'back'   => __( 'Back' ),
-		'error'  => __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ),
-		'themesFound'   => __( 'Number of Themes found: %d' ),
-		'noThemesFound' => __( 'No themes found. Try a different search.' ),
-		'collapseSidebar'    => __( 'Collapse Sidebar' ),
-		'expandSidebar'      => __( 'Expand Sidebar' ),
+		'addNew'              => __( 'Add New Theme' ),
+		'search'              => __( 'Search Themes' ),
+		'searchPlaceholder'   => __( 'Search themes...' ), // placeholder (no ellipsis)
+		'upload'              => __( 'Upload Theme' ),
+		'back'                => __( 'Back' ),
+		'error'               => sprintf(
+			/* translators: %s: support forums URL */
+			__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+			__( 'https://mtaandao.co.ke/support/' )
+		),
+		'themesFound'         => __( 'Number of Themes found: %d' ),
+		'noThemesFound'       => __( 'No themes found. Try a different search.' ),
+		'collapseSidebar'     => __( 'Collapse Sidebar' ),
+		'expandSidebar'       => __( 'Expand Sidebar' ),
+		/* translators: hidden accessibility text */
+		'selectFeatureFilter' => __( 'Select one or more Theme features to filter by' ),
 	),
 	'installedThemes' => array_keys( $installed_themes ),
 ) );
@@ -76,8 +82,8 @@ if ( $tab ) {
 $help_overview =
 	'<p>' . sprintf(
 			/* translators: %s: Theme Directory URL */
-			__( 'You can find additional themes for your site by using the Theme Browser/Installer on this screen, which will display themes from the <a href="%s" target="_blank">Mtaandao Theme Directory</a>. These themes are designed and developed by third parties, are available free of charge, and are compatible with the license Mtaandao uses.' ),
-			__( 'https://mtaandao.co.ke/themes/' )
+			__( 'You can find additional themes for your site by using the Theme Browser/Installer on this screen, which will display themes from the <a href="%s">Mtaandao Theme Directory</a>. These themes are designed and developed by third parties, are available free of charge, and are compatible with the license Mtaandao uses.' ),
+			__( 'https://themes.mtaandao.co.ke/' )
 		) . '</p>' .
 	'<p>' . __( 'You can Search for themes by keyword, author, or tag, or can get more specific and search by criteria listed in the feature filter.' ) . ' <span id="live-search-desc">' . __( 'The search results will be updated as you type.' ) . '</span></p>' .
 	'<p>' . __( 'Alternately, you can browse the themes that are Featured, Popular, or Latest. When you find a theme you like, you can preview it or install it.' ) . '</p>' .
@@ -105,8 +111,8 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Using_Themes#Adding_New_Themes" target="_blank">Documentation on Adding New Themes</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Using_Themes#Adding_New_Themes">Documentation on Adding New Themes</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 include(ABSPATH . 'admin/admin-header.php');
@@ -152,7 +158,7 @@ include(ABSPATH . 'admin/admin-header.php');
 			<li><a href="#" data-sort="favorites"><?php _ex( 'Favorites', 'themes' ); ?></a></li>
 		</ul>
 
-		<a class="drawer-toggle" href="#"><?php _e( 'Feature Filter' ); ?></a>
+		<button type="button" class="button drawer-toggle" aria-expanded="false"><?php _e( 'Feature Filter' ); ?></button>
 
 		<div class="search-form"></div>
 
@@ -166,20 +172,20 @@ include(ABSPATH . 'admin/admin-header.php');
 				$user = get_user_option( 'mnorg_favorites' );
 			}
 			?>
-			<p class="install-help"><?php _e( 'If you have marked themes as favorites on mtaandao.co.ke, you can browse them here.' ); ?></p>
+			<p class="install-help"><?php _e( 'If you have marked themes as favorites on Mtaandao.org, you can browse them here.' ); ?></p>
 
 			<p>
-				<label for="mnorg-username-input"><?php _e( 'Your mtaandao.co.ke username:' ); ?></label>
+				<label for="mnorg-username-input"><?php _e( 'Your Mtaandao.org username:' ); ?></label>
 				<input type="hidden" id="mnorg-username-nonce" name="_mnnonce" value="<?php echo esc_attr( mn_create_nonce( $action ) ); ?>" />
 				<input type="search" id="mnorg-username-input" value="<?php echo esc_attr( $user ); ?>" />
-				<input type="button" class="button button-secondary favorites-form-submit" value="<?php esc_attr_e( 'Get Favorites' ); ?>" />
+				<input type="button" class="button favorites-form-submit" value="<?php esc_attr_e( 'Get Favorites' ); ?>" />
 			</p>
 		</div>
 
 		<div class="filter-drawer">
 			<div class="buttons">
-				<a class="apply-filters button button-secondary" href="#"><?php _e( 'Apply Filters' ); ?><span></span></a>
-				<a class="clear-filters button button-secondary" href="#"><?php _e( 'Clear' ); ?></a>
+				<button type="button" class="apply-filters button"><?php _e( 'Apply Filters' ); ?><span></span></button>
+				<button type="button" class="clear-filters button" aria-label="<?php esc_attr_e( 'Clear current filters' ); ?>"><?php _e( 'Clear' ); ?></button>
 			</div>
 		<?php
 		$feature_list = get_theme_feature_list();
@@ -197,10 +203,14 @@ include(ABSPATH . 'admin/admin-header.php');
 			echo '</fieldset>';
 		}
 		?>
+			<div class="buttons">
+				<button type="button" class="apply-filters button"><?php _e( 'Apply Filters' ); ?><span></span></button>
+				<button type="button" class="clear-filters button" aria-label="<?php esc_attr_e( 'Clear current filters' ); ?>"><?php _e( 'Clear' ); ?></button>
+			</div>
 			<div class="filtered-by">
 				<span><?php _e( 'Filtering by:' ); ?></span>
 				<div class="tags"></div>
-				<a href="#"><?php _e( 'Edit' ); ?></a>
+				<button type="button" class="button-link edit-filters"><?php _e( 'Edit Filters' ); ?></button>
 			</div>
 		</div>
 	</div>
@@ -256,9 +266,9 @@ if ( $tab ) {
 				<a class="button button-primary activate" href="{{ data.activate_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
 			<# } #>
 			<# if ( data.customize_url ) { #>
-				<a class="button button-secondary load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+				<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
 			<# } else { #>
-				<button class="button-secondary preview install-theme-preview"><?php _e( 'Preview' ); ?></button>
+				<button class="button preview install-theme-preview"><?php _e( 'Preview' ); ?></button>
 			<# } #>
 		<# } else { #>
 			<?php
@@ -266,7 +276,7 @@ if ( $tab ) {
 			$aria_label = sprintf( __( 'Install %s' ), '{{ data.name }}' );
 			?>
 			<a class="button button-primary theme-install" data-name="{{ data.name }}" data-slug="{{ data.id }}" href="{{ data.install_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Install' ); ?></a>
-			<button class="button-secondary preview install-theme-preview"><?php _e( 'Preview' ); ?></button>
+			<button class="button preview install-theme-preview"><?php _e( 'Preview' ); ?></button>
 		<# } #>
 	</div>
 
@@ -319,7 +329,7 @@ if ( $tab ) {
 				</div>
 			</div>
 			<div class="mn-full-overlay-footer">
-				<button type="button" class="collapse-sidebar button-secondary" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse Sidebar' ); ?>">
+				<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse Sidebar' ); ?>">
 					<span class="collapse-sidebar-arrow"></span>
 					<span class="collapse-sidebar-label"><?php _e( 'Collapse' ); ?></span>
 				</button>

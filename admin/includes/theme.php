@@ -102,12 +102,14 @@ function delete_theme($stylesheet, $redirect = '') {
  * Get the Page Templates available in this theme
  *
  * @since 1.5.0
+ * @since 4.7.0 Added the `$post_type` parameter.
  *
- * @param MN_Post|null $post Optional. The post being edited, provided for context.
+ * @param MN_Post|null $post      Optional. The post being edited, provided for context.
+ * @param string       $post_type Optional. Post type to get the templates for. Default 'page'.
  * @return array Key is the template name, value is the filename of the template
  */
-function get_page_templates( $post = null ) {
-	return array_flip( mn_get_theme()->get_page_templates( $post ) );
+function get_page_templates( $post = null, $post_type = 'page' ) {
+	return array_flip( mn_get_theme()->get_page_templates( $post, $post_type ) );
 }
 
 /**
@@ -225,7 +227,7 @@ function get_theme_update_available( $theme ) {
  *
  * @since 3.1.0
  *
- * @param bool $api Optional. Whether try to fetch tags from the mtaandao.co.ke API. Defaults to true.
+ * @param bool $api Optional. Whether try to fetch tags from the Mtaandao.org API. Defaults to true.
  * @return array Array of features keyed by category with translations keyed by slug.
  */
 function get_theme_feature_list( $api = true ) {
@@ -321,7 +323,7 @@ function get_theme_feature_list( $api = true ) {
 }
 
 /**
- * Retrieves theme installer pages from the mtaandao.co.ke Themes API.
+ * Retrieves theme installer pages from the Mtaandao.org Themes API.
  *
  * It is possible for a theme to override the Themes API result with three
  * filters. Assume this is for themes, which can extend on the Theme Info to
@@ -332,7 +334,7 @@ function get_theme_feature_list( $api = true ) {
  * as the second parameter. The hook for {@see 'themes_api_args'} must ensure that
  * an object is returned.
  *
- * The second filter, {@see 'themes_api'}, allows a plugin to override the mtaandao.co.ke
+ * The second filter, {@see 'themes_api'}, allows a plugin to override the Mtaandao.org
  * Theme API entirely. If `$action` is 'query_themes', 'theme_information', or 'feature_list',
  * an object MUST be passed. If `$action` is 'hot_tags', an array should be passed.
  *
@@ -360,9 +362,9 @@ function get_theme_feature_list( $api = true ) {
  * @param string       $action API action to perform: 'query_themes', 'theme_information',
  *                             'hot_tags' or 'feature_list'.
  * @param array|object $args   {
- *     Optional. Array or object of arguments to serialize for the Plugin Info API.
+ *     Optional. Array or object of arguments to serialize for the Themes API.
  *
- *     @type string  $slug     The plugin slug. Default empty.
+ *     @type string  $slug     The theme slug. Default empty.
  *     @type int     $per_page Number of themes per page. Default 24.
  *     @type int     $page     Number of current page. Default 1.
  *     @type int     $number   Number of tags to be queried.
@@ -412,33 +414,33 @@ function themes_api( $action, $args = array() ) {
 	}
 
 	if ( ! isset( $args->locale ) ) {
-		$args->locale = get_locale();
+		$args->locale = get_user_locale();
 	}
 
 	/**
-	 * Filters arguments used to query for installer pages from the mtaandao.co.ke Themes API.
+	 * Filters arguments used to query for installer pages from the Mtaandao.org Themes API.
 	 *
 	 * Important: An object MUST be returned to this filter.
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param object $args   Arguments used to query for installer pages from the mtaandao.co.ke Themes API.
+	 * @param object $args   Arguments used to query for installer pages from the Mtaandao.org Themes API.
 	 * @param string $action Requested action. Likely values are 'theme_information',
 	 *                       'feature_list', or 'query_themes'.
 	 */
 	$args = apply_filters( 'themes_api_args', $args, $action );
 
 	/**
-	 * Filters whether to override the mtaandao.co.ke Themes API.
+	 * Filters whether to override the Mtaandao.org Themes API.
 	 *
-	 * Passing a non-false value will effectively short-circuit the mtaandao.co.ke API request.
+	 * Passing a non-false value will effectively short-circuit the Mtaandao.org API request.
 	 *
 	 * If `$action` is 'query_themes', 'theme_information', or 'feature_list', an object MUST
 	 * be passed. If `$action` is 'hot_tags', an array should be passed.
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param false|object|array $override Whether to override the mtaandao.co.ke Themes API. Default false.
+	 * @param false|object|array $override Whether to override the Mtaandao.org Themes API. Default false.
 	 * @param string             $action   Requested action. Likely values are 'theme_information',
 	 *                                    'feature_list', or 'query_themes'.
 	 * @param object             $args     Arguments used to query for installer pages from the Themes API.
@@ -446,7 +448,7 @@ function themes_api( $action, $args = array() ) {
 	$res = apply_filters( 'themes_api', false, $action, $args );
 
 	if ( ! $res ) {
-		$url = $http_url = 'http://api.mtaandao.co.ke/themes/info/1.0/';
+		$url = $http_url = 'http://api.themes.mtaandao.co.ke/info/1.0/';
 		if ( $ssl = mn_http_supports( array( 'ssl' ) ) )
 			$url = set_url_scheme( $url, 'https' );
 
@@ -459,30 +461,52 @@ function themes_api( $action, $args = array() ) {
 		$request = mn_remote_post( $url, $http_args );
 
 		if ( $ssl && is_mn_error( $request ) ) {
-			if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
-				trigger_error( __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ) . ' ' . __( '(Mtaandao could not establish a secure connection to mtaandao.co.ke. Please contact your server administrator.)' ), headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE );
+			if ( ! mn_doing_ajax() ) {
+				trigger_error(
+					sprintf(
+						/* translators: %s: support forums URL */
+						__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+						__( 'https://mtaandao.co.ke/support/' )
+					) . ' ' . __( '(Mtaandao could not establish a secure connection to Mtaandao.org. Please contact your server administrator.)' ),
+					headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+				);
 			}
 			$request = mn_remote_post( $http_url, $http_args );
 		}
 
 		if ( is_mn_error($request) ) {
-			$res = new MN_Error('themes_api_failed', __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ), $request->get_error_message() );
+			$res = new MN_Error( 'themes_api_failed',
+				sprintf(
+					/* translators: %s: support forums URL */
+					__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+					__( 'https://mtaandao.co.ke/support/' )
+				),
+				$request->get_error_message()
+			);
 		} else {
 			$res = maybe_unserialize( mn_remote_retrieve_body( $request ) );
-			if ( ! is_object( $res ) && ! is_array( $res ) )
-				$res = new MN_Error('themes_api_failed', __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ), mn_remote_retrieve_body( $request ) );
+			if ( ! is_object( $res ) && ! is_array( $res ) ) {
+				$res = new MN_Error( 'themes_api_failed',
+					sprintf(
+						/* translators: %s: support forums URL */
+						__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+						__( 'https://mtaandao.co.ke/support/' )
+					),
+					mn_remote_retrieve_body( $request )
+				);
+			}
 		}
 	}
 
 	/**
-	 * Filters the returned mtaandao.co.ke Themes API response.
+	 * Filters the returned Mtaandao.org Themes API response.
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param array|object|MN_Error $res    mtaandao.co.ke Themes API response.
+	 * @param array|object|MN_Error $res    Mtaandao.org Themes API response.
 	 * @param string                $action Requested action. Likely values are 'theme_information',
 	 *                                      'feature_list', or 'query_themes'.
-	 * @param object                $args   Arguments used to query for installer pages from the mtaandao.co.ke Themes API.
+	 * @param object                $args   Arguments used to query for installer pages from the Mtaandao.org Themes API.
 	 */
 	return apply_filters( 'themes_api_result', $res, $action, $args );
 }
@@ -572,6 +596,7 @@ function mn_prepare_themes_for_js( $themes = null ) {
 			'parent'       => $parent,
 			'active'       => $slug === $current_theme,
 			'hasUpdate'    => isset( $updates[ $slug ] ),
+			'hasPackage'   => isset( $updates[ $slug ] ) && ! empty( $updates[ $slug ][ 'package' ] ),
 			'update'       => get_theme_update_available( $theme ),
 			'actions'      => array(
 				'activate' => current_user_can( 'switch_themes' ) ? mn_nonce_url( admin_url( 'themes.php?action=activate&amp;stylesheet=' . $encoded_slug ), 'switch-theme_' . $slug ) : null,

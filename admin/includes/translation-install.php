@@ -24,7 +24,7 @@ function translations_api( $type, $args = null ) {
 	}
 
 	/**
-	 * Allows a plugin to override the mtaandao.co.ke Translation Install API entirely.
+	 * Allows a plugin to override the Mtaandao.org Translation Install API entirely.
 	 *
 	 * @since 4.0.0
 	 *
@@ -56,17 +56,38 @@ function translations_api( $type, $args = null ) {
 		$request = mn_remote_post( $url, $options );
 
 		if ( $ssl && is_mn_error( $request ) ) {
-			trigger_error( __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ) . ' ' . __( '(Mtaandao could not establish a secure connection to mtaandao.co.ke. Please contact your server administrator.)' ), headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE );
+			trigger_error(
+				sprintf(
+					/* translators: %s: support forums URL */
+					__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+					__( 'https://mtaandao.co.ke/support/' )
+				) . ' ' . __( '(Mtaandao could not establish a secure connection to Mtaandao.org. Please contact your server administrator.)' ),
+				headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+			);
 
 			$request = mn_remote_post( $http_url, $options );
 		}
 
 		if ( is_mn_error( $request ) ) {
-			$res = new MN_Error( 'translations_api_failed', __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ), $request->get_error_message() );
+			$res = new MN_Error( 'translations_api_failed',
+				sprintf(
+					/* translators: %s: support forums URL */
+					__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+					__( 'https://mtaandao.co.ke/support/' )
+				),
+				$request->get_error_message()
+			);
 		} else {
 			$res = json_decode( mn_remote_retrieve_body( $request ), true );
 			if ( ! is_object( $res ) && ! is_array( $res ) ) {
-				$res = new MN_Error( 'translations_api_failed', __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ), mn_remote_retrieve_body( $request ) );
+				$res = new MN_Error( 'translations_api_failed',
+					sprintf(
+						/* translators: %s: support forums URL */
+						__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+						__( 'https://mtaandao.co.ke/support/' )
+					),
+					mn_remote_retrieve_body( $request )
+				);
 			}
 		}
 	}
@@ -84,7 +105,7 @@ function translations_api( $type, $args = null ) {
 }
 
 /**
- * Get available translations from the mtaandao.co.ke API.
+ * Get available translations from the Mtaandao.org API.
  *
  * @since 4.0.0
  *
@@ -233,7 +254,7 @@ function mn_can_install_language_pack() {
 	$upgrader = new Language_Pack_Upgrader( $skin );
 	$upgrader->init();
 
-	$check = $upgrader->fs_connect( array( MAIN, MN_LANG_DIR ) );
+	$check = $upgrader->fs_connect( array( MAIN_DIR, MN_LANG_DIR ) );
 
 	if ( ! $check || is_mn_error( $check ) ) {
 		return false;

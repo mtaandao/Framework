@@ -4,13 +4,13 @@
  *
  * @package Mtaandao
  * @subpackage HTTP
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
  * Core wrapper object for a Requests_Response for standardisation.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @see MN_HTTP_Response
  */
@@ -18,7 +18,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Requests Response object.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access protected
 	 * @var Requests_Response
 	 */
@@ -27,7 +27,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Filename the response was saved to.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access protected
 	 * @var string|null
 	 */
@@ -36,7 +36,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Constructor.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param Requests_Response $response HTTP response.
@@ -50,7 +50,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Retrieves the response object for the request.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @return Requests_Response HTTP response.
@@ -62,20 +62,21 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Retrieves headers associated with the response.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
-	 * @return array Map of header name to header value.
+	 * @see \Requests_Utility_CaseInsensitiveDictionary
+	 *
+	 * @return \Requests_Utility_CaseInsensitiveDictionary Map of header name to header value.
 	 */
 	public function get_headers() {
-		// Ensure headers remain case-insensitive
+		// Ensure headers remain case-insensitive.
 		$converted = new Requests_Utility_CaseInsensitiveDictionary();
 
 		foreach ( $this->response->headers->getAll() as $key => $value ) {
 			if ( count( $value ) === 1 ) {
 				$converted[ $key ] = $value[0];
-			}
-			else {
+			} else {
 				$converted[ $key ] = $value;
 			}
 		}
@@ -86,7 +87,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Sets all header values.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param array $headers Map of header name to header value.
@@ -98,7 +99,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Sets a single HTTP header.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string $key     Header name.
@@ -117,7 +118,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Retrieves the HTTP return code for the response.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @return int The 3-digit HTTP status code.
@@ -129,7 +130,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Sets the 3-digit HTTP status code.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param int $code HTTP status.
@@ -141,7 +142,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Retrieves the response data.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @return mixed Response data.
@@ -153,7 +154,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Sets the response data.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param mixed $data Response data.
@@ -165,7 +166,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Retrieves cookies from the response.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @return MN_HTTP_Cookie[] List of cookie objects.
@@ -188,7 +189,7 @@ class MN_HTTP_Requests_Response extends MN_HTTP_Response {
 	/**
 	 * Converts the object to a MN_Http response array.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @return array MN_Http response array, per MN_Http::request().

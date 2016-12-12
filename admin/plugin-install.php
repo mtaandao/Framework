@@ -64,7 +64,7 @@ mn_enqueue_script( 'updates' );
  *
  * @since 2.7.0
  */
-do_action( "install_plugins_pre_$tab" );
+do_action( "install_plugins_pre_{$tab}" );
 
 /*
  * Call the pre upload action on every non-upload plugin install screen
@@ -79,7 +79,7 @@ get_current_screen()->add_help_tab( array(
 'id'		=> 'overview',
 'title'		=> __('Overview'),
 'content'	=>
-	'<p>' . sprintf( __('Plugins hook into Mtaandao to extend its functionality with custom features. Plugins are developed independently from the core Mtaandao application by thousands of developers all over the world. All plugins in the official <a href="%s" target="_blank">Mtaandao Plugin Directory</a> are compatible with the license Mtaandao uses.' ), 'https://mtaandao.co.ke/plugins/' ) . '</p>' .
+	'<p>' . sprintf( __('Plugins hook into Mtaandao to extend its functionality with custom features. Plugins are developed independently from the core Mtaandao application by thousands of developers all over the world. All plugins in the official <a href="%s">Mtaandao Plugin Directory</a> are compatible with the license Mtaandao uses.' ), __( 'https://mtaandao.co.ke/plugins/' ) ) . '</p>' .
 	'<p>' . __( 'You can find new plugins to install by searching or browsing the directory right here in your own Plugins section.' ) . ' <span id="live-search-desc" class="hide-if-no-js">' . __( 'The search results will be updated as you type.' ) . '</span></p>'
 
 ) );
@@ -89,14 +89,14 @@ get_current_screen()->add_help_tab( array(
 'content'	=>
 	'<p>' . __('If you know what you&#8217;re looking for, Search is your best bet. The Search screen has options to search the Mtaandao Plugin Directory for a particular Term, Author, or Tag. You can also search the directory by selecting popular tags. Tags in larger type mean more plugins have been labeled with that tag.') . '</p>' .
 	'<p>' . __( 'If you just want to get an idea of what&#8217;s available, you can browse Featured and Popular plugins by using the links above the plugins list. These sections rotate regularly.' ) . '</p>' .
-	'<p>' . __( 'You can also browse a user&#8217;s favorite plugins, by using the Favorites link above the plugins list and entering their mtaandao.co.ke username.' ) . '</p>' .
+	'<p>' . __( 'You can also browse a user&#8217;s favorite plugins, by using the Favorites link above the plugins list and entering their Mtaandao.org username.' ) . '</p>' .
 	'<p>' . __( 'If you want to install a plugin that you&#8217;ve downloaded elsewhere, click the Upload Plugin button above the plugins list. You will be prompted to upload the .zip package, and once uploaded, you can activate the new plugin.' ) . '</p>'
 ) );
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Plugins_Add_New_Screen" target="_blank">Documentation on Installing Plugins</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Plugins_Add_New_Screen">Documentation on Installing Plugins</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 get_current_screen()->set_screen_reader_content( array(
@@ -129,7 +129,7 @@ include(ABSPATH . 'admin/admin-header.php');
  * Output the upload plugin form on every non-upload plugin install screen, so it can be
  * displayed via JavaScript rather then opening up the devoted upload plugin page.
  */
-if ( $tab !== 'upload' ) {
+if ( 'upload' !== $tab ) {
 	?>
 	<div class="upload-plugin-wrap">
 		<?php
@@ -138,9 +138,6 @@ if ( $tab !== 'upload' ) {
 		?>
 	</div>
 	<?php
-}
-
-if ( $tab !== 'upload' ) {
 	$mn_list_table->views();
 	echo '<br class="clear" />';
 }
@@ -155,7 +152,7 @@ if ( $tab !== 'upload' ) {
  *
  * @param int $paged The current page number of the plugins list table.
  */
-do_action( "install_plugins_$tab", $paged ); ?>
+do_action( "install_plugins_{$tab}", $paged ); ?>
 
 	<span class="spinner"></span>
 </div>

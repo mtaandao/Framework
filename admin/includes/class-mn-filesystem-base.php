@@ -60,14 +60,14 @@ class MN_Filesystem_Base {
 	 */
 	public function abspath() {
 		$folder = $this->find_folder(ABSPATH);
-		// Perhaps the FTP folder is rooted at the Mtaandao install, Check for mn-includes folder in root, Could have some false positives, but rare.
+		// Perhaps the FTP folder is rooted at the Mtaandao install, Check for res folder in root, Could have some false positives, but rare.
 		if ( ! $folder && $this->is_dir( '/' . RES ) )
 			$folder = '/';
 		return $folder;
 	}
 
 	/**
-	 * Return the path on the remote filesystem of MAIN.
+	 * Return the path on the remote filesystem of MAIN_DIR.
 	 *
 	 * @access public
 	 * @since 2.7.0
@@ -75,11 +75,11 @@ class MN_Filesystem_Base {
 	 * @return string The location of the remote path.
 	 */
 	public function mn_content_dir() {
-		return $this->find_folder(MAIN);
+		return $this->find_folder(MAIN_DIR);
 	}
 
 	/**
-	 * Return the path on the remote filesystem of MN_PLUGIN_DIR.
+	 * Return the path on the remote filesystem of PLUGIN_DIR.
 	 *
 	 * @access public
 	 * @since 2.7.0
@@ -87,7 +87,7 @@ class MN_Filesystem_Base {
 	 * @return string The location of the remote path.
 	 */
 	public function mn_plugins_dir() {
-		return $this->find_folder(MN_PLUGIN_DIR);
+		return $this->find_folder(PLUGIN_DIR);
 	}
 
 	/**
@@ -104,7 +104,7 @@ class MN_Filesystem_Base {
 
 		// Account for relative theme roots
 		if ( '/themes' == $theme_root || ! is_dir( $theme_root ) )
-			$theme_root = MAIN . $theme_root;
+			$theme_root = MAIN_DIR . $theme_root;
 
 		return $this->find_folder( $theme_root );
 	}
@@ -185,8 +185,8 @@ class MN_Filesystem_Base {
 		if ( stripos($this->method, 'ftp') !== false ) {
 			$constant_overrides = array(
 				'FTP_BASE' => ABSPATH,
-				'FTP_CONTENT_DIR' => MAIN,
-				'FTP_PLUGIN_DIR' => MN_PLUGIN_DIR,
+				'FTP_CONTENT_DIR' => MAIN_DIR,
+				'FTP_PLUGIN_DIR' => PLUGIN_DIR,
 				'FTP_LANG_DIR' => MN_LANG_DIR
 			);
 

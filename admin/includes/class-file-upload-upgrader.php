@@ -4,7 +4,7 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
@@ -14,7 +14,7 @@
  * to the Upgrade/Installer functions.
  *
  * @since 2.8.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
  */
 class File_Upload_Upgrader {
 

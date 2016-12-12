@@ -7,7 +7,7 @@
  * @since 2.3.0
  */
 
-if ( ! defined('MN_ADMIN') ) {
+if ( ! defined('ADMIN') ) {
 	/*
 	 * This file is being included from a file other than admin/admin.php, so
 	 * some setup was skipped. Make sure the admin message catalog is loaded since
@@ -18,7 +18,6 @@ if ( ! defined('MN_ADMIN') ) {
 
 /** Mtaandao Administration Hooks */
 require_once(ABSPATH . 'admin/includes/admin-filters.php');
-require_once(ABSPATH . 'admin/includes/branding.php');
 
 /** Mtaandao Bookmark Administration API */
 require_once(ABSPATH . 'admin/includes/bookmark.php');
@@ -49,8 +48,6 @@ require_once(ABSPATH . 'admin/includes/plugin.php');
 
 /** Mtaandao Post Administration API */
 require_once(ABSPATH . 'admin/includes/post.php');
-//require_once(ABSPATH . 'admin/includes/meta-box.php');
-require_once(ABSPATH . 'admin/includes/shortcodes.php');
 
 /** Mtaandao Administration Screen API */
 require_once(ABSPATH . 'admin/includes/class-mn-screen.php');
@@ -64,6 +61,7 @@ require_once(ABSPATH . 'admin/includes/template.php');
 
 /** Mtaandao List Table Administration API and base class */
 require_once(ABSPATH . 'admin/includes/class-mn-list-table.php');
+require_once(ABSPATH . 'admin/includes/class-mn-list-table-compat.php');
 require_once(ABSPATH . 'admin/includes/list-table.php');
 
 /** Mtaandao Theme Administration API */
@@ -71,7 +69,6 @@ require_once(ABSPATH . 'admin/includes/theme.php');
 
 /** Mtaandao User Administration API */
 require_once(ABSPATH . 'admin/includes/user.php');
-require_once(ABSPATH . 'admin/includes/role-manager.php');
 
 /** Mtaandao Site Icon API */
 require_once(ABSPATH . 'admin/includes/class-mn-site-icon.php');

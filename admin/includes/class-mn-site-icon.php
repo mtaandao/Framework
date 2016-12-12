@@ -240,8 +240,3 @@ class MN_Site_Icon {
 		return $value;
 	}
 }
-
-/**
- * @global MN_Site_Icon $mn_site_icon
- */
-$GLOBALS['mn_site_icon'] = new MN_Site_Icon;

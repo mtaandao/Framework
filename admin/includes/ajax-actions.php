@@ -79,21 +79,19 @@ function mn_ajax_nopriv_heartbeat() {
  * Ajax handler for fetching a list table.
  *
  * @since 3.1.0
- *
- * @global MN_List_Table $mn_list_table
  */
 function mn_ajax_fetch_list() {
-	global $mn_list_table;
-
 	$list_class = $_GET['list_args']['class'];
 	check_ajax_referer( "fetch-list-$list_class", '_ajax_fetch_list_nonce' );
 
 	$mn_list_table = _get_list_table( $list_class, array( 'screen' => $_GET['list_args']['screen']['id'] ) );
-	if ( ! $mn_list_table )
+	if ( ! $mn_list_table ) {
 		mn_die( 0 );
+	}
 
-	if ( ! $mn_list_table->ajax_user_can() )
+	if ( ! $mn_list_table->ajax_user_can() ) {
 		mn_die( -1 );
+	}
 
 	$mn_list_table->ajax_response();
 
@@ -136,9 +134,9 @@ function mn_ajax_ajax_tag_search() {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param int    $characters The minimum number of characters required. Default 2.
-	 * @param object $tax        The taxonomy object.
-	 * @param string $s          The search term.
+	 * @param int         $characters The minimum number of characters required. Default 2.
+	 * @param MN_Taxonomy $tax        The taxonomy object.
+	 * @param string      $s          The search term.
 	 */
 	$term_search_min_chars = (int) apply_filters( 'term_search_min_chars', 2, $tax, $s );
 
@@ -596,12 +594,11 @@ function mn_ajax_delete_tag() {
 	$tag_id = (int) $_POST['tag_ID'];
 	check_ajax_referer( "delete-tag_$tag_id" );
 
-	$taxonomy = !empty($_POST['taxonomy']) ? $_POST['taxonomy'] : 'post_tag';
-	$tax = get_taxonomy($taxonomy);
-
-	if ( !current_user_can( $tax->cap->delete_terms ) )
+	if ( ! current_user_can( 'delete_term', $tag_id ) ) {
 		mn_die( -1 );
+	}
 
+	$taxonomy = !empty($_POST['taxonomy']) ? $_POST['taxonomy'] : 'post_tag';
 	$tag = get_term( $tag_id, $taxonomy );
 	if ( !$tag || is_mn_error( $tag ) )
 		mn_die( 1 );
@@ -788,7 +785,7 @@ function mn_ajax_dim_comment() {
 }
 
 /**
- * Ajax handler for deleting a link category.
+ * Ajax handler for adding a link category.
  *
  * @since 3.1.0
  *
@@ -798,8 +795,10 @@ function mn_ajax_add_link_category( $action ) {
 	if ( empty( $action ) )
 		$action = 'add-link-category';
 	check_ajax_referer( $action );
-	if ( !current_user_can( 'manage_categories' ) )
+	$tax = get_taxonomy( 'link_category' );
+	if ( ! current_user_can( $tax->cap->manage_terms ) ) {
 		mn_die( -1 );
+	}
 	$names = explode(',', mn_unslash( $_POST['newcat'] ) );
 	$x = new MN_Ajax_Response();
 	foreach ( $names as $cat_name ) {
@@ -829,12 +828,8 @@ function mn_ajax_add_link_category( $action ) {
  * Ajax handler to add a tag.
  *
  * @since 3.1.0
- *
- * @global MN_List_Table $mn_list_table
  */
 function mn_ajax_add_tag() {
-	global $mn_list_table;
-
 	check_ajax_referer( 'add-tag', '_mnnonce_add-tag' );
 	$taxonomy = !empty($_POST['taxonomy']) ? $_POST['taxonomy'] : 'post_tag';
 	$tax = get_taxonomy($taxonomy);
@@ -933,36 +928,39 @@ function mn_ajax_get_tagcloud() {
  *
  * @since 3.1.0
  *
- * @global MN_List_Table $mn_list_table
  * @global int           $post_id
  *
  * @param string $action Action to perform.
  */
 function mn_ajax_get_comments( $action ) {
-	global $mn_list_table, $post_id;
-	if ( empty( $action ) )
+	global $post_id;
+	if ( empty( $action ) ) {
 		$action = 'get-comments';
-
+	}
 	check_ajax_referer( $action );
 
 	if ( empty( $post_id ) && ! empty( $_REQUEST['p'] ) ) {
 		$id = absint( $_REQUEST['p'] );
-		if ( ! empty( $id ) )
+		if ( ! empty( $id ) ) {
 			$post_id = $id;
+		}
 	}
 
-	if ( empty( $post_id ) )
+	if ( empty( $post_id ) ) {
 		mn_die( -1 );
+	}
 
 	$mn_list_table = _get_list_table( 'MN_Post_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
 
-	if ( ! current_user_can( 'edit_post', $post_id ) )
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		mn_die( -1 );
+	}
 
 	$mn_list_table->prepare_items();
 
-	if ( !$mn_list_table->has_items() )
+	if ( ! $mn_list_table->has_items() ) {
 		mn_die( 1 );
+	}
 
 	$x = new MN_Ajax_Response();
 	ob_start();
@@ -986,12 +984,9 @@ function mn_ajax_get_comments( $action ) {
  *
  * @since 3.1.0
  *
- * @global MN_List_Table $mn_list_table
- *
  * @param string $action Action to perform.
  */
 function mn_ajax_replyto_comment( $action ) {
-	global $mn_list_table;
 	if ( empty( $action ) )
 		$action = 'replyto-comment';
 
@@ -1108,12 +1103,8 @@ function mn_ajax_replyto_comment( $action ) {
  * Ajax handler for editing a comment.
  *
  * @since 3.1.0
- *
- * @global MN_List_Table $mn_list_table
  */
 function mn_ajax_edit_comment() {
-	global $mn_list_table;
-
 	check_ajax_referer( 'replyto-comment', '_ajax_nonce-replyto-comment' );
 
 	$comment_id = (int) $_POST['comment_ID'];
@@ -1257,6 +1248,7 @@ function mn_ajax_add_meta() {
 			$post_data['post_type'] = $post->post_type;
 			$post_data['post_status'] = 'draft';
 			$now = current_time('timestamp', 1);
+			/* translators: 1: Post creation date, 2: Post creation time */
 			$post_data['post_title'] = sprintf( __( 'Draft created on %1$s at %2$s' ), date( __( 'F j, Y' ), $now ), date( __( 'g:i a' ), $now ) );
 
 			$pid = edit_post( $post_data );
@@ -1327,14 +1319,12 @@ function mn_ajax_add_meta() {
  *
  * @since 3.1.0
  *
- * @global MN_List_Table $mn_list_table
- *
  * @param string $action Action to perform.
  */
 function mn_ajax_add_user( $action ) {
-	global $mn_list_table;
-	if ( empty( $action ) )
+	if ( empty( $action ) ) {
 		$action = 'add-user';
+	}
 
 	check_ajax_referer( $action );
 	if ( ! current_user_can('create_users') )
@@ -1608,11 +1598,9 @@ function mn_ajax_sample_permalink() {
  * Ajax handler for Quick Edit saving a post from a list table.
  *
  * @since 3.1.0
- *
- * @global MN_List_Table $mn_list_table
  */
 function mn_ajax_inline_save() {
-	global $mn_list_table, $mode;
+	global $mode;
 
 	check_ajax_referer( 'inlineeditnonce', '_inline_edit' );
 
@@ -1708,12 +1696,8 @@ function mn_ajax_inline_save() {
  * Ajax handler for quick edit saving for a term.
  *
  * @since 3.1.0
- *
- * @global MN_List_Table $mn_list_table
  */
 function mn_ajax_inline_save_tax() {
-	global $mn_list_table;
-
 	check_ajax_referer( 'taxinlineeditnonce', '_inline_edit' );
 
 	$taxonomy = sanitize_key( $_POST['taxonomy'] );
@@ -1721,13 +1705,15 @@ function mn_ajax_inline_save_tax() {
 	if ( ! $tax )
 		mn_die( 0 );
 
-	if ( ! current_user_can( $tax->cap->edit_terms ) )
+	if ( ! isset( $_POST['tax_ID'] ) || ! ( $id = (int) $_POST['tax_ID'] ) ) {
 		mn_die( -1 );
+	}
+
+	if ( ! current_user_can( 'edit_term', $id ) ) {
+		mn_die( -1 );
+	}
 
 	$mn_list_table = _get_list_table( 'MN_Terms_List_Table', array( 'screen' => 'edit-' . $taxonomy ) );
-
-	if ( ! isset($_POST['tax_ID']) || ! ( $id = (int) $_POST['tax_ID'] ) )
-		mn_die( -1 );
 
 	$tag = get_term( $id, $taxonomy );
 	$_POST['description'] = $tag->description;
@@ -2033,7 +2019,7 @@ function mn_ajax_upload_attachment() {
 			echo mn_json_encode( array(
 				'success' => false,
 				'data'    => array(
-					'message'  => __( "You don't have permission to attach files to this post." ),
+					'message'  => __( 'Sorry, you are not allowed to attach files to this post.' ),
 					'filename' => $_FILES['async-upload']['name'],
 				)
 			) );
@@ -2166,7 +2152,7 @@ function mn_ajax_set_post_thumbnail() {
 /**
  * Ajax handler for retrieving HTML for the featured image.
  *
- * @since 16.10.0
+ * @since 4.6.0
  */
 function mn_ajax_get_post_thumbnail_html() {
 	$post_ID = intval( $_POST['post_id'] );
@@ -2414,6 +2400,11 @@ function mn_ajax_query_attachments() {
 
 	if ( current_user_can( get_post_type_object( 'attachment' )->cap->read_private_posts ) )
 		$query['post_status'] .= ',private';
+
+	// Filter query clauses to include filenames.
+	if ( isset( $query['s'] ) ) {
+		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+	}
 
 	/**
 	 * Filters the arguments passed to MN_Query during an Ajax
@@ -2831,16 +2822,16 @@ function mn_ajax_get_revision_diffs() {
  *
  * @since 3.8.0
  *
- * @global array $_mn_admin_css_colors
+ * @global array $_admin_css_colors
  */
 function mn_ajax_save_user_color_scheme() {
-	global $_mn_admin_css_colors;
+	global $_admin_css_colors;
 
 	check_ajax_referer( 'save-color-scheme', 'nonce' );
 
 	$color_scheme = sanitize_key( $_POST['color_scheme'] );
 
-	if ( ! isset( $_mn_admin_css_colors[ $color_scheme ] ) ) {
+	if ( ! isset( $_admin_css_colors[ $color_scheme ] ) ) {
 		mn_send_json_error();
 	}
 
@@ -3132,38 +3123,28 @@ function mn_ajax_destroy_sessions() {
  * Ajax handler for saving a post from Press This.
  *
  * @since 4.2.0
- *
- * @global MN_Press_This $mn_press_this
  */
 function mn_ajax_press_this_save_post() {
-	if ( empty( $GLOBALS['mn_press_this'] ) ) {
-		include( ABSPATH . 'admin/includes/class-mn-press-this.php' );
-	}
-
-	$GLOBALS['mn_press_this']->save_post();
+	include( ABSPATH . 'admin/includes/class-mn-press-this.php' );
+	$mn_press_this = new MN_Press_This();
+	$mn_press_this->save_post();
 }
 
 /**
  * Ajax handler for creating new category from Press This.
  *
  * @since 4.2.0
- *
- * @global MN_Press_This $mn_press_this
  */
 function mn_ajax_press_this_add_category() {
-	if ( empty( $GLOBALS['mn_press_this'] ) ) {
-		include( ABSPATH . 'admin/includes/class-mn-press-this.php' );
-	}
-
-	$GLOBALS['mn_press_this']->add_category();
+	include( ABSPATH . 'admin/includes/class-mn-press-this.php' );
+	$mn_press_this = new MN_Press_This();
+	$mn_press_this->add_category();
 }
 
 /**
  * Ajax handler for cropping an image.
  *
  * @since 4.3.0
- *
- * @global MN_Site_Icon $mn_site_icon
  */
 function mn_ajax_crop_image() {
 	$attachment_id = absint( $_POST['id'] );
@@ -3184,7 +3165,7 @@ function mn_ajax_crop_image() {
 	switch ( $context ) {
 		case 'site-icon':
 			require_once ABSPATH . '/admin/includes/class-mn-site-icon.php';
-			global $mn_site_icon;
+			$mn_site_icon = new MN_Site_Icon();
 
 			// Skip creating a new attachment if the attachment is a Site Icon.
 			if ( get_post_meta( $attachment_id, '_mn_attachment_context', true ) == $context ) {
@@ -3282,7 +3263,7 @@ function mn_ajax_generate_password() {
 }
 
 /**
- * Ajax handler for saving the user's mtaandao.co.ke username.
+ * Ajax handler for saving the user's Mtaandao.org username.
  *
  * @since 4.4.0
  */
@@ -3305,7 +3286,7 @@ function mn_ajax_save_mnorg_username() {
 /**
  * Ajax handler for installing a theme.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @see Theme_Upgrader
  */
@@ -3412,7 +3393,7 @@ function mn_ajax_install_theme() {
 /**
  * Ajax handler for updating a theme.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @see Theme_Upgrader
  */
@@ -3427,7 +3408,7 @@ function mn_ajax_update_theme() {
 		) );
 	}
 
-	$stylesheet = sanitize_key( mn_unslash( $_POST['slug'] ) );
+	$stylesheet = preg_replace( '/[^A-z0-9_\-]/', '', mn_unslash( $_POST['slug'] ) );
 	$status     = array(
 		'update'     => 'theme',
 		'slug'       => $stylesheet,
@@ -3497,7 +3478,7 @@ function mn_ajax_update_theme() {
 /**
  * Ajax handler for deleting a theme.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @see delete_theme()
  */
@@ -3512,7 +3493,7 @@ function mn_ajax_delete_theme() {
 		) );
 	}
 
-	$stylesheet = sanitize_key( mn_unslash( $_POST['slug'] ) );
+	$stylesheet = preg_replace( '/[^A-z0-9_\-]/', '', mn_unslash( $_POST['slug'] ) );
 	$status     = array(
 		'delete' => 'theme',
 		'slug'   => $stylesheet,
@@ -3565,7 +3546,7 @@ function mn_ajax_delete_theme() {
 /**
  * Ajax handler for installing a plugin.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @see Plugin_Upgrader
  */
@@ -3641,16 +3622,20 @@ function mn_ajax_install_plugin() {
 	}
 
 	$install_status = install_plugin_install_status( $api );
+	$pagenow = isset( $_POST['pagenow'] ) ? sanitize_key( $_POST['pagenow'] ) : '';
+
+	// If install request is coming from import page, do not return network activation link.
+	$plugins_url = ( 'import' === $pagenow ) ? admin_url( 'plugins.php' ) : network_admin_url( 'plugins.php' );
 
 	if ( current_user_can( 'activate_plugins' ) && is_plugin_inactive( $install_status['file'] ) ) {
 		$status['activateUrl'] = add_query_arg( array(
 			'_mnnonce' => mn_create_nonce( 'activate-plugin_' . $install_status['file'] ),
 			'action'   => 'activate',
 			'plugin'   => $install_status['file'],
-		), network_admin_url( 'plugins.php' ) );
+		), $plugins_url );
 	}
 
-	if ( is_multisite() && current_user_can( 'manage_network_plugins' ) ) {
+	if ( is_multisite() && current_user_can( 'manage_network_plugins' ) && 'import' !== $pagenow ) {
 		$status['activateUrl'] = add_query_arg( array( 'networkwide' => 1 ), $status['activateUrl'] );
 	}
 
@@ -3689,7 +3674,7 @@ function mn_ajax_update_plugin() {
 		mn_send_json_error( $status );
 	}
 
-	$plugin_data          = get_plugin_data( MN_PLUGIN_DIR . '/' . $plugin );
+	$plugin_data          = get_plugin_data( PLUGIN_DIR . '/' . $plugin );
 	$status['plugin']     = $plugin;
 	$status['pluginName'] = $plugin_data['Name'];
 
@@ -3698,7 +3683,7 @@ function mn_ajax_update_plugin() {
 		$status['oldVersion'] = sprintf( __( 'Version %s' ), $plugin_data['Version'] );
 	}
 
-	include_once ABSPATH . 'admin/includes/class-mn-upgrader.php';
+	include_once( ABSPATH . 'admin/includes/class-mn-upgrader.php' );
 
 	mn_update_plugins();
 
@@ -3763,7 +3748,7 @@ function mn_ajax_update_plugin() {
 /**
  * Ajax handler for deleting a plugin.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @see delete_plugins()
  */
@@ -3790,7 +3775,7 @@ function mn_ajax_delete_plugin() {
 		mn_send_json_error( $status );
 	}
 
-	$plugin_data          = get_plugin_data( MN_PLUGIN_DIR . '/' . $plugin );
+	$plugin_data          = get_plugin_data( PLUGIN_DIR . '/' . $plugin );
 	$status['plugin']     = $plugin;
 	$status['pluginName'] = $plugin_data['Name'];
 
@@ -3834,7 +3819,7 @@ function mn_ajax_delete_plugin() {
 /**
  * Ajax handler for searching plugins.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @global string $s Search term.
  */
@@ -3879,7 +3864,7 @@ function mn_ajax_search_plugins() {
 /**
  * Ajax handler for searching plugins to install.
  *
- * @since 16.10.0
+ * @since 4.6.0
  */
 function mn_ajax_search_install_plugins() {
 	check_ajax_referer( 'updates' );

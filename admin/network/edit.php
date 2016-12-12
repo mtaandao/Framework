@@ -10,9 +10,6 @@
 /** Load Mtaandao Administration Bootstrap */
 require_once( dirname( __FILE__ ) . '/admin.php' );
 
-if ( ! is_multisite() )
-	mn_die( __( 'Multisite support is not enabled.' ) );
-
 if ( empty( $_GET['action'] ) ) {
 	mn_redirect( network_admin_url() );
 	exit;

@@ -2,13 +2,13 @@
  * Button mixin- creates 3d-ish button effect with correct
  * highlights/shadows, based on a base color.
  */
-html {
+body {
   background: #f1f1f1;
 }
 
 /* Links */
 a {
-  color: #21b68e;
+  color: #21b16e;
 }
 
 a:hover, a:active, a:focus {
@@ -40,7 +40,7 @@ input[type=radio]:checked:before {
 .mn-core-ui .button-primary {
   background: #e1a948;
   border-color: #d39323 #bd831f #bd831f;
-  color: white;
+  color: #fff;
   -webkit-box-shadow: 0 1px 0 #bd831f;
   box-shadow: 0 1px 0 #bd831f;
   text-shadow: 0 -1px 1px #bd831f, -1px 0 1px #bd831f, 0 1px 1px #bd831f, 1px 0 1px #bd831f;
@@ -49,7 +49,7 @@ input[type=radio]:checked:before {
 .mn-core-ui .button-primary:hover, .mn-core-ui .button-primary:focus {
   background: #e3af55;
   border-color: #bd831f;
-  color: white;
+  color: #fff;
   -webkit-box-shadow: 0 1px 0 #bd831f;
   box-shadow: 0 1px 0 #bd831f;
 }
@@ -259,19 +259,12 @@ ul#adminmenu > li.current > a.current:after {
 }
 
 /* Admin Menu: collapse button */
-#collapse-menu {
+#collapse-button {
   color: #e5f8ff;
 }
 
-#collapse-menu:hover {
-  color: #fff;
-}
-
-#collapse-button div:after {
-  color: #e5f8ff;
-}
-
-#collapse-menu:hover #collapse-button div:after {
+#collapse-button:hover,
+#collapse-button:focus {
   color: #fff;
 }
 
@@ -352,6 +345,7 @@ ul#adminmenu > li.current > a.current:after {
 #mnadminbar li:hover .ab-item:before,
 #mnadminbar li a:focus .ab-icon:before,
 #mnadminbar li .ab-item:focus:before,
+#mnadminbar li .ab-item:focus .ab-icon:before,
 #mnadminbar li.hover .ab-icon:before,
 #mnadminbar li.hover .ab-item:before,
 #mnadminbar li:hover #adminbarsearch:before,
@@ -378,26 +372,26 @@ ul#adminmenu > li.current > a.current:after {
   color: #e5f8ff;
 }
 
-#mnadminbar > #mn-toolbar > #mn-admin-bar-top-secondary > #mn-admin-bar-search #adminbarsearch input.adminbar-input:focus {
+#mnadminbar > #mn-toolbar > #admin-bar-top-secondary > #admin-bar-search #adminbarsearch input.adminbar-input:focus {
   color: #fff;
   background: #6eb9d4;
 }
 
 /* Admin Bar: my account */
-#mnadminbar .quicklinks li#mn-admin-bar-my-account.with-avatar > a img {
+#mnadminbar .quicklinks li#admin-bar-my-account.with-avatar > a img {
   border-color: #6eb9d4;
   background-color: #6eb9d4;
 }
 
-#mnadminbar #mn-admin-bar-user-info .display-name {
+#mnadminbar #admin-bar-user-info .display-name {
   color: #fff;
 }
 
-#mnadminbar #mn-admin-bar-user-info a:hover .display-name {
+#mnadminbar #admin-bar-user-info a:hover .display-name {
   color: #fff;
 }
 
-#mnadminbar #mn-admin-bar-user-info .username {
+#mnadminbar #admin-bar-user-info .username {
   color: #e2ecf1;
 }
 
@@ -488,16 +482,6 @@ body.more-filters-opened .more-filters:focus:before {
   color: #fff;
 }
 
-/* Customize */
-#customize-theme-controls .widget-area-select .selected {
-  background-color: #096484;
-  color: #fff;
-}
-
-#customize-footer-actions .devices button:focus {
-  border-bottom-color: #096484;
-}
-
 /* Responsive Component */
 div#mn-responsive-toggle a:before {
   color: #e5f8ff;
@@ -508,11 +492,11 @@ div#mn-responsive-toggle a:before {
   background: #096484;
 }
 
-.mn-responsive-open #mnadminbar #mn-admin-bar-menu-toggle a {
+.mn-responsive-open #mnadminbar #admin-bar-menu-toggle a {
   background: #4796b3;
 }
 
-.mn-responsive-open #mnadminbar #mn-admin-bar-menu-toggle .ab-icon:before {
+.mn-responsive-open #mnadminbar #admin-bar-menu-toggle .ab-icon:before {
   color: #e5f8ff;
 }
 

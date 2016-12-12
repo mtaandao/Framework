@@ -134,7 +134,7 @@ class MN_Theme_Install_List_Table extends MN_Themes_List_Table {
 		 *
 		 * @param array $args An array of themes API arguments.
 		 */
-		$args = apply_filters( 'install_themes_table_api_args_' . $tab, $args );
+		$args = apply_filters( "install_themes_table_api_args_{$tab}", $args );
 
 		if ( ! $args )
 			return;
@@ -224,25 +224,28 @@ class MN_Theme_Install_List_Table extends MN_Themes_List_Table {
 	}
 
 	/**
-	 * Prints a theme from the mtaandao.co.ke API.
+	 * Prints a theme from the Mtaandao.org API.
+	 *
+	 * @since 3.1.0
+	 * @access public
 	 *
 	 * @global array $themes_allowedtags
 	 *
-	 * @param object $theme An object that contains theme data returned by the mtaandao.co.ke API.
+	 * @param object $theme {
+	 *     An object that contains theme data returned by the Mtaandao.org API.
 	 *
-	 * Example theme data:
-	 *   object(stdClass)[59]
-	 *     public 'name' => string 'Magazine Basic'
-	 *     public 'slug' => string 'magazine-basic'
-	 *     public 'version' => string '1.1'
-	 *     public 'author' => string 'tinkerpriest'
-	 *     public 'preview_url' => string 'http://mn-themes.com/?magazine-basic'
-	 *     public 'screenshot_url' => string 'http://mn-themes.com/main/themes/magazine-basic/screenshot.png'
-	 *     public 'rating' => float 80
-	 *     public 'num_ratings' => int 1
-	 *     public 'homepage' => string 'http://mtaandao.co.ke/themes/magazine-basic'
-	 *     public 'description' => string 'A basic magazine style layout with a fully customizable layout through a back-end interface. Designed by <a href="http://bavotasan.com">c.bavota</a> of <a href="http://tinkerpriestmedia.com">Tinker Priest Media</a>.'
-	 *     public 'download_link' => string 'http://mtaandao.co.ke/themes/download/magazine-basic.1.1.zip'
+	 *     @type string $name           Theme name, e.g. 'Twenty Seventeen'.
+	 *     @type string $slug           Theme slug, e.g. 'twentyseventeen'.
+	 *     @type string $version        Theme version, e.g. '1.1'.
+	 *     @type string $author         Theme author username, e.g. 'melchoyce'.
+	 *     @type string $preview_url    Preview URL, e.g. 'http://2017.mtaandao.net/'.
+	 *     @type string $screenshot_url Screenshot URL, e.g. 'https://themes.mtaandao.co.ke/twentyseventeen/'.
+	 *     @type float  $rating         Rating score.
+	 *     @type int    $num_ratings    The number of ratings.
+	 *     @type string $homepage       Theme homepage, e.g. 'https://themes.mtaandao.co.ke/twentyseventeen/'.
+	 *     @type string $description    Theme description.
+	 *     @type string $download_link  Theme ZIP download URL.
+	 * }
 	 */
 	public function single_row( $theme ) {
 		global $themes_allowedtags;
@@ -329,14 +332,14 @@ class MN_Theme_Install_List_Table extends MN_Themes_List_Table {
 		<div id="theme-installer" class="mn-full-overlay expanded">
 			<div class="mn-full-overlay-sidebar">
 				<div class="mn-full-overlay-header">
-					<a href="#" class="close-full-overlay button-secondary"><?php _e( 'Close' ); ?></a>
+					<a href="#" class="close-full-overlay button"><?php _e( 'Close' ); ?></a>
 					<span class="theme-install"></span>
 				</div>
 				<div class="mn-full-overlay-sidebar-content">
 					<div class="install-theme-info"></div>
 				</div>
 				<div class="mn-full-overlay-footer">
-					<button type="button" class="collapse-sidebar button-secondary" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse Sidebar' ); ?>">
+					<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse Sidebar' ); ?>">
 						<span class="collapse-sidebar-arrow"></span>
 						<span class="collapse-sidebar-label"><?php _e( 'Collapse' ); ?></span>
 					</button>
@@ -351,7 +354,7 @@ class MN_Theme_Install_List_Table extends MN_Themes_List_Table {
 	 * Prints the wrapper for the theme installer with a provided theme's data.
 	 * Used to make the theme installer work for no-js.
 	 *
-	 * @param object $theme - A mtaandao.co.ke Theme API object.
+	 * @param object $theme - A Mtaandao.org Theme API object.
 	 */
 	public function theme_installer_single( $theme ) {
 		?>
@@ -371,7 +374,7 @@ class MN_Theme_Install_List_Table extends MN_Themes_List_Table {
 	 *
 	 * @global array $themes_allowedtags
 	 *
-	 * @param object $theme - A mtaandao.co.ke Theme API object.
+	 * @param object $theme - A Mtaandao.org Theme API object.
 	 */
 	public function install_theme_info( $theme ) {
 		global $themes_allowedtags;
@@ -398,7 +401,7 @@ class MN_Theme_Install_List_Table extends MN_Themes_List_Table {
 		<div class="install-theme-info"><?php
 			switch ( $status ) {
 				case 'update_available':
-					echo '<a class="theme-install button-primary" href="' . esc_url( mn_nonce_url( $update_url, 'upgrade-theme_' . $theme->slug ) ) . '" title="' . esc_attr( sprintf( __( 'Update to version %s' ), $theme->version ) ) . '">' . __( 'Update' ) . '</a>';
+					echo '<a class="theme-install button button-primary" href="' . esc_url( mn_nonce_url( $update_url, 'upgrade-theme_' . $theme->slug ) ) . '" title="' . esc_attr( sprintf( __( 'Update to version %s' ), $theme->version ) ) . '">' . __( 'Update' ) . '</a>';
 					break;
 				case 'newer_installed':
 				case 'latest_installed':
@@ -406,7 +409,7 @@ class MN_Theme_Install_List_Table extends MN_Themes_List_Table {
 					break;
 				case 'install':
 				default:
-					echo '<a class="theme-install button-primary" href="' . esc_url( mn_nonce_url( $install_url, 'install-theme_' . $theme->slug ) ) . '">' . __( 'Install' ) . '</a>';
+					echo '<a class="theme-install button button-primary" href="' . esc_url( mn_nonce_url( $install_url, 'install-theme_' . $theme->slug ) ) . '">' . __( 'Install' ) . '</a>';
 					break;
 			} ?>
 			<h3 class="theme-name"><?php echo $name; ?></h3>
@@ -451,7 +454,7 @@ class MN_Theme_Install_List_Table extends MN_Themes_List_Table {
 	 * @since 3.4.0
 	 * @access private
 	 *
-	 * @param object $theme - A mtaandao.co.ke Theme API object.
+	 * @param object $theme - A Mtaandao.org Theme API object.
 	 * @return string Theme status.
 	 */
 	private function _get_theme_status( $theme ) {

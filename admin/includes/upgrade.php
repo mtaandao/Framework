@@ -9,8 +9,8 @@
  */
 
 /** Include user install customize script. */
-if ( file_exists(MAIN . '/install.php') )
-	require (MAIN . '/install.php');
+if ( file_exists(MAIN_DIR . '/install.php') )
+	require (MAIN_DIR . '/install.php');
 
 /** Mtaandao Administration API */
 require_once(ABSPATH . 'admin/includes/admin.php');
@@ -49,6 +49,9 @@ function mn_install( $blog_title, $user_name, $user_email, $public, $deprecated 
 	update_option('blogname', $blog_title);
 	update_option('admin_email', $user_email);
 	update_option('blog_public', $public);
+
+	// Freshness of site - in the future, this could get more specific about actions taken, perhaps.
+	update_option( 'fresh_site', 1 );
 
 	if ( $language ) {
 		update_option( 'MNLANG', $language );
@@ -161,12 +164,12 @@ function mn_install_defaults( $user_id ) {
 		}
 
 		$first_post = sprintf( $first_post,
-			sprintf( '<a href="%s">%s</a>', esc_url( network_home_url() ), get_current_site()->site_name )
+			sprintf( '<a href="%s">%s</a>', esc_url( network_home_url() ), get_network()->site_name )
 		);
 
 		// Back-compat for pre-4.4
 		$first_post = str_replace( 'SITE_URL', esc_url( network_home_url() ), $first_post );
-		$first_post = str_replace( 'SITE_NAME', get_current_site()->site_name, $first_post );
+		$first_post = str_replace( 'SITE_NAME', get_network()->site_name, $first_post );
 	} else {
 		$first_post = __( 'Welcome to Mtaandao. This is your first post. Edit or delete it, then start writing!' );
 	}
@@ -191,8 +194,8 @@ function mn_install_defaults( $user_id ) {
 	$mndb->insert( $mndb->term_relationships, array('term_taxonomy_id' => $cat_tt_id, 'object_id' => 1) );
 
 	// Default comment
-	$first_comment_author = __( 'Mtaandao' );
-	$first_comment_email = 'mtaandao@gmail.com';
+	$first_comment_author = __( 'A Mtaandao Commenter' );
+	$first_comment_email = 'wapuu@mtaandao.example';
 	$first_comment_url = 'https://mtaandao.co.ke/';
 	$first_comment = __( 'Hi, this is a comment.
 To get started with moderating, editing, and deleting comments, please visit the Comments screen in the dashboard.
@@ -215,6 +218,12 @@ Commenter avatars come from <a href="https://gravatar.com">Gravatar</a>.' );
 
 	// First Page
 	$first_page = sprintf( __( "This is an example page. It's different from a blog post because it will stay in one place and will show up in your site navigation (in most themes). Most people start with an About page that introduces them to potential site visitors. It might say something like this:
+
+<blockquote>Hi there! I'm a bike messenger by day, aspiring actor by night, and this is my website. I live in Los Angeles, have a great dog named Jack, and I like pi&#241;a coladas. (And gettin' caught in the rain.)</blockquote>
+
+...or something like this:
+
+<blockquote>The XYZ Doohickey Company was founded in 1971, and has been providing quality doohickeys to the public ever since. Located in Gotham City, XYZ employs over 2,000 people and does all kinds of awesome things for the Gotham community.</blockquote>
 
 As a new Mtaandao user, you should go to <a href=\"%s\">your dashboard</a> to delete this page and create new pages for your content. Have fun!" ), admin_url() );
 	if ( is_multisite() )
@@ -247,8 +256,7 @@ As a new Mtaandao user, you should go to <a href=\"%s\">your dashboard</a> to de
 	update_option( 'widget_archives', array ( 2 => array ( 'title' => '', 'count' => 0, 'dropdown' => 0 ), '_multiwidget' => 1 ) );
 	update_option( 'widget_categories', array ( 2 => array ( 'title' => '', 'count' => 0, 'hierarchical' => 0, 'dropdown' => 0 ), '_multiwidget' => 1 ) );
 	update_option( 'widget_meta', array ( 2 => array ( 'title' => '' ), '_multiwidget' => 1 ) );
-	update_option( 'sidebars_widgets', array ( 'mn_inactive_widgets' => array (), 'sidebar-1' => array ( 0 => 'search-2', 1 => 'recent-posts-2', 2 => 'recent-comments-2', 3 => 'archives-2', 4 => 'categories-2', 5 => 'meta-2', ), 'array_version' => 3 ) );
-
+	update_option( 'sidebars_widgets', array( 'mn_inactive_widgets' => array(), 'sidebar-1' => array( 0 => 'search-2', 1 => 'recent-posts-2', 2 => 'recent-comments-2', 3 => 'archives-2', 4 => 'categories-2', 5 => 'meta-2' ), 'sidebar-2' => array(), 'sidebar-3' => array(), 'array_version' => 3 ) );
 	if ( ! is_multisite() )
 		update_user_meta( $user_id, 'show_welcome_panel', 1 );
 	elseif ( ! is_super_admin( $user_id ) && ! metadata_exists( 'user', $user_id, 'show_welcome_panel' ) )
@@ -367,6 +375,7 @@ function mn_new_blog_notification($blog_title, $blog_url, $user_id, $password) {
 	$email = $user->user_email;
 	$name = $user->user_login;
 	$login_url = mn_login_url();
+	/* translators: New site notification email. 1: New site URL, 2: User login, 3: User password or password reset link, 4: Login URL */
 	$message = sprintf( __( "Your new Mtaandao site has been successfully set up at:
 
 %1\$s
@@ -1689,10 +1698,10 @@ function upgrade_450() {
 }
 
 /**
- * Executes changes made in Mtaandao 16.10.0.
+ * Executes changes made in Mtaandao 4.6.0.
  *
  * @ignore
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @global int $mn_current_db_version Current database version.
  */
@@ -2277,7 +2286,7 @@ function dbDelta( $queries = '', $execute = true ) {
 					$index_type = str_replace( 'INDEX', 'KEY', $index_type );
 
 					// Escape the index name with backticks. An index for a primary key has no name.
-					$index_name = ( 'PRIMARY KEY' === $index_type ) ? '' : '`' . $index_matches['index_name'] . '`';
+					$index_name = ( 'PRIMARY KEY' === $index_type ) ? '' : '`' . strtolower( $index_matches['index_name'] ) . '`';
 
 					// Parse the columns. Multiple columns are separated by a comma.
 					$index_columns = array_map( 'trim', explode( ',', $index_matches['index_columns'] ) );
@@ -2401,7 +2410,7 @@ function dbDelta( $queries = '', $execute = true ) {
 			foreach ($tableindices as $tableindex) {
 
 				// Add the index to the index data array.
-				$keyname = $tableindex->Key_name;
+				$keyname = strtolower( $tableindex->Key_name );
 				$index_ary[$keyname]['columns'][] = array('fieldname' => $tableindex->Column_name, 'subpart' => $tableindex->Sub_part);
 				$index_ary[$keyname]['unique'] = ($tableindex->Non_unique == 0)?true:false;
 				$index_ary[$keyname]['index_type'] = $tableindex->Index_type;
@@ -2412,7 +2421,7 @@ function dbDelta( $queries = '', $execute = true ) {
 
 				// Build a create string to compare to the query.
 				$index_string = '';
-				if ($index_name == 'PRIMARY') {
+				if ($index_name == 'primary') {
 					$index_string .= 'PRIMARY ';
 				} elseif ( $index_data['unique'] ) {
 					$index_string .= 'UNIQUE ';
@@ -2424,7 +2433,7 @@ function dbDelta( $queries = '', $execute = true ) {
 					$index_string .= 'SPATIAL ';
 				}
 				$index_string .= 'KEY ';
-				if ( 'PRIMARY' !== $index_name  ) {
+				if ( 'primary' !== $index_name  ) {
 					$index_string .= '`' . $index_name . '`';
 				}
 				$index_columns = '';
@@ -2529,7 +2538,7 @@ function make_db_current_silent( $tables = 'all' ) {
  */
 function make_site_theme_from_oldschool($theme_name, $template) {
 	$home_path = get_home_path();
-	$site_dir = MAIN . "/themes/$template";
+	$site_dir = MAIN_DIR . "/themes/$template";
 
 	if (! file_exists("$home_path/index.php"))
 		return false;
@@ -2550,7 +2559,7 @@ function make_site_theme_from_oldschool($theme_name, $template) {
 		if ($oldfile == 'index.php') {
 			$index = implode('', file("$oldpath/$oldfile"));
 			if (strpos($index, 'MN_USE_THEMES') !== false) {
-				if (! @copy(MAIN . '/themes/' . MN_DEFAULT_THEME . '/index.php', "$site_dir/$newfile"))
+				if (! @copy(MAIN_DIR . '/themes/' . DEFAULT_THEME . '/index.php', "$site_dir/$newfile"))
 					return false;
 
 				// Don't copy anything.
@@ -2611,8 +2620,8 @@ function make_site_theme_from_oldschool($theme_name, $template) {
  * @return false|void
  */
 function make_site_theme_from_default($theme_name, $template) {
-	$site_dir = MAIN . "/themes/$template";
-	$default_dir = MAIN . '/themes/' . MN_DEFAULT_THEME;
+	$site_dir = MAIN_DIR . "/themes/$template";
+	$default_dir = MAIN_DIR . '/themes/' . DEFAULT_THEME;
 
 	// Copy files from the default theme to the site theme.
 	//$files = array('index.php', 'comments.php', 'comments-popup.php', 'footer.php', 'header.php', 'sidebar.php', 'style.css');
@@ -2677,7 +2686,7 @@ function make_site_theme() {
 	// Name the theme after the blog.
 	$theme_name = __get_option('blogname');
 	$template = sanitize_title($theme_name);
-	$site_dir = MAIN . "/themes/$template";
+	$site_dir = MAIN_DIR . "/themes/$template";
 
 	// If the theme already exists, nothing to do.
 	if ( is_dir($site_dir)) {
@@ -2685,7 +2694,7 @@ function make_site_theme() {
 	}
 
 	// We must be able to write to the themes dir.
-	if (! is_writable(MAIN . "/themes")) {
+	if (! is_writable(MAIN_DIR . "/themes")) {
 		return false;
 	}
 
@@ -2707,7 +2716,7 @@ function make_site_theme() {
 
 	// Make the new site theme active.
 	$current_template = __get_option('template');
-	if ($current_template == MN_DEFAULT_THEME) {
+	if ($current_template == DEFAULT_THEME) {
 		update_option('template', $template);
 		update_option('stylesheet', $template);
 	}
@@ -2815,7 +2824,7 @@ function pre_schema_upgrade() {
 	// Multisite schema upgrades.
 	if ( $mn_current_db_version < 25448 && is_multisite() && mn_should_upgrade_global_tables() ) {
 
-		// Upgrade verions prior to 3.7
+		// Upgrade versions prior to 3.7
 		if ( $mn_current_db_version < 25179 ) {
 			// New primary key for signups.
 			$mndb->query( "ALTER TABLE $mndb->signups ADD signup_id BIGINT(20) NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST" );

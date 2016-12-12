@@ -150,7 +150,8 @@ class MN_MS_Themes_List_Table extends MN_List_Table {
 		$total_this_page = $totals[ $status ];
 
 		mn_localize_script( 'updates', '_mnUpdatesItemCounts', array(
-			'totals' => $totals,
+			'themes' => $totals,
+			'totals' => mn_get_update_data(),
 		) );
 
 		if ( $orderby ) {
@@ -518,7 +519,7 @@ class MN_MS_Themes_List_Table extends MN_List_Table {
 		 * @param MN_Theme $theme   The current MN_Theme object.
 		 * @param string   $context Status of the theme.
 		 */
-		$actions = apply_filters( "theme_action_links_$stylesheet", $actions, $theme, $context );
+		$actions = apply_filters( "theme_action_links_{$stylesheet}", $actions, $theme, $context );
 
 		echo $this->row_actions( $actions, true );
 	}
@@ -726,6 +727,6 @@ class MN_MS_Themes_List_Table extends MN_List_Table {
 		 * @param MN_Theme $theme      Current MN_Theme object.
 		 * @param string   $status     Status of the theme.
 		 */
-		do_action( "after_theme_row_$stylesheet", $stylesheet, $theme, $status );
+		do_action( "after_theme_row_{$stylesheet}", $stylesheet, $theme, $status );
 	}
 }

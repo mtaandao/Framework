@@ -7,6 +7,8 @@
  * @since 2.8.0
  */
 
+_deprecated_file( basename( __FILE__ ), '4.7.0', 'class-mn-upgrader.php' );
+
 /** MN_Upgrader_Skin class */
 require_once ABSPATH . 'admin/includes/class-mn-upgrader-skin.php';
 

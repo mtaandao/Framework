@@ -160,7 +160,7 @@ class MN_MS_Sites_List_Table extends MN_List_Table {
 		/**
 		 * Filters the arguments for the site query in the sites list table.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param array $args An array of get_sites() arguments.
 		 */
@@ -518,7 +518,7 @@ class MN_MS_Sites_List_Table extends MN_List_Table {
 
 		$actions['edit']	= '<a href="' . esc_url( network_admin_url( 'site-info.php?id=' . $blog['blog_id'] ) ) . '">' . __( 'Edit' ) . '</a>';
 		$actions['backend']	= "<a href='" . esc_url( get_admin_url( $blog['blog_id'] ) ) . "' class='edit'>" . __( 'Dashboard' ) . '</a>';
-		if ( get_current_site()->blog_id != $blog['blog_id'] ) {
+		if ( get_network()->site_id != $blog['blog_id'] ) {
 			if ( $blog['deleted'] == '1' ) {
 				$actions['activate']   = '<a href="' . esc_url( mn_nonce_url( network_admin_url( 'sites.php?action=confirm&amp;action2=activateblog&amp;id=' . $blog['blog_id'] ), 'activateblog_' . $blog['blog_id'] ) ) . '">' . __( 'Activate' ) . '</a>';
 			} else {

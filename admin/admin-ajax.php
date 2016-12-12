@@ -5,7 +5,7 @@
  * @package Mtaandao
  * @subpackage Administration
  *
- * @link https://mtaandao.co.ke/docs/AJAX_in_Plugins
+ * @link https://mtaandao.github.io/AJAX_in_Plugins
  */
 
 /**
@@ -14,8 +14,8 @@
  * @since 2.1.0
  */
 define( 'DOING_AJAX', true );
-if ( ! defined( 'MN_ADMIN' ) ) {
-	define( 'MN_ADMIN', true );
+if ( ! defined( 'ADMIN' ) ) {
+	define( 'ADMIN', true );
 }
 
 /** Load Mtaandao Bootstrap */

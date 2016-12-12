@@ -44,7 +44,7 @@ if ( false === strpos( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS' ) )
 
 // Optional support for X-Sendfile and X-Accel-Redirect
 if ( MNMU_ACCEL_REDIRECT ) {
-	header( 'X-Accel-Redirect: ' . str_replace( MAIN, '', $file ) );
+	header( 'X-Accel-Redirect: ' . str_replace( MAIN_DIR, '', $file ) );
 	exit;
 } elseif ( MNMU_SENDFILE ) {
 	header( 'X-Sendfile: ' . $file );
@@ -80,3 +80,4 @@ if ( ( $client_last_modified && $client_etag )
 
 // If we made it this far, just serve the file
 readfile( $file );
+flush();

@@ -54,11 +54,13 @@ function check_comment($author, $email, $url, $comment, $user_ip, $user_agent, $
 		 * Filters the number of links found in a comment.
 		 *
 		 * @since 3.0.0
+		 * @since 4.7.0 Added the `$comment` parameter.
 		 *
 		 * @param int    $num_links The number of links found.
 		 * @param string $url       Comment author's URL. Included in allowed links total.
+		 * @param string $comment   Content of the comment.
 		 */
-		$num_links = apply_filters( 'comment_max_links_url', $num_links, $url );
+		$num_links = apply_filters( 'comment_max_links_url', $num_links, $url, $comment );
 
 		/*
 		 * If the number of links in the comment exceeds the allowed amount,
@@ -110,8 +112,13 @@ function check_comment($author, $email, $url, $comment, $user_ip, $user_agent, $
 	 */
 	if ( 1 == get_option('comment_whitelist')) {
 		if ( 'trackback' != $comment_type && 'pingback' != $comment_type && $author != '' && $email != '' ) {
-			// expected_slashed ($author, $email)
-			$ok_to_comment = $mndb->get_var("SELECT comment_approved FROM $mndb->comments WHERE comment_author = '$author' AND comment_author_email = '$email' and comment_approved = '1' LIMIT 1");
+			$comment_user = get_user_by( 'email', mn_unslash( $email ) );
+			if ( ! empty( $comment_user->ID ) ) {
+				$ok_to_comment = $mndb->get_var( $mndb->prepare( "SELECT comment_approved FROM $mndb->comments WHERE user_id = %d AND comment_approved = '1' LIMIT 1", $comment_user->ID ) );
+			} else {
+				// expected_slashed ($author, $email)
+				$ok_to_comment = $mndb->get_var( $mndb->prepare( "SELECT comment_approved FROM $mndb->comments WHERE comment_author = %s AND comment_author_email = %s and comment_approved = '1' LIMIT 1", $author, $email ) );
+			}
 			if ( ( 1 == $ok_to_comment ) &&
 				( empty($mod_keys) || false === strpos( $email, $mod_keys) ) )
 					return true;
@@ -163,7 +170,8 @@ function get_approved_comments( $post_id, $args = array() ) {
  * @global MN_Comment $comment
  *
  * @param MN_Comment|string|int $comment Comment to retrieve.
- * @param string $output Optional. OBJECT or ARRAY_A or ARRAY_N constants.
+ * @param string                $output  Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
+ *                                       a MN_Comment object, an associative array, or a numeric array, respectively. Default OBJECT.
  * @return MN_Comment|array|null Depends on $output value.
  */
 function get_comment( &$comment = null, $output = OBJECT ) {
@@ -286,38 +294,46 @@ function get_default_comment_status( $post_type = 'post', $comment_type = 'comme
  * The date the last comment was modified.
  *
  * @since 1.5.0
+ * @since 4.7.0 Replaced caching the modified date in a local static variable
+ *              with the Object Cache API.
  *
  * @global mndb $mndb Mtaandao database abstraction object.
- * @staticvar array $cache_lastcommentmodified
  *
- * @param string $timezone Which timezone to use in reference to 'gmt', 'blog',
- *		or 'server' locations.
- * @return string Last comment modified date.
+ * @param string $timezone Which timezone to use in reference to 'gmt', 'blog', or 'server' locations.
+ * @return string|false Last comment modified date on success, false on failure.
  */
-function get_lastcommentmodified($timezone = 'server') {
+function get_lastcommentmodified( $timezone = 'server' ) {
 	global $mndb;
-	static $cache_lastcommentmodified = array();
 
-	if ( isset($cache_lastcommentmodified[$timezone]) )
-		return $cache_lastcommentmodified[$timezone];
+	$timezone = strtolower( $timezone );
+	$key = "lastcommentmodified:$timezone";
 
-	$add_seconds_server = date('Z');
+	$comment_modified_date = mn_cache_get( $key, 'timeinfo' );
+	if ( false !== $comment_modified_date ) {
+		return $comment_modified_date;
+	}
 
-	switch ( strtolower($timezone)) {
+	switch ( $timezone ) {
 		case 'gmt':
-			$lastcommentmodified = $mndb->get_var("SELECT comment_date_gmt FROM $mndb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1");
+			$comment_modified_date = $mndb->get_var( "SELECT comment_date_gmt FROM $mndb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'blog':
-			$lastcommentmodified = $mndb->get_var("SELECT comment_date FROM $mndb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1");
+			$comment_modified_date = $mndb->get_var( "SELECT comment_date FROM $mndb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'server':
-			$lastcommentmodified = $mndb->get_var($mndb->prepare("SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $mndb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server));
+			$add_seconds_server = date( 'Z' );
+
+			$comment_modified_date = $mndb->get_var( $mndb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $mndb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
 			break;
 	}
 
-	$cache_lastcommentmodified[$timezone] = $lastcommentmodified;
+	if ( $comment_modified_date ) {
+		mn_cache_set( $key, $comment_modified_date, 'timeinfo' );
 
-	return $lastcommentmodified;
+		return $comment_modified_date;
+	}
+
+	return false;
 }
 
 /**
@@ -398,7 +414,7 @@ function get_comment_count( $post_id = 0 ) {
  * Add meta data field to a comment.
  *
  * @since 2.9.0
- * @link https://mtaandao.co.ke/docs/Function_Reference/add_comment_meta
+ * @link https://mtaandao.github.io/Function_Reference/add_comment_meta
  *
  * @param int $comment_id Comment ID.
  * @param string $meta_key Metadata name.
@@ -418,7 +434,7 @@ function add_comment_meta($comment_id, $meta_key, $meta_value, $unique = false) 
  * allows removing all metadata matching key, if needed.
  *
  * @since 2.9.0
- * @link https://mtaandao.co.ke/docs/Function_Reference/delete_comment_meta
+ * @link https://mtaandao.github.io/Function_Reference/delete_comment_meta
  *
  * @param int $comment_id comment ID
  * @param string $meta_key Metadata name.
@@ -433,7 +449,7 @@ function delete_comment_meta($comment_id, $meta_key, $meta_value = '') {
  * Retrieve comment meta field for a comment.
  *
  * @since 2.9.0
- * @link https://mtaandao.co.ke/docs/Function_Reference/get_comment_meta
+ * @link https://mtaandao.github.io/Function_Reference/get_comment_meta
  *
  * @param int $comment_id Comment ID.
  * @param string $key Optional. The meta key to retrieve. By default, returns data for all keys.
@@ -454,7 +470,7 @@ function get_comment_meta($comment_id, $key = '', $single = false) {
  * If the meta field for the comment does not exist, it will be added.
  *
  * @since 2.9.0
- * @link https://mtaandao.co.ke/docs/Function_Reference/update_comment_meta
+ * @link https://mtaandao.github.io/Function_Reference/update_comment_meta
  *
  * @param int $comment_id Comment ID.
  * @param string $meta_key Metadata key.
@@ -581,13 +597,19 @@ function sanitize_comment_cookies() {
  * Validates whether this comment is allowed to be made.
  *
  * @since 2.0.0
+ * @since 4.7.0 The `$avoid_die` parameter was added, allowing the function to
+ *              return a MN_Error object instead of dying.
  *
  * @global mndb $mndb Mtaandao database abstraction object.
  *
- * @param array $commentdata Contains information on the comment
- * @return int|string Signifies the approval status (0|1|'spam')
+ * @param array $commentdata Contains information on the comment.
+ * @param bool  $avoid_die   When true, a disallowed comment will result in the function
+ *                           returning a MN_Error object, rather than executing mn_die().
+ *                           Default false.
+ * @return int|string|MN_Error Allowed comments return the approval status (0|1|'spam').
+ *                             If `$avoid_die` is true, disallowed comments return a MN_Error.
  */
-function mn_allow_comment( $commentdata ) {
+function mn_allow_comment( $commentdata, $avoid_die = false ) {
 	global $mndb;
 
 	// Simple duplicate check
@@ -632,10 +654,15 @@ function mn_allow_comment( $commentdata ) {
 		 * @param array $commentdata Comment data.
 		 */
 		do_action( 'comment_duplicate_trigger', $commentdata );
-		if ( defined( 'DOING_AJAX' ) ) {
-			die( __('Duplicate comment detected; it looks as though you&#8217;ve already said that!') );
+		if ( true === $avoid_die ) {
+			return new MN_Error( 'comment_duplicate', __( 'Duplicate comment detected; it looks as though you&#8217;ve already said that!' ), 409 );
+		} else {
+			if ( mn_doing_ajax() ) {
+				die( __('Duplicate comment detected; it looks as though you&#8217;ve already said that!') );
+			}
+
+			mn_die( __( 'Duplicate comment detected; it looks as though you&#8217;ve already said that!' ), 409 );
 		}
-		mn_die( __( 'Duplicate comment detected; it looks as though you&#8217;ve already said that!' ), 409 );
 	}
 
 	/**
@@ -644,17 +671,48 @@ function mn_allow_comment( $commentdata ) {
 	 * Allows checking for comment flooding.
 	 *
 	 * @since 2.3.0
+	 * @since 4.7.0 The `$avoid_die` parameter was added.
 	 *
 	 * @param string $comment_author_IP    Comment author's IP address.
 	 * @param string $comment_author_email Comment author's email.
 	 * @param string $comment_date_gmt     GMT date the comment was posted.
+	 * @param bool   $avoid_die            Whether to prevent executing mn_die()
+	 *                                     or die() if a comment flood is occurring.
 	 */
 	do_action(
 		'check_comment_flood',
 		$commentdata['comment_author_IP'],
 		$commentdata['comment_author_email'],
-		$commentdata['comment_date_gmt']
+		$commentdata['comment_date_gmt'],
+		$avoid_die
 	);
+
+	/**
+	 * Filters whether a comment is part of a comment flood.
+	 *
+	 * The default check is mn_check_comment_flood(). See check_comment_flood_db().
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param bool   $is_flood             Is a comment flooding occurring? Default false.
+	 * @param string $comment_author_IP    Comment author's IP address.
+	 * @param string $comment_author_email Comment author's email.
+	 * @param string $comment_date_gmt     GMT date the comment was posted.
+	 * @param bool   $avoid_die            Whether to prevent executing mn_die()
+	 *                                     or die() if a comment flood is occurring.
+	 */
+	$is_flood = apply_filters(
+		'mn_is_comment_flood',
+		false,
+		$commentdata['comment_author_IP'],
+		$commentdata['comment_author_email'],
+		$commentdata['comment_date_gmt'],
+		$avoid_die
+	);
+
+	if ( $is_flood ) {
+		return new MN_Error( 'comment_flood', __( 'You are posting comments too quickly. Slow down.' ), 429 );
+	}
 
 	if ( ! empty( $commentdata['user_id'] ) ) {
 		$user = get_userdata( $commentdata['user_id'] );
@@ -708,24 +766,50 @@ function mn_allow_comment( $commentdata ) {
 }
 
 /**
- * Check whether comment flooding is occurring.
+ * Hooks MN's native database-based comment-flood check.
+ *
+ * This wrapper maintains backward compatibility with plugins that expect to
+ * be able to unhook the legacy check_comment_flood_db() function from
+ * 'check_comment_flood' using remove_action().
+ *
+ * @since 2.3.0
+ * @since 4.7.0 Converted to be an add_filter() wrapper.
+ */
+function check_comment_flood_db() {
+	add_filter( 'mn_is_comment_flood', 'mn_check_comment_flood', 10, 5 );
+}
+
+/**
+ * Checks whether comment flooding is occurring.
  *
  * Won't run, if current user can manage options, so to not block
  * administrators.
  *
- * @since 2.3.0
+ * @since 4.7.0
  *
  * @global mndb $mndb Mtaandao database abstraction object.
  *
- * @param string $ip Comment IP.
- * @param string $email Comment author email address.
- * @param string $date MySQL time string.
+ * @param bool   $is_flood  Is a comment flooding occurring?
+ * @param string $ip        Comment IP.
+ * @param string $email     Comment author email address.
+ * @param string $date      MySQL time string.
+ * @param bool   $avoid_die When true, a disallowed comment will result in the function
+ *                          returning a MN_Error object, rather than executing mn_die().
+ *                          Default false.
+ * @return bool Whether comment flooding is occurring.
  */
-function check_comment_flood_db( $ip, $email, $date ) {
+function mn_check_comment_flood( $is_flood, $ip, $email, $date, $avoid_die = false ) {
+
 	global $mndb;
+
+	// Another callback has declared a flood. Trust it.
+	if ( true === $is_flood ) {
+		return $is_flood;
+	}
+
 	// don't throttle admins or moderators
 	if ( current_user_can( 'manage_options' ) || current_user_can( 'moderate_comments' ) ) {
-		return;
+		return false;
 	}
 	$hour_ago = gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS );
 
@@ -767,13 +851,19 @@ function check_comment_flood_db( $ip, $email, $date ) {
 			 * @param int $time_newcomment  Timestamp of when the new comment was posted.
 			 */
 			do_action( 'comment_flood_trigger', $time_lastcomment, $time_newcomment );
+			if ( true === $avoid_die ) {
+				return true;
+			} else {
+				if ( mn_doing_ajax() ) {
+					die( __('You are posting comments too quickly. Slow down.') );
+				}
 
-			if ( defined('DOING_AJAX') )
-				die( __('You are posting comments too quickly. Slow down.') );
-
-			mn_die( __( 'You are posting comments too quickly. Slow down.' ), 429 );
+				mn_die( __( 'You are posting comments too quickly. Slow down.' ), 429 );
+			}
 		}
 	}
+
+	return false;
 }
 
 /**
@@ -913,6 +1003,12 @@ function get_page_of_comment( $comment_ID, $args = array() ) {
 		if ( $args['max_depth'] > 1 && 0 != $comment->comment_parent )
 			return get_page_of_comment( $comment->comment_parent, $args );
 
+		if ( 'desc' === get_option( 'comment_order' ) ) {
+			$compare = 'after';
+		} else {
+			$compare = 'before';
+		}
+
 		$comment_args = array(
 			'type'       => $args['type'],
 			'post_id'    => $comment->comment_post_ID,
@@ -923,7 +1019,7 @@ function get_page_of_comment( $comment_ID, $args = array() ) {
 			'date_query' => array(
 				array(
 					'column' => "$mndb->comments.comment_date_gmt",
-					'before' => $comment->comment_date_gmt,
+					$compare => $comment->comment_date_gmt,
 				)
 			),
 		);
@@ -945,6 +1041,7 @@ function get_page_of_comment( $comment_ID, $args = array() ) {
 	 * Filters the calculated page on which a comment appears.
 	 *
 	 * @since 4.4.0
+	 * @since 4.7.0 Introduced the `$comment_ID` parameter.
 	 *
 	 * @param int   $page          Comment page.
 	 * @param array $args {
@@ -965,8 +1062,9 @@ function get_page_of_comment( $comment_ID, $args = array() ) {
 	 *     @type int    $per_page  Number of comments per page.
 	 *     @type int    $max_depth Maximum comment threading depth allowed.
 	 * }
+	 * @param int $comment_ID ID of the comment.
 	 */
-	return apply_filters( 'get_page_of_comment', (int) $page, $args, $original_args );
+	return apply_filters( 'get_page_of_comment', (int) $page, $args, $original_args, $comment_ID );
 }
 
 /**
@@ -1022,6 +1120,37 @@ function mn_get_comment_fields_max_lengths() {
 	 * @param array $lengths Associative array `'field_name' => 'maximum length'`.
 	 */
 	return apply_filters( 'mn_get_comment_fields_max_lengths', $lengths );
+}
+
+/**
+ * Compares the lengths of comment data against the maximum character limits.
+ *
+ * @since 4.7.0
+ *
+ * @param array $comment_data Array of arguments for inserting a comment.
+ * @return MN_Error|true MN_Error when a comment field exceeds the limit,
+ *                       otherwise true.
+ */
+function mn_check_comment_data_max_lengths( $comment_data ) {
+	$max_lengths = mn_get_comment_fields_max_lengths();
+
+	if ( isset( $comment_data['comment_author'] ) && mb_strlen( $comment_data['comment_author'], '8bit' ) > $max_lengths['comment_author'] ) {
+		return new MN_Error( 'comment_author_column_length', __( '<strong>ERROR</strong>: your name is too long.' ), 200 );
+	}
+
+	if ( isset( $comment_data['comment_author_email'] ) && strlen( $comment_data['comment_author_email'] ) > $max_lengths['comment_author_email'] ) {
+		return new MN_Error( 'comment_author_email_column_length', __( '<strong>ERROR</strong>: your email address is too long.' ), 200 );
+	}
+
+	if ( isset( $comment_data['comment_author_url'] ) && strlen( $comment_data['comment_author_url'] ) > $max_lengths['comment_author_url'] ) {
+		return new MN_Error( 'comment_author_url_column_length', __( '<strong>ERROR</strong>: your url is too long.' ), 200 );
+	}
+
+	if ( isset( $comment_data['comment_content'] ) && mb_strlen( $comment_data['comment_content'], '8bit' ) > $max_lengths['comment_content'] ) {
+		return new MN_Error( 'comment_content_column_length', __( '<strong>ERROR</strong>: your comment is too long.' ), 200 );
+	}
+
+	return true;
 }
 
 /**
@@ -1484,6 +1613,26 @@ function mn_transition_comment_status($new_status, $old_status, $comment) {
 }
 
 /**
+ * Clear the lastcommentmodified cached value when a comment status is changed.
+ *
+ * Deletes the lastcommentmodified cache key when a comment enters or leaves
+ * 'approved' status.
+ *
+ * @since 4.7.0
+ * @access private
+ *
+ * @param string $new_status The new comment status.
+ * @param string $old_status The old comment status.
+ */
+function _clear_modified_cache_on_transition_comment_status( $new_status, $old_status ) {
+	if ( 'approved' === $new_status || 'approved' === $old_status ) {
+		foreach ( array( 'server', 'gmt', 'blog' ) as $timezone ) {
+			mn_cache_delete( "lastcommentmodified:$timezone", 'timeinfo' );
+		}
+	}
+}
+
+/**
  * Get current commenter's name, email, and URL.
  *
  * Expects cookies content to already be sanitized. User of this function might
@@ -1592,6 +1741,10 @@ function mn_insert_comment( $commentdata ) {
 
 	if ( $comment_approved == 1 ) {
 		mn_update_comment_count( $comment_post_ID );
+
+		foreach ( array( 'server', 'gmt', 'blog' ) as $timezone ) {
+			mn_cache_delete( "lastcommentmodified:$timezone", 'timeinfo' );
+		}
 	}
 
 	clean_comment_cache( $id );
@@ -1709,12 +1862,14 @@ function mn_throttle_comment_flood($block, $time_lastcomment, $time_newcomment) 
  * filter for processing the comment data before the function handles it.
  *
  * We use `REMOTE_ADDR` here directly. If you are behind a proxy, you should ensure
- * that it is properly set, such as in configuration.php, for your environment.
+ * that it is properly set, such as in db.php, for your environment.
  *
  * See {@link https://core.trac.mtaandao.co.ke/ticket/9235}
  *
  * @since 1.5.0
  * @since 4.3.0 'comment_agent' and 'comment_author_IP' can be set via `$commentdata`.
+ * @since 4.7.0 The `$avoid_die` parameter was added, allowing the function to
+ *              return a MN_Error object instead of dying.
  *
  * @see mn_insert_comment()
  * @global mndb $mndb Mtaandao database abstraction object.
@@ -1738,9 +1893,11 @@ function mn_throttle_comment_flood($block, $time_lastcomment, $time_newcomment) 
  *     @type string $comment_author_IP    Comment author IP address in IPv4 format. Default is the value of
  *                                        'REMOTE_ADDR' in the `$_SERVER` superglobal sent in the original request.
  * }
- * @return int|false The ID of the comment on success, false on failure.
+ * @param bool $avoid_die Should errors be returned as MN_Error objects instead of
+ *                        executing mn_die()? Default false.
+ * @return int|false|MN_Error The ID of the comment on success, false or MN_Error on failure.
  */
-function mn_new_comment( $commentdata ) {
+function mn_new_comment( $commentdata, $avoid_die = false ) {
 	global $mndb;
 
 	if ( isset( $commentdata['user_ID'] ) ) {
@@ -1789,7 +1946,10 @@ function mn_new_comment( $commentdata ) {
 
 	$commentdata = mn_filter_comment($commentdata);
 
-	$commentdata['comment_approved'] = mn_allow_comment($commentdata);
+	$commentdata['comment_approved'] = mn_allow_comment( $commentdata, $avoid_die );
+	if ( is_mn_error( $commentdata['comment_approved'] ) ) {
+		return $commentdata['comment_approved'];
+	}
 
 	$comment_ID = mn_insert_comment($commentdata);
 	if ( ! $comment_ID ) {
@@ -1803,7 +1963,10 @@ function mn_new_comment( $commentdata ) {
 
 		$commentdata = mn_filter_comment( $commentdata );
 
-		$commentdata['comment_approved'] = mn_allow_comment( $commentdata );
+		$commentdata['comment_approved'] = mn_allow_comment( $commentdata, $avoid_die );
+		if ( is_mn_error( $commentdata['comment_approved'] ) ) {
+			return $commentdata['comment_approved'];
+		}
 
 		$comment_ID = mn_insert_comment( $commentdata );
 		if ( ! $comment_ID ) {
@@ -2025,6 +2188,20 @@ function mn_update_comment($commentarr) {
 	$comment_post_ID = $data['comment_post_ID'];
 	$keys = array( 'comment_post_ID', 'comment_content', 'comment_author', 'comment_author_email', 'comment_approved', 'comment_karma', 'comment_author_url', 'comment_date', 'comment_date_gmt', 'comment_type', 'comment_parent', 'user_id', 'comment_agent', 'comment_author_IP' );
 	$data = mn_array_slice_assoc( $data, $keys );
+
+	/**
+	 * Filters the comment data immediately before it is updated in the database.
+	 *
+	 * Note: data being passed to the filter is already unslashed.
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param array $data       The new, processed comment data.
+	 * @param array $comment    The old, unslashed comment data.
+	 * @param array $commentarr The new, raw comment data.
+	 */
+	$data = apply_filters( 'mn_update_comment_data', $data, $comment, $commentarr );
+
 	$rval = $mndb->update( $mndb->comments, $data, compact( 'comment_ID' ) );
 
 	clean_comment_cache( $comment_ID );
@@ -2035,7 +2212,7 @@ function mn_update_comment($commentarr) {
 	 * The hook also fires immediately before comment status transition hooks are fired.
 	 *
 	 * @since 1.2.0
-	 * @since 16.10.0 Added the `$data` parameter.
+	 * @since 4.6.0 Added the `$data` parameter.
 	 *
 	 * @param int   $comment_ID The comment ID.
 	 * @param array $data       Comment data.
@@ -2292,19 +2469,23 @@ function do_all_pings() {
  * Perform trackbacks.
  *
  * @since 1.5.0
+ * @since 4.7.0 $post_id can be a MN_Post object.
  *
  * @global mndb $mndb Mtaandao database abstraction object.
  *
- * @param int $post_id Post ID to do trackbacks on.
+ * @param int|MN_Post $post_id Post object or ID to do trackbacks on.
  */
-function do_trackbacks($post_id) {
+function do_trackbacks( $post_id ) {
 	global $mndb;
-
 	$post = get_post( $post_id );
-	$to_ping = get_to_ping($post_id);
-	$pinged  = get_pung($post_id);
-	if ( empty($to_ping) ) {
-		$mndb->update($mndb->posts, array('to_ping' => ''), array('ID' => $post_id) );
+	if ( ! $post ) {
+		return false;
+	}
+
+	$to_ping = get_to_ping( $post );
+	$pinged  = get_pung( $post );
+	if ( empty( $to_ping ) ) {
+		$mndb->update($mndb->posts, array( 'to_ping' => '' ), array( 'ID' => $post->ID ) );
 		return;
 	}
 
@@ -2327,10 +2508,11 @@ function do_trackbacks($post_id) {
 		foreach ( (array) $to_ping as $tb_ping ) {
 			$tb_ping = trim($tb_ping);
 			if ( !in_array($tb_ping, $pinged) ) {
-				trackback($tb_ping, $post_title, $excerpt, $post_id);
+				trackback( $tb_ping, $post_title, $excerpt, $post->ID );
 				$pinged[] = $tb_ping;
 			} else {
-				$mndb->query( $mndb->prepare("UPDATE $mndb->posts SET to_ping = TRIM(REPLACE(to_ping, %s, '')) WHERE ID = %d", $tb_ping, $post_id) );
+				$mndb->query( $mndb->prepare( "UPDATE $mndb->posts SET to_ping = TRIM(REPLACE(to_ping, %s,
+					'')) WHERE ID = %d", $tb_ping, $post->ID ) );
 			}
 		}
 	}
@@ -2361,21 +2543,28 @@ function generic_ping( $post_id = 0 ) {
  * Pings back the links found in a post.
  *
  * @since 0.71
+ * @since 4.7.0 $post_id can be a MN_Post object.
  *
- * @global string $mn_version
- *
- * @param string $content Post content to check for links.
- * @param int $post_ID Post ID.
+ * @param string $content Post content to check for links. If empty will retrieve from post.
+ * @param int|MN_Post $post_id Post Object or ID.
  */
-function pingback($content, $post_ID) {
-	global $mn_version;
-	include_once(ABSPATH . RES . '/class-IXR.php');
-	include_once(ABSPATH . RES . '/class-mn-http-ixr-client.php');
+function pingback( $content, $post_id ) {
+	include_once( ABSPATH . RES . '/class-IXR.php' );
+	include_once( ABSPATH . RES . '/class-mn-http-ixr-client.php' );
 
 	// original code by Mort (http://mort.mine.nu:8080)
 	$post_links = array();
 
-	$pung = get_pung($post_ID);
+	$post = get_post( $post_id );
+	if ( ! $post ) {
+		return;
+	}
+
+	$pung = get_pung( $post );
+
+	if ( empty( $content ) ) {
+		$content = $post->post_content;
+	}
 
 	// Step 1
 	// Parsing the post, external links (if any) are stored in the $post_links array
@@ -2391,7 +2580,7 @@ function pingback($content, $post_ID) {
 	// We don't wanna ping first and second types, even if they have a valid <link/>
 
 	foreach ( (array) $post_links_temp as $link_test ) :
-		if ( !in_array($link_test, $pung) && (url_to_postid($link_test) != $post_ID) // If we haven't pung it already and it isn't a link to itself
+		if ( ! in_array( $link_test, $pung ) && ( url_to_postid( $link_test ) != $post->ID ) // If we haven't pung it already and it isn't a link to itself
 				&& !is_local_attachment($link_test) ) : // Also, let's never ping local attachments.
 			if ( $test = @parse_url($link_test) ) {
 				if ( isset($test['query']) )
@@ -2412,7 +2601,7 @@ function pingback($content, $post_ID) {
 	 * @param array &$pung       Whether a link has already been pinged, passed by reference.
 	 * @param int   $post_ID     The post ID.
 	 */
-	do_action_ref_array( 'pre_ping', array( &$post_links, &$pung, $post_ID ) );
+	do_action_ref_array( 'pre_ping', array( &$post_links, &$pung, $post->ID ) );
 
 	foreach ( (array) $post_links as $pagelinkedto ) {
 		$pingback_server_url = discover_pingback_server_uri( $pagelinkedto );
@@ -2420,7 +2609,7 @@ function pingback($content, $post_ID) {
 		if ( $pingback_server_url ) {
 			@ set_time_limit( 60 );
 			// Now, the RPC call
-			$pagelinkedfrom = get_permalink($post_ID);
+			$pagelinkedfrom = get_permalink( $post );
 
 			// using a timeout of 3 seconds should be enough to cover slow servers
 			$client = new MN_HTTP_IXR_Client($pingback_server_url);
@@ -2437,12 +2626,12 @@ function pingback($content, $post_ID) {
 			 * @param string $pagelinkedto        URL of page linked to.
 			 * @param string $pagelinkedfrom      URL of page linked from.
 			 */
-			$client->useragent = apply_filters( 'pingback_useragent', $client->useragent . ' -- Mtaandao/' . $mn_version, $client->useragent, $pingback_server_url, $pagelinkedto, $pagelinkedfrom );
+			$client->useragent = apply_filters( 'pingback_useragent', $client->useragent . ' -- Mtaandao/' . get_bloginfo( 'version' ), $client->useragent, $pingback_server_url, $pagelinkedto, $pagelinkedfrom );
 			// when set to true, this outputs debug messages by itself
 			$client->debug = false;
 
 			if ( $client->query('pingback.ping', $pagelinkedfrom, $pagelinkedto) || ( isset($client->error->code) && 48 == $client->error->code ) ) // Already registered
-				add_ping( $post_ID, $pagelinkedto );
+				add_ping( $post, $pagelinkedto );
 		}
 	}
 }
@@ -2506,20 +2695,17 @@ function trackback($trackback_url, $title, $excerpt, $ID) {
  *
  * @since 1.2.0
  *
- * @global string $mn_version
- *
  * @param string $server Host of blog to connect to.
  * @param string $path Path to send the ping.
  */
 function weblog_ping($server = '', $path = '') {
-	global $mn_version;
-	include_once(ABSPATH . RES . '/class-IXR.php');
-	include_once(ABSPATH . RES . '/class-mn-http-ixr-client.php');
+	include_once( ABSPATH . RES . '/class-IXR.php' );
+	include_once( ABSPATH . RES . '/class-mn-http-ixr-client.php' );
 
 	// using a timeout of 3 seconds should be enough to cover slow servers
 	$client = new MN_HTTP_IXR_Client($server, ((!strlen(trim($path)) || ('/' == $path)) ? false : $path));
 	$client->timeout = 3;
-	$client->useragent .= ' -- Mtaandao/'.$mn_version;
+	$client->useragent .= ' -- Mtaandao/' . get_bloginfo( 'version' );
 
 	// when set to true, this outputs debug messages by itself
 	$client->debug = false;
@@ -2741,7 +2927,7 @@ function _close_comments_for_old_post( $open, $post_id ) {
 function mn_handle_comment_submission( $comment_data ) {
 
 	$comment_post_ID = $comment_parent = 0;
-	$comment_author = $comment_author_email = $comment_author_url = $comment_content = $_mn_unfiltered_html_comment = null;
+	$comment_author = $comment_author_email = $comment_author_url = $comment_content = null;
 
 	if ( isset( $comment_data['comment_post_ID'] ) ) {
 		$comment_post_ID = (int) $comment_data['comment_post_ID'];
@@ -2760,9 +2946,6 @@ function mn_handle_comment_submission( $comment_data ) {
 	}
 	if ( isset( $comment_data['comment_parent'] ) ) {
 		$comment_parent = absint( $comment_data['comment_parent'] );
-	}
-	if ( isset( $comment_data['_mn_unfiltered_html_comment'] ) && is_string( $comment_data['_mn_unfiltered_html_comment'] ) ) {
-		$_mn_unfiltered_html_comment = trim( $comment_data['_mn_unfiltered_html_comment'] );
 	}
 
 	$post = get_post( $comment_post_ID );
@@ -2876,12 +3059,11 @@ function mn_handle_comment_submission( $comment_data ) {
 		}
 	} else {
 		if ( get_option( 'comment_registration' ) ) {
-			return new MN_Error( 'not_logged_in', __( 'Sorry, you must be logged in to post a comment.' ), 403 );
+			return new MN_Error( 'not_logged_in', __( 'Sorry, you must be logged in to comment.' ), 403 );
 		}
 	}
 
 	$comment_type = '';
-	$max_lengths = mn_get_comment_fields_max_lengths();
 
 	if ( get_option( 'require_name_email' ) && ! $user->exists() ) {
 		if ( 6 > strlen( $comment_author_email ) || '' == $comment_author ) {
@@ -2891,22 +3073,8 @@ function mn_handle_comment_submission( $comment_data ) {
 		}
 	}
 
-	if ( isset( $comment_author ) && $max_lengths['comment_author'] < mb_strlen( $comment_author, '8bit' ) ) {
-		return new MN_Error( 'comment_author_column_length', __( '<strong>ERROR</strong>: your name is too long.' ), 200 );
-	}
-
-	if ( isset( $comment_author_email ) && $max_lengths['comment_author_email'] < strlen( $comment_author_email ) ) {
-		return new MN_Error( 'comment_author_email_column_length', __( '<strong>ERROR</strong>: your email address is too long.' ), 200 );
-	}
-
-	if ( isset( $comment_author_url ) && $max_lengths['comment_author_url'] < strlen( $comment_author_url ) ) {
-		return new MN_Error( 'comment_author_url_column_length', __( '<strong>ERROR</strong>: your url is too long.' ), 200 );
-	}
-
 	if ( '' == $comment_content ) {
 		return new MN_Error( 'require_valid_comment', __( '<strong>ERROR</strong>: please type a comment.' ), 200 );
-	} elseif ( $max_lengths['comment_content'] < mb_strlen( $comment_content, '8bit' ) ) {
-		return new MN_Error( 'comment_content_column_length', __( '<strong>ERROR</strong>: your comment is too long.' ), 200 );
 	}
 
 	$commentdata = compact(
@@ -2920,11 +3088,19 @@ function mn_handle_comment_submission( $comment_data ) {
 		'user_ID'
 	);
 
-	$comment_id = mn_new_comment( mn_slash( $commentdata ) );
+	$check_max_lengths = mn_check_comment_data_max_lengths( $commentdata );
+	if ( is_mn_error( $check_max_lengths ) ) {
+		return $check_max_lengths;
+	}
+
+	$comment_id = mn_new_comment( mn_slash( $commentdata ), true );
+	if ( is_mn_error( $comment_id ) ) {
+		return $comment_id;
+	}
+
 	if ( ! $comment_id ) {
 		return new MN_Error( 'comment_save_error', __( '<strong>ERROR</strong>: The comment could not be saved. Please try again later.' ), 500 );
 	}
 
 	return get_comment( $comment_id );
-
 }

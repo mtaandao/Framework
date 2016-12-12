@@ -4,14 +4,14 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
  * Generic Skin for the Mtaandao Upgrader classes. This skin is designed to be extended for specific purposes.
  *
  * @since 2.8.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
  */
 class MN_Upgrader_Skin {
 
@@ -70,7 +70,7 @@ class MN_Upgrader_Skin {
 	 * to connect to the filesystem.
 	 *
 	 * @since 2.8.0
-	 * @since 16.10.0 The `$context` parameter default changed from `false` to an empty string.
+	 * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
 	 *
 	 * @see request_filesystem_credentials()
 	 *

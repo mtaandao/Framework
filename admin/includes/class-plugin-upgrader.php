@@ -4,7 +4,7 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
@@ -14,7 +14,7 @@
  * or uploaded zip file.
  *
  * @since 2.8.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
  *
  * @see MN_Upgrader
  */
@@ -101,12 +101,14 @@ class Plugin_Upgrader extends MN_Upgrader {
 		$this->install_strings();
 
 		add_filter('upgrader_source_selection', array($this, 'check_package') );
-		// Clear cache so mn_update_plugins() knows about the new plugin.
-		add_action( 'upgrader_process_complete', 'mn_clean_plugins_cache', 9, 0 );
+		if ( $parsed_args['clear_update_cache'] ) {
+			// Clear cache so mn_update_plugins() knows about the new plugin.
+			add_action( 'upgrader_process_complete', 'mn_clean_plugins_cache', 9, 0 );
+		}
 
 		$this->run( array(
 			'package' => $package,
-			'destination' => MN_PLUGIN_DIR,
+			'destination' => PLUGIN_DIR,
 			'clear_destination' => false, // Do not overwrite files.
 			'clear_working' => true,
 			'hook_extra' => array(
@@ -168,12 +170,14 @@ class Plugin_Upgrader extends MN_Upgrader {
 		add_filter('upgrader_pre_install', array($this, 'deactivate_plugin_before_upgrade'), 10, 2);
 		add_filter('upgrader_clear_destination', array($this, 'delete_old_plugin'), 10, 4);
 		//'source_selection' => array($this, 'source_selection'), //there's a trac ticket to move up the directory for zip's which are made a bit differently, useful for non-.org plugins.
-		// Clear cache so mn_update_plugins() knows about the new plugin.
-		add_action( 'upgrader_process_complete', 'mn_clean_plugins_cache', 9, 0 );
+		if ( $parsed_args['clear_update_cache'] ) {
+			// Clear cache so mn_update_plugins() knows about the new plugin.
+			add_action( 'upgrader_process_complete', 'mn_clean_plugins_cache', 9, 0 );
+		}
 
 		$this->run( array(
 			'package' => $r->package,
-			'destination' => MN_PLUGIN_DIR,
+			'destination' => PLUGIN_DIR,
 			'clear_destination' => true,
 			'clear_working' => true,
 			'hook_extra' => array(
@@ -227,12 +231,11 @@ class Plugin_Upgrader extends MN_Upgrader {
 		$current = get_site_transient( 'update_plugins' );
 
 		add_filter('upgrader_clear_destination', array($this, 'delete_old_plugin'), 10, 4);
-		add_action( 'upgrader_process_complete', 'mn_clean_plugins_cache', 9, 0 );
 
 		$this->skin->header();
 
 		// Connect to the Filesystem first.
-		$res = $this->fs_connect( array(MAIN, MN_PLUGIN_DIR) );
+		$res = $this->fs_connect( array(MAIN_DIR, PLUGIN_DIR) );
 		if ( ! $res ) {
 			$this->skin->footer();
 			return false;
@@ -258,7 +261,7 @@ class Plugin_Upgrader extends MN_Upgrader {
 		$this->update_current = 0;
 		foreach ( $plugins as $plugin ) {
 			$this->update_current++;
-			$this->skin->plugin_info = get_plugin_data( MN_PLUGIN_DIR . '/' . $plugin, false, true);
+			$this->skin->plugin_info = get_plugin_data( PLUGIN_DIR . '/' . $plugin, false, true);
 
 			if ( !isset( $current->response[ $plugin ] ) ) {
 				$this->skin->set_result('up_to_date');
@@ -276,7 +279,7 @@ class Plugin_Upgrader extends MN_Upgrader {
 
 			$result = $this->run( array(
 				'package' => $r->package,
-				'destination' => MN_PLUGIN_DIR,
+				'destination' => PLUGIN_DIR,
 				'clear_destination' => true,
 				'clear_working' => true,
 				'is_multi' => true,
@@ -294,6 +297,9 @@ class Plugin_Upgrader extends MN_Upgrader {
 
 		$this->maintenance_mode(false);
 
+		// Force refresh of plugin update information.
+		mn_clean_plugins_cache( $parsed_args['clear_update_cache'] );
+
 		/** This action is documented in admin/includes/class-mn-upgrader.php */
 		do_action( 'upgrader_process_complete', $this, array(
 			'action' => 'update',
@@ -307,11 +313,7 @@ class Plugin_Upgrader extends MN_Upgrader {
 		$this->skin->footer();
 
 		// Cleanup our hooks, in case something else does a upgrade on this connection.
-		remove_action( 'upgrader_process_complete', 'mn_clean_plugins_cache', 9 );
 		remove_filter('upgrader_clear_destination', array($this, 'delete_old_plugin'));
-
-		// Force refresh of plugin update information.
-		mn_clean_plugins_cache( $parsed_args['clear_update_cache'] );
 
 		return $results;
 	}
@@ -337,7 +339,7 @@ class Plugin_Upgrader extends MN_Upgrader {
 		if ( is_mn_error($source) )
 			return $source;
 
-		$working_directory = str_replace( $mn_filesystem->mn_content_dir(), trailingslashit(MAIN), $source);
+		$working_directory = str_replace( $mn_filesystem->mn_content_dir(), trailingslashit(MAIN_DIR), $source);
 		if ( ! is_dir($working_directory) ) // Sanity check, if the above fails, let's not prevent installation.
 			return $source;
 

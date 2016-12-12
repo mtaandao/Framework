@@ -10,7 +10,7 @@
  * return no results. In these cases, a _doing_it_wrong() error notice is also thrown.
  * See MN_Date_Query::validate_date_values().
  *
- * @link https://mtaandao.co.ke/docs/Function_Reference/MN_Query Codex page.
+ * @link https://mtaandao.github.io/Function_Reference/MN_Query Codex page.
  *
  * @since 3.7.0
  */
@@ -151,7 +151,6 @@ class MN_Date_Query {
 	 *                              'comment_date', 'comment_date_gmt'.
 	 */
 	public function __construct( $date_query, $default_column = 'post_date' ) {
-
 		if ( isset( $date_query['relation'] ) && 'OR' === strtoupper( $date_query['relation'] ) ) {
 			$this->relation = 'OR';
 		} else {
@@ -740,12 +739,12 @@ class MN_Date_Query {
 		}
 
 		// Range queries.
-		if ( ! empty( $query['after'] ) )
+		if ( ! empty( $query['after'] ) ) {
 			$where_parts[] = $mndb->prepare( "$column $gt %s", $this->build_mysql_datetime( $query['after'], ! $inclusive ) );
-
-		if ( ! empty( $query['before'] ) )
+		}
+		if ( ! empty( $query['before'] ) ) {
 			$where_parts[] = $mndb->prepare( "$column $lt %s", $this->build_mysql_datetime( $query['before'], $inclusive ) );
-
+		}
 		// Specific value queries.
 
 		if ( isset( $query['year'] ) && $value = $this->build_value( $compare, $query['year'] ) )

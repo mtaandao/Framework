@@ -11,8 +11,10 @@
  * {@link https://secure.php.net/manual/en/language.pseudo-types.php#language.types.callback 'callback'}
  * type are valid.
  *
- * Also see the {@link https://mtaandao.co.ke/docs/Plugin_API Plugin API} for
+ * Also see the {@link https://mtaandao.github.io/Plugin_API Plugin API} for
  * more information and examples on how to use a lot of these functions.
+ *
+ * This file should have no external dependencies.
  *
  * @package Mtaandao
  * @subpackage Plugin
@@ -20,16 +22,19 @@
  */
 
 // Initialize the filter globals.
-global $mn_filter, $mn_actions, $merged_filters, $mn_current_filter;
+require( dirname( __FILE__ ) . '/class-mn-hook.php' );
 
-if ( ! isset( $mn_filter ) )
+/** @var MN_Hook[] $mn_filter */
+global $mn_filter, $mn_actions, $mn_current_filter;
+
+if ( $mn_filter ) {
+	$mn_filter = MN_Hook::build_preinitialized_hooks( $mn_filter );
+} else {
 	$mn_filter = array();
+}
 
 if ( ! isset( $mn_actions ) )
 	$mn_actions = array();
-
-if ( ! isset( $merged_filters ) )
-	$merged_filters = array();
 
 if ( ! isset( $mn_current_filter ) )
 	$mn_current_filter = array();
@@ -87,8 +92,6 @@ if ( ! isset( $mn_current_filter ) )
  * @since 0.71
  *
  * @global array $mn_filter      A multidimensional array of all hooks and the callbacks hooked to them.
- * @global array $merged_filters Tracks the tags that need to be merged for later. If the hook is added,
- *                               it doesn't need to run through that process.
  *
  * @param string   $tag             The name of the filter to hook the $function_to_add callback to.
  * @param callable $function_to_add The callback to be run when the filter is applied.
@@ -101,11 +104,11 @@ if ( ! isset( $mn_current_filter ) )
  * @return true
  */
 function add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
-	global $mn_filter, $merged_filters;
-
-	$idx = _mn_filter_build_unique_id($tag, $function_to_add, $priority);
-	$mn_filter[$tag][$priority][$idx] = array('function' => $function_to_add, 'accepted_args' => $accepted_args);
-	unset( $merged_filters[ $tag ] );
+	global $mn_filter;
+	if ( ! isset( $mn_filter[ $tag ] ) ) {
+		$mn_filter[ $tag ] = new MN_Hook();
+	}
+	$mn_filter[ $tag ]->add_filter( $tag, $function_to_add, $priority, $accepted_args );
 	return true;
 }
 
@@ -126,38 +129,13 @@ function add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 
  *                   return value.
  */
 function has_filter($tag, $function_to_check = false) {
-	// Don't reset the internal array pointer
-	$mn_filter = $GLOBALS['mn_filter'];
+	global $mn_filter;
 
-	$has = ! empty( $mn_filter[ $tag ] );
-
-	// Make sure at least one priority has a filter callback
-	if ( $has ) {
-		$exists = false;
-		foreach ( $mn_filter[ $tag ] as $callbacks ) {
-			if ( ! empty( $callbacks ) ) {
-				$exists = true;
-				break;
-			}
-		}
-
-		if ( ! $exists ) {
-			$has = false;
-		}
-	}
-
-	if ( false === $function_to_check || false === $has )
-		return $has;
-
-	if ( !$idx = _mn_filter_build_unique_id($tag, $function_to_check, false) )
+	if ( ! isset( $mn_filter[ $tag ] ) ) {
 		return false;
-
-	foreach ( (array) array_keys($mn_filter[$tag]) as $priority ) {
-		if ( isset($mn_filter[$tag][$priority][$idx]) )
-			return $priority;
 	}
 
-	return false;
+	return $mn_filter[ $tag ]->has_filter( $tag, $function_to_check );
 }
 
 /**
@@ -188,7 +166,6 @@ function has_filter($tag, $function_to_check = false) {
  * @since 0.71
  *
  * @global array $mn_filter         Stores all of the filters.
- * @global array $merged_filters    Merges the filter hooks using this function.
  * @global array $mn_current_filter Stores the list of current filters with the current one last.
  *
  * @param string $tag     The name of the filter hook.
@@ -197,7 +174,7 @@ function has_filter($tag, $function_to_check = false) {
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters( $tag, $value ) {
-	global $mn_filter, $merged_filters, $mn_current_filter;
+	global $mn_filter, $mn_current_filter;
 
 	$args = array();
 
@@ -217,29 +194,17 @@ function apply_filters( $tag, $value ) {
 	if ( !isset($mn_filter['all']) )
 		$mn_current_filter[] = $tag;
 
-	// Sort.
-	if ( !isset( $merged_filters[ $tag ] ) ) {
-		ksort($mn_filter[$tag]);
-		$merged_filters[ $tag ] = true;
-	}
-
-	reset( $mn_filter[ $tag ] );
-
 	if ( empty($args) )
 		$args = func_get_args();
 
-	do {
-		foreach ( (array) current($mn_filter[$tag]) as $the_ )
-			if ( !is_null($the_['function']) ){
-				$args[1] = $value;
-				$value = call_user_func_array($the_['function'], array_slice($args, 1, (int) $the_['accepted_args']));
-			}
+	// don't pass the tag name to MN_Hook
+	array_shift( $args );
 
-	} while ( next($mn_filter[$tag]) !== false );
+	$filtered = $mn_filter[ $tag ]->apply_filters( $value, $args );
 
 	array_pop( $mn_current_filter );
 
-	return $value;
+	return $filtered;
 }
 
 /**
@@ -251,7 +216,6 @@ function apply_filters( $tag, $value ) {
  * functions hooked to `$tag` are supplied using an array.
  *
  * @global array $mn_filter         Stores all of the filters
- * @global array $merged_filters    Merges the filter hooks using this function.
  * @global array $mn_current_filter Stores the list of current filters with the current one last
  *
  * @param string $tag  The name of the filter hook.
@@ -259,7 +223,7 @@ function apply_filters( $tag, $value ) {
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_ref_array($tag, $args) {
-	global $mn_filter, $merged_filters, $mn_current_filter;
+	global $mn_filter, $mn_current_filter;
 
 	// Do 'all' actions first
 	if ( isset($mn_filter['all']) ) {
@@ -277,24 +241,11 @@ function apply_filters_ref_array($tag, $args) {
 	if ( !isset($mn_filter['all']) )
 		$mn_current_filter[] = $tag;
 
-	// Sort
-	if ( !isset( $merged_filters[ $tag ] ) ) {
-		ksort($mn_filter[$tag]);
-		$merged_filters[ $tag ] = true;
-	}
-
-	reset( $mn_filter[ $tag ] );
-
-	do {
-		foreach ( (array) current($mn_filter[$tag]) as $the_ )
-			if ( !is_null($the_['function']) )
-				$args[0] = call_user_func_array($the_['function'], array_slice($args, 0, (int) $the_['accepted_args']));
-
-	} while ( next($mn_filter[$tag]) !== false );
+	$filtered = $mn_filter[ $tag ]->apply_filters( $args[0], $args );
 
 	array_pop( $mn_current_filter );
 
-	return $args[0];
+	return $filtered;
 }
 
 /**
@@ -311,7 +262,6 @@ function apply_filters_ref_array($tag, $args) {
  * @since 1.2.0
  *
  * @global array $mn_filter         Stores all of the filters
- * @global array $merged_filters    Merges the filter hooks using this function.
  *
  * @param string   $tag                The filter hook to which the function to be removed is hooked.
  * @param callable $function_to_remove The name of the function which should be removed.
@@ -319,19 +269,14 @@ function apply_filters_ref_array($tag, $args) {
  * @return bool    Whether the function existed before it was removed.
  */
 function remove_filter( $tag, $function_to_remove, $priority = 10 ) {
-	$function_to_remove = _mn_filter_build_unique_id( $tag, $function_to_remove, $priority );
+	global $mn_filter;
 
-	$r = isset( $GLOBALS['mn_filter'][ $tag ][ $priority ][ $function_to_remove ] );
-
-	if ( true === $r ) {
-		unset( $GLOBALS['mn_filter'][ $tag ][ $priority ][ $function_to_remove ] );
-		if ( empty( $GLOBALS['mn_filter'][ $tag ][ $priority ] ) ) {
-			unset( $GLOBALS['mn_filter'][ $tag ][ $priority ] );
+	$r = false;
+	if ( isset( $mn_filter[ $tag ] ) ) {
+		$r = $mn_filter[ $tag ]->remove_filter( $tag, $function_to_remove, $priority );
+		if ( ! $mn_filter[ $tag ]->callbacks ) {
+			unset( $mn_filter[ $tag ] );
 		}
-		if ( empty( $GLOBALS['mn_filter'][ $tag ] ) ) {
-			$GLOBALS['mn_filter'][ $tag ] = array();
-		}
-		unset( $GLOBALS['merged_filters'][ $tag ] );
 	}
 
 	return $r;
@@ -342,25 +287,21 @@ function remove_filter( $tag, $function_to_remove, $priority = 10 ) {
  *
  * @since 2.7.0
  *
- * @global array $mn_filter         Stores all of the filters
- * @global array $merged_filters    Merges the filter hooks using this function.
+ * @global array $mn_filter  Stores all of the filters
  *
  * @param string   $tag      The filter to remove hooks from.
  * @param int|bool $priority Optional. The priority number to remove. Default false.
  * @return true True when finished.
  */
 function remove_all_filters( $tag, $priority = false ) {
-	global $mn_filter, $merged_filters;
+	global $mn_filter;
 
 	if ( isset( $mn_filter[ $tag ]) ) {
-		if ( false === $priority ) {
-			$mn_filter[ $tag ] = array();
-		} elseif ( isset( $mn_filter[ $tag ][ $priority ] ) ) {
-			$mn_filter[ $tag ][ $priority ] = array();
+		$mn_filter[ $tag ]->remove_all_filters( $priority );
+		if ( ! $mn_filter[ $tag ]->has_filters() ) {
+			unset( $mn_filter[ $tag ] );
 		}
 	}
-
-	unset( $merged_filters[ $tag ] );
 
 	return true;
 }
@@ -471,7 +412,6 @@ function add_action($tag, $function_to_add, $priority = 10, $accepted_args = 1) 
  *
  * @global array $mn_filter         Stores all of the filters
  * @global array $mn_actions        Increments the amount of times action was triggered.
- * @global array $merged_filters    Merges the filter hooks using this function.
  * @global array $mn_current_filter Stores the list of current filters with the current one last
  *
  * @param string $tag     The name of the action to be executed.
@@ -479,7 +419,7 @@ function add_action($tag, $function_to_add, $priority = 10, $accepted_args = 1) 
  *                        functions hooked to the action. Default empty.
  */
 function do_action($tag, $arg = '') {
-	global $mn_filter, $mn_actions, $merged_filters, $mn_current_filter;
+	global $mn_filter, $mn_actions, $mn_current_filter;
 
 	if ( ! isset($mn_actions[$tag]) )
 		$mn_actions[$tag] = 1;
@@ -510,20 +450,7 @@ function do_action($tag, $arg = '') {
 	for ( $a = 2, $num = func_num_args(); $a < $num; $a++ )
 		$args[] = func_get_arg($a);
 
-	// Sort
-	if ( !isset( $merged_filters[ $tag ] ) ) {
-		ksort($mn_filter[$tag]);
-		$merged_filters[ $tag ] = true;
-	}
-
-	reset( $mn_filter[ $tag ] );
-
-	do {
-		foreach ( (array) current($mn_filter[$tag]) as $the_ )
-			if ( !is_null($the_['function']) )
-				call_user_func_array($the_['function'], array_slice($args, 0, (int) $the_['accepted_args']));
-
-	} while ( next($mn_filter[$tag]) !== false );
+	$mn_filter[ $tag ]->do_action( $args );
 
 	array_pop($mn_current_filter);
 }
@@ -556,14 +483,13 @@ function did_action($tag) {
  *                  functions hooked to $tag< are supplied using an array.
  * @global array $mn_filter         Stores all of the filters
  * @global array $mn_actions        Increments the amount of times action was triggered.
- * @global array $merged_filters    Merges the filter hooks using this function.
  * @global array $mn_current_filter Stores the list of current filters with the current one last
  *
  * @param string $tag  The name of the action to be executed.
  * @param array  $args The arguments supplied to the functions hooked to `$tag`.
  */
 function do_action_ref_array($tag, $args) {
-	global $mn_filter, $mn_actions, $merged_filters, $mn_current_filter;
+	global $mn_filter, $mn_actions, $mn_current_filter;
 
 	if ( ! isset($mn_actions[$tag]) )
 		$mn_actions[$tag] = 1;
@@ -586,20 +512,7 @@ function do_action_ref_array($tag, $args) {
 	if ( !isset($mn_filter['all']) )
 		$mn_current_filter[] = $tag;
 
-	// Sort
-	if ( !isset( $merged_filters[ $tag ] ) ) {
-		ksort($mn_filter[$tag]);
-		$merged_filters[ $tag ] = true;
-	}
-
-	reset( $mn_filter[ $tag ] );
-
-	do {
-		foreach ( (array) current($mn_filter[$tag]) as $the_ )
-			if ( !is_null($the_['function']) )
-				call_user_func_array($the_['function'], array_slice($args, 0, (int) $the_['accepted_args']));
-
-	} while ( next($mn_filter[$tag]) !== false );
+	$mn_filter[ $tag ]->do_action( $args );
 
 	array_pop($mn_current_filter);
 }
@@ -662,7 +575,7 @@ function remove_all_actions($tag, $priority = false) {
  * apply_filters_deprecated(), which triggers a deprecation notice and then fires
  * the original filter hook.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @see _deprecated_hook()
  *
@@ -689,7 +602,7 @@ function apply_filters_deprecated( $tag, $args, $version, $replacement = false, 
  * do_action_deprecated(), which triggers a deprecation notice and then fires
  * the original hook.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @see _deprecated_hook()
  *
@@ -738,7 +651,7 @@ function plugin_basename( $file ) {
 		}
 	}
 
-	$plugin_dir = mn_normalize_path( MN_PLUGIN_DIR );
+	$plugin_dir = mn_normalize_path( PLUGIN_DIR );
 	$mu_plugin_dir = mn_normalize_path( MNMU_PLUGIN_DIR );
 
 	$file = preg_replace('#^' . preg_quote($plugin_dir, '#') . '/|^' . preg_quote($mu_plugin_dir, '#') . '/#','',$file); // get relative path from plugins dir
@@ -769,7 +682,7 @@ function mn_register_plugin_realpath( $file ) {
 	// Normalize, but store as static to avoid recalculation of a constant value
 	static $mn_plugin_path = null, $mnmu_plugin_path = null;
 	if ( ! isset( $mn_plugin_path ) ) {
-		$mn_plugin_path   = mn_normalize_path( MN_PLUGIN_DIR   );
+		$mn_plugin_path   = mn_normalize_path( PLUGIN_DIR   );
 		$mnmu_plugin_path = mn_normalize_path( MNMU_PLUGIN_DIR );
 	}
 
@@ -921,13 +834,7 @@ function register_uninstall_hook( $file, $callback ) {
 function _mn_call_all_hook($args) {
 	global $mn_filter;
 
-	reset( $mn_filter['all'] );
-	do {
-		foreach ( (array) current($mn_filter['all']) as $the_ )
-			if ( !is_null($the_['function']) )
-				call_user_func_array($the_['function'], $args);
-
-	} while ( next($mn_filter['all']) !== false );
+	$mn_filter['all']->do_all_hook( $args );
 }
 
 /**

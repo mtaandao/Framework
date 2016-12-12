@@ -27,7 +27,7 @@ class MN_Widget_Meta extends MN_Widget {
 	public function __construct() {
 		$widget_ops = array(
 			'classname' => 'widget_meta',
-			'description' => __( 'Login, RSS, &amp; mtaandao.co.ke links.' ),
+			'description' => __( 'Login, RSS, &amp; Mtaandao.org links.' ),
 			'customize_selective_refresh' => true,
 		);
 		parent::__construct( 'meta', __( 'Meta' ), $widget_ops );
@@ -63,12 +63,12 @@ class MN_Widget_Meta extends MN_Widget {
 			 *
 			 * @since 3.6.0
 			 *
-			 * @param string $title_text Default title text for the mtaandao.co.ke link.
+			 * @param string $title_text Default title text for the Mtaandao.org link.
 			 */
 			echo apply_filters( 'widget_meta_poweredby', sprintf( '<li><a href="%s" title="%s">%s</a></li>',
 				esc_url( __( 'https://mtaandao.co.ke/' ) ),
 				esc_attr__( 'Powered by Mtaandao, state-of-the-art semantic personal publishing platform.' ),
-				_x( 'mtaandao.co.ke', 'meta widget link text' )
+				_x( 'Mtaandao.org', 'meta widget link text' )
 			) );
 
 			mn_meta();

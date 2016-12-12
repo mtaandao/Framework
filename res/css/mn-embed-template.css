@@ -64,7 +64,7 @@ body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	line-height: 1.5;
 	color: #82878c;
-	background: white;
+	background: #fff;
 	border: 1px solid #e5e5e5;
 	-webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
 	box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
@@ -164,7 +164,7 @@ p.mn-embed-heading {
 
 .mn-embed-meta a:hover {
 	text-decoration: none;
-	color: #21b68e;
+	color: #21b16e;
 }
 
 .mn-embed-comments a {
@@ -216,8 +216,8 @@ p.mn-embed-heading {
 
 .mn-embed-share-dialog-open:focus .dashicons,
 .mn-embed-share-dialog-close:focus .dashicons {
-	-webkit-box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, .8);
-	box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, .8);
+	-webkit-box-shadow: 0 0 0 1px #21b68e, 0 0 2px 1px rgba(30, 140, 190, .8);
+	box-shadow: 0 0 0 1px #21b68e, 0 0 2px 1px rgba(30, 140, 190, .8);
 	-webkit-border-radius: 100%;
 	border-radius: 100%;
 }

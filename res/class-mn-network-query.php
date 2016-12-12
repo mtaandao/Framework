@@ -4,13 +4,13 @@
  *
  * @package Mtaandao
  * @subpackage Multisite
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
  * Core class used for querying networks.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @see MN_Network_Query::__construct() for accepted arguments.
  */
@@ -19,7 +19,7 @@ class MN_Network_Query {
 	/**
 	 * SQL for database query.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 * @var string
 	 */
@@ -28,7 +28,7 @@ class MN_Network_Query {
 	/**
 	 * SQL query clauses.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access protected
 	 * @var array
 	 */
@@ -44,7 +44,7 @@ class MN_Network_Query {
 	/**
 	 * Query vars set by the user.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 * @var array
 	 */
@@ -53,7 +53,7 @@ class MN_Network_Query {
 	/**
 	 * Default values for query vars.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 * @var array
 	 */
@@ -62,7 +62,7 @@ class MN_Network_Query {
 	/**
 	 * List of networks located by the query.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 * @var array
 	 */
@@ -71,7 +71,7 @@ class MN_Network_Query {
 	/**
 	 * The amount of found networks for the current query.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 * @var int
 	 */
@@ -80,7 +80,7 @@ class MN_Network_Query {
 	/**
 	 * The number of pages.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 * @var int
 	 */
@@ -91,7 +91,7 @@ class MN_Network_Query {
 	 *
 	 * Sets up the network query, based on the query vars passed.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string|array $query {
@@ -103,7 +103,7 @@ class MN_Network_Query {
  	 *                                              Default false.
  	 *     @type string       $fields               Network fields to return. Accepts 'ids' (returns an array of network IDs)
  	 *                                              or empty (returns an array of complete network objects). Default empty.
- 	 *     @type int          $number               Maximum number of networks to retrieve. Default null (no limit).
+ 	 *     @type int          $number               Maximum number of networks to retrieve. Default empty (no limit).
  	 *     @type int          $offset               Number of networks to offset the query. Used to build LIMIT clause.
  	 *                                              Default 0.
  	 *     @type bool         $no_found_rows        Whether to disable the `SQL_CALC_FOUND_ROWS` query. Default true.
@@ -111,12 +111,10 @@ class MN_Network_Query {
  	 *                                              'domain_length', 'path_length' and 'network__in'. Also accepts false,
  	 *                                              an empty array, or 'none' to disable `ORDER BY` clause. Default 'id'.
  	 *     @type string       $order                How to order retrieved networks. Accepts 'ASC', 'DESC'. Default 'ASC'.
- 	 *     @type string       $domain               Limit results to those affiliated with a given network ID.
- 	 *                                              Default current network ID.
+ 	 *     @type string       $domain               Limit results to those affiliated with a given domain. Default empty.
  	 *     @type array        $domain__in           Array of domains to include affiliated networks for. Default empty.
  	 *     @type array        $domain__not_in       Array of domains to exclude affiliated networks for. Default empty.
- 	 *     @type string       $path                 Limit results to those affiliated with a given network ID.
- 	 *                                              Default current network ID.
+ 	 *     @type string       $path                 Limit results to those affiliated with a given path. Default empty.
  	 *     @type array        $path__in             Array of paths to include affiliated networks for. Default empty.
  	 *     @type array        $path__not_in         Array of paths to exclude affiliated networks for. Default empty.
  	 *     @type string       $search               Search term(s) to retrieve matching networks for. Default empty.
@@ -152,7 +150,7 @@ class MN_Network_Query {
 	/**
 	 * Parses arguments passed to the network query with default query parameters.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @access public
 	 *
@@ -168,7 +166,7 @@ class MN_Network_Query {
 		/**
 		 * Fires after the network query vars have been parsed.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param MN_Network_Query &$this The MN_Network_Query instance (passed by reference).
 		 */
@@ -178,7 +176,7 @@ class MN_Network_Query {
 	/**
 	 * Sets up the Mtaandao query for retrieving networks.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
@@ -192,7 +190,7 @@ class MN_Network_Query {
 	/**
 	 * Gets a list of networks matching the query vars.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @return int|array The list of networks.
@@ -203,7 +201,7 @@ class MN_Network_Query {
 		/**
 		 * Fires before networks are retrieved.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param MN_Network_Query &$this Current instance of MN_Network_Query, passed by reference.
 		 */
@@ -211,11 +209,7 @@ class MN_Network_Query {
 
 		// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
 		$key = md5( serialize( mn_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) ) ) );
-		$last_changed = mn_cache_get( 'last_changed', 'networks' );
-		if ( ! $last_changed ) {
-			$last_changed = microtime();
-			mn_cache_set( 'last_changed', $last_changed, 'networks' );
-		}
+		$last_changed = mn_cache_get_last_changed( 'networks' );
 
 		$cache_key = "get_network_ids:$key:$last_changed";
 		$cache_value = mn_cache_get( $cache_key, 'networks' );
@@ -268,7 +262,7 @@ class MN_Network_Query {
 		/**
 		 * Filters the network query results.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param array            $results  An array of networks.
 		 * @param MN_Network_Query &$this    Current instance of MN_Network_Query, passed by reference.
@@ -284,7 +278,7 @@ class MN_Network_Query {
 	/**
 	 * Used internally to get a list of network IDs matching the query vars.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access protected
 	 *
 	 * @return int|array A single count of network IDs if a count query. An array of network IDs if a full query.
@@ -407,7 +401,7 @@ class MN_Network_Query {
 		/**
 		 * Filters the network query clauses.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param array            $pieces A compacted array of network query clauses.
 		 * @param MN_Network_Query &$this  Current instance of MN_Network_Query, passed by reference.
@@ -459,7 +453,7 @@ class MN_Network_Query {
 	 * Populates found_networks and max_num_pages properties for the current query
 	 * if the limit clause was used.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access private
 	 *
 	 * @global mndb $mndb Mtaandao database abstraction object.
@@ -471,7 +465,7 @@ class MN_Network_Query {
 			/**
 			 * Filters the query used to retrieve found network count.
 			 *
-			 * @since 16.10.0
+			 * @since 4.6.0
 			 *
 			 * @param string           $found_networks_query SQL query. Default 'SELECT FOUND_ROWS()'.
 			 * @param MN_Network_Query $network_query        The `MN_Network_Query` instance.
@@ -485,7 +479,7 @@ class MN_Network_Query {
 	/**
 	 * Used internally to generate an SQL string for searching across multiple columns.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access protected
 	 *
 	 * @global mndb  $mndb Mtaandao database abstraction object.
@@ -511,7 +505,7 @@ class MN_Network_Query {
 	/**
 	 * Parses and sanitizes 'orderby' keys passed to the network query.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access protected
 	 *
 	 * @global mndb $mndb Mtaandao database abstraction object.
@@ -545,7 +539,7 @@ class MN_Network_Query {
 	/**
 	 * Parses an 'order' query variable and cast it to 'ASC' or 'DESC' as necessary.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access protected
 	 *
 	 * @param string $order The 'order' query variable.

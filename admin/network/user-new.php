@@ -10,9 +10,6 @@
 /** Load Mtaandao Administration Bootstrap */
 require_once( dirname( __FILE__ ) . '/admin.php' );
 
-if ( ! is_multisite() )
-	mn_die( __( 'Multisite support is not enabled.' ) );
-
 if ( ! current_user_can('create_users') )
 	mn_die(__('Sorry, you are not allowed to add users to this network.'));
 
@@ -26,8 +23,8 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Network_Admin_Users_Screen" target="_blank">Documentation on Network Users</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/forum/multisite/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Network_Admin_Users_Screen">Documentation on Network Users</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/forum/multisite/">Support Forums</a>') . '</p>'
 );
 
 if ( isset($_REQUEST['action']) && 'add-user' == $_REQUEST['action'] ) {

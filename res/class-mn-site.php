@@ -15,8 +15,12 @@
  *
  * @since 4.5.0
  *
- * @property int $id
- * @property int $network_id
+ * @property int    $id
+ * @property int    $network_id
+ * @property string $blogname
+ * @property string $siteurl
+ * @property int    $post_count
+ * @property string $home
  */
 final class MN_Site {
 
@@ -205,7 +209,7 @@ final class MN_Site {
 	/**
 	 * Converts an object to array.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @return array Object as array.
@@ -220,7 +224,7 @@ final class MN_Site {
 	 * Allows current multisite naming conventions when getting properties.
 	 * Allows access to extended site properties.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string $key Property to get.
@@ -252,7 +256,7 @@ final class MN_Site {
 	 * Allows current multisite naming conventions when checking for properties.
 	 * Checks for extended site properties.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string $key Property to check if set.
@@ -281,7 +285,7 @@ final class MN_Site {
 	 *
 	 * Allows current multisite naming conventions while setting properties.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string $key   Property to set.
@@ -305,12 +309,12 @@ final class MN_Site {
 	 *
 	 * This method is used internally to lazy-load the extended properties of a site.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access private
 	 *
 	 * @see MN_Site::__get()
 	 *
-	 * @return object A raw site object with all details included.
+	 * @return stdClass A raw site object with all details included.
 	 */
 	private function get_details() {
 		$details = mn_cache_get( $this->blog_id, 'site-details' );
@@ -342,12 +346,15 @@ final class MN_Site {
 			}
 		}
 
+		/** This filter is documented in res/ms-blogs.php */
+		$details = apply_filters_deprecated( 'blog_details', array( $details ), '4.7.0', 'site_details' );
+
 		/**
 		 * Filters a site's extended properties.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
-		 * @param object $details The site details.
+		 * @param stdClass $details The site details.
 		 */
 		$details = apply_filters( 'site_details', $details );
 

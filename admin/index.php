@@ -33,7 +33,6 @@ $parent_file = 'index.php';
 
 $help = '<p>' . __( 'Welcome to your Mtaandao Dashboard! This is the screen you will see when you log in to your site, and gives you access to all the site management features of Mtaandao. You can get help for any screen by clicking the Help tab above the screen title.' ) . '</p>';
 
-// Not using chaining here, so as to be parseable by PHP4.
 $screen = get_current_screen();
 
 $screen->add_help_tab( array(
@@ -74,13 +73,13 @@ if ( ! is_multisite() && current_user_can( 'install_plugins' ) )
 	$help .= '<p>' . sprintf(
 		/* translators: %s: Mtaandao Planet URL */
 		__( '<strong>Mtaandao News</strong> &mdash; Latest news from the official Mtaandao project, the <a href="%s">Mtaandao Planet</a>, and popular plugins.' ),
-		__( 'https://planet.mtaandao.co.ke/' )
+		__( 'https://mtaandao.co.ke/blog/' )
 	) . '</p>';
 else
 	$help .= '<p>' . sprintf(
 		/* translators: %s: Mtaandao Planet URL */
 		__( '<strong>Mtaandao News</strong> &mdash; Latest news from the official Mtaandao project and the <a href="%s">Mtaandao Planet</a>.' ),
-		__( 'https://planet.mtaandao.co.ke/' )
+		__( 'https://mtaandao.co.ke/blog/' )
 	) . '</p>';
 if ( current_user_can( 'edit_theme_options' ) )
 	$help .= '<p>' . __( '<strong>Welcome</strong> &mdash; Shows links for some of the most common tasks when setting up a new site.' ) . '</p>';
@@ -95,8 +94,8 @@ unset( $help );
 
 $screen->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://mtaandao.co.ke/docs/Dashboard_Screen" target="_blank">Documentation on Dashboard</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://mtaandao.github.io/Dashboard_Screen">Documentation on Dashboard</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://mtaandao.co.ke/support/">Support Forums</a>' ) . '</p>'
 );
 
 include( ABSPATH . 'admin/admin-header.php' );

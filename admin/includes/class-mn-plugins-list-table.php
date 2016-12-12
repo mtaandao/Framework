@@ -253,6 +253,7 @@ class MN_Plugins_List_Table extends MN_List_Table {
 
 		mn_localize_script( 'updates', '_mnUpdatesItemCounts', array(
 			'plugins' => $js_plugins,
+			'totals'  => mn_get_update_data(),
 		) );
 
 		if ( ! $orderby ) {
@@ -344,7 +345,7 @@ class MN_Plugins_List_Table extends MN_List_Table {
 	/**
 	 * Displays the search box.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string $text     The 'submit' button label.
@@ -367,7 +368,7 @@ class MN_Plugins_List_Table extends MN_List_Table {
 		<p class="search-box">
 			<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
 			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="mn-filter-search" name="s" value="<?php _admin_search_query(); ?>" placeholder="<?php esc_attr_e( 'Search installed plugins...' ); ?>"/>
-			<?php submit_button( $text, 'button hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
+			<?php submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
 		</p>
 		<?php
 	}
@@ -496,7 +497,7 @@ class MN_Plugins_List_Table extends MN_List_Table {
 		echo '<div class="alignleft actions">';
 
 		if ( 'recently_activated' == $status ) {
-			submit_button( __( 'Clear List' ), 'button', 'clear-recent-list', false );
+			submit_button( __( 'Clear List' ), '', 'clear-recent-list', false );
 		} elseif ( 'top' === $which && 'mustuse' === $status ) {
 			/* translators: %s: mu-plugins directory name */
 			echo '<p>' . sprintf( __( 'Files in the %s directory are executed automatically.' ),
@@ -505,7 +506,7 @@ class MN_Plugins_List_Table extends MN_List_Table {
 		} elseif ( 'top' === $which && 'dropins' === $status ) {
 			/* translators: %s: main directory name */
 			echo '<p>' . sprintf( __( 'Drop-ins are advanced plugins in the %s directory that replace Mtaandao functionality when present.' ),
-				'<code>' . str_replace( ABSPATH, '', MAIN ) . '</code>'
+				'<code>' . str_replace( ABSPATH, '', MAIN_DIR ) . '</code>'
 			) . '</p>';
 		}
 		echo '</div>';
@@ -579,10 +580,10 @@ class MN_Plugins_List_Table extends MN_List_Table {
 			} else {
 				$is_active = false;
 				$description = '<p><strong>' . $dropins[ $plugin_file ][0] . ' <span class="error-message">' . __( 'Inactive:' ) . '</span></strong> ' .
-					/* translators: 1: drop-in constant name, 2: configuration.php */
+					/* translators: 1: drop-in constant name, 2: db.php */
 					sprintf( __( 'Requires %1$s in %2$s file.' ),
 						"<code>define('" . $dropins[ $plugin_file ][1] . "', true);</code>",
-						'<code>configuration.php</code>'
+						'<code>db.php</code>'
 					) . '</p>';
 			}
 			if ( $plugin_data['Description'] )
@@ -636,7 +637,7 @@ class MN_Plugins_List_Table extends MN_List_Table {
 
 			 } // end if $screen->in_admin( 'network' )
 
-			if ( ( ! is_multisite() || $screen->in_admin( 'network' ) ) && current_user_can( 'edit_plugins' ) && is_writable( MN_PLUGIN_DIR . '/' . $plugin_file ) ) {
+			if ( ( ! is_multisite() || $screen->in_admin( 'network' ) ) && current_user_can( 'edit_plugins' ) && is_writable( PLUGIN_DIR . '/' . $plugin_file ) ) {
 				/* translators: %s: plugin name */
 				$actions['edit'] = '<a href="plugin-editor.php?file=' . $plugin_file . '" class="edit" aria-label="' . esc_attr( sprintf( __( 'Edit %s' ), $plugin_data['Name'] ) ) . '">' . __( 'Edit' ) . '</a>';
 			}
@@ -652,8 +653,7 @@ class MN_Plugins_List_Table extends MN_List_Table {
 			 * The default action links for the Network plugins list table include
 			 * 'Network Activate', 'Network Deactivate', 'Edit', and 'Delete'.
 			 *
-			 * @since 3.1.0 As `{$prefix}_plugin_action_links`
-			 * @since 4.4.0
+			 * @since 3.1.0
 			 *
 			 * @param array  $actions     An array of plugin action links.
 			 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
@@ -670,8 +670,7 @@ class MN_Plugins_List_Table extends MN_List_Table {
 			 * The dynamic portion of the hook name, $plugin_file, refers to the path
 			 * to the plugin file, relative to the plugins directory.
 			 *
-			 * @since 3.1.0 As `{$prefix}_plugin_action_links_{$plugin_file}`
-			 * @since 4.4.0
+			 * @since 3.1.0
 			 *
 			 * @param array  $actions     An array of plugin action links.
 			 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
@@ -691,8 +690,8 @@ class MN_Plugins_List_Table extends MN_List_Table {
 			 * 'Activate', 'Deactivate', and 'Edit', for a network site, and
 			 * 'Activate', 'Deactivate', 'Edit', and 'Delete' for a single site.
 			 *
-			 * @since 2.5.0 As `{$prefix}_plugin_action_links`
-			 * @since 4.4.0
+			 * @since 2.5.0
+			 * @since 2.6.0 The `$context` parameter was added.
 			 *
 			 * @param array  $actions     An array of plugin action links.
 			 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
@@ -709,8 +708,7 @@ class MN_Plugins_List_Table extends MN_List_Table {
 			 * The dynamic portion of the hook name, $plugin_file, refers to the path
 			 * to the plugin file, relative to the plugins directory.
 			 *
-			 * @since 2.7.0 As `{$prefix}_plugin_action_links_{$plugin_file}`
-			 * @since 4.4.0
+			 * @since 2.7.0
 			 *
 			 * @param array  $actions     An array of plugin action links.
 			 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
@@ -864,7 +862,7 @@ class MN_Plugins_List_Table extends MN_List_Table {
 		 *                            'Inactive', 'Recently Activated', 'Upgrade', 'Must-Use',
 		 *                            'Drop-ins', 'Search'.
 		 */
-		do_action( "after_plugin_row_$plugin_file", $plugin_file, $plugin_data, $status );
+		do_action( "after_plugin_row_{$plugin_file}", $plugin_file, $plugin_data, $status );
 	}
 
 	/**

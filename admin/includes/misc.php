@@ -133,7 +133,7 @@ function insert_with_markers( $filename, $marker, $insertion ) {
 		$lines[] = rtrim( fgets( $fp ), "\r\n" );
 	}
 
-	// Split out the existing file into the preceeding lines, and those that appear after the marker
+	// Split out the existing file into the preceding lines, and those that appear after the marker
 	$pre_lines = $post_lines = $existing_lines = array();
 	$found_marker = $found_end_marker = false;
 	foreach ( $lines as $line ) {
@@ -491,7 +491,7 @@ function iis7_rewrite_rule_exists($filename) {
 	if ( $doc->load($filename) === false )
 		return false;
 	$xpath = new DOMXPath($doc);
-	$rules = $xpath->query('/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'Mtaandao\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'Mtaandao\')]');
+	$rules = $xpath->query('/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'mtaandao\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'Mtaandao\')]');
 	if ( $rules->length == 0 )
 		return false;
 	else
@@ -521,7 +521,7 @@ function iis7_delete_rewrite_rule($filename) {
 	if ( $doc -> load($filename) === false )
 		return false;
 	$xpath = new DOMXPath($doc);
-	$rules = $xpath->query('/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'Mtaandao\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'Mtaandao\')]');
+	$rules = $xpath->query('/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'mtaandao\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'Mtaandao\')]');
 	if ( $rules->length > 0 ) {
 		$child = $rules->item(0);
 		$parent = $child->parentNode;
@@ -562,8 +562,8 @@ function iis7_add_rewrite_rule($filename, $rewrite_rule) {
 	$xpath = new DOMXPath($doc);
 
 	// First check if the rule already exists as in that case there is no need to re-add it
-	$Mtaandao_rules = $xpath->query('/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'Mtaandao\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'Mtaandao\')]');
-	if ( $Mtaandao_rules->length > 0 )
+	$mtaandao_rules = $xpath->query('/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'mtaandao\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'Mtaandao\')]');
+	if ( $mtaandao_rules->length > 0 )
 		return true;
 
 	// Check the XPath to the rewrite rule and create XML nodes if they do not exist
@@ -634,23 +634,23 @@ function saveDomDocument($doc, $filename) {
  *
  * @since 3.0.0
  *
- * @global array $_mn_admin_css_colors
+ * @global array $_admin_css_colors
  *
  * @param int $user_id User ID.
  */
 function admin_color_scheme_picker( $user_id ) {
-	global $_mn_admin_css_colors;
+	global $_admin_css_colors;
 
-	ksort( $_mn_admin_css_colors );
+	ksort( $_admin_css_colors );
 
-	if ( isset( $_mn_admin_css_colors['fresh'] ) ) {
+	if ( isset( $_admin_css_colors['fresh'] ) ) {
 		// Set Default ('fresh') and Light should go first.
-		$_mn_admin_css_colors = array_filter( array_merge( array( 'fresh' => '', 'light' => '' ), $_mn_admin_css_colors ) );
+		$_admin_css_colors = array_filter( array_merge( array( 'fresh' => '', 'light' => '' ), $_admin_css_colors ) );
 	}
 
 	$current_color = get_user_option( 'admin_color', $user_id );
 
-	if ( empty( $current_color ) || ! isset( $_mn_admin_css_colors[ $current_color ] ) ) {
+	if ( empty( $current_color ) || ! isset( $_admin_css_colors[ $current_color ] ) ) {
 		$current_color = 'fresh';
 	}
 
@@ -659,7 +659,7 @@ function admin_color_scheme_picker( $user_id ) {
 		<legend class="screen-reader-text"><span><?php _e( 'Admin Color Scheme' ); ?></span></legend>
 		<?php
 		mn_nonce_field( 'save-color-scheme', 'color-nonce', false );
-		foreach ( $_mn_admin_css_colors as $color => $color_info ) :
+		foreach ( $_admin_css_colors as $color => $color_info ) :
 
 			?>
 			<div class="color-option <?php echo ( $color == $current_color ) ? 'selected' : ''; ?>">
@@ -692,25 +692,25 @@ function admin_color_scheme_picker( $user_id ) {
 
 /**
  *
- * @global array $_mn_admin_css_colors
+ * @global array $_admin_css_colors
  */
 function mn_color_scheme_settings() {
-	global $_mn_admin_css_colors;
+	global $_admin_css_colors;
 
 	$color_scheme = get_user_option( 'admin_color' );
 
 	// It's possible to have a color scheme set that is no longer registered.
-	if ( empty( $_mn_admin_css_colors[ $color_scheme ] ) ) {
+	if ( empty( $_admin_css_colors[ $color_scheme ] ) ) {
 		$color_scheme = 'fresh';
 	}
 
-	if ( ! empty( $_mn_admin_css_colors[ $color_scheme ]->icon_colors ) ) {
-		$icon_colors = $_mn_admin_css_colors[ $color_scheme ]->icon_colors;
-	} elseif ( ! empty( $_mn_admin_css_colors['fresh']->icon_colors ) ) {
-		$icon_colors = $_mn_admin_css_colors['fresh']->icon_colors;
+	if ( ! empty( $_admin_css_colors[ $color_scheme ]->icon_colors ) ) {
+		$icon_colors = $_admin_css_colors[ $color_scheme ]->icon_colors;
+	} elseif ( ! empty( $_admin_css_colors['fresh']->icon_colors ) ) {
+		$icon_colors = $_admin_css_colors['fresh']->icon_colors;
 	} else {
 		// Fall back to the default set of icon colors if the default scheme is missing.
-		$icon_colors = array( 'base' => '#82878c', 'focus' => '#cfcfcf', 'current' => '#fff' );
+		$icon_colors = array( 'base' => '#82878c', 'focus' => '#21b68e', 'current' => '#fff' );
 	}
 
 	echo '<script type="text/javascript">var _mnColorScheme = ' . mn_json_encode( array( 'icons' => $icon_colors ) ) . ";</script>\n";
@@ -899,7 +899,7 @@ function heartbeat_autosave( $response, $data ) {
  *
  * @since 4.2.0
  */
-function mn_admin_canonical_url() {
+function admin_canonical_url() {
 	$removable_query_args = mn_removable_query_args();
 
 	if ( empty( $removable_query_args ) ) {
@@ -910,10 +910,10 @@ function mn_admin_canonical_url() {
 	$current_url  = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$filtered_url = remove_query_arg( $removable_query_args, $current_url );
 	?>
-	<link id="mn-admin-canonical" rel="canonical" href="<?php echo esc_url( $filtered_url ); ?>" />
+	<link id="admin-canonical" rel="canonical" href="<?php echo esc_url( $filtered_url ); ?>" />
 	<script>
 		if ( window.history.replaceState ) {
-			window.history.replaceState( null, null, document.getElementById( 'mn-admin-canonical' ).href + window.location.hash );
+			window.history.replaceState( null, null, document.getElementById( 'admin-canonical' ).href + window.location.hash );
 		}
 	</script>
 <?php
@@ -925,7 +925,7 @@ function mn_admin_canonical_url() {
  * Used on the Edit Post and Add New Post screens. Needed to ensure the page is not loaded from browser cache,
  * so the post title and editor content are the last saved versions. Ideally this script should run first in the head.
  *
- * @since 16.10.0
+ * @since 4.6.0
  */
 function mn_page_reload_on_back_button_js() {
 	?>

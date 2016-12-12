@@ -45,7 +45,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
-	// If we're not in mn-admin and the post has been published and preview nonce
+	// If we're not in admin and the post has been published and preview nonce
 	// is non-existent or invalid then no need for preview in query
 	if ( is_preview() && get_query_var( 'p' ) && 'publish' == get_post_status( get_query_var( 'p' ) ) ) {
 		if ( ! isset( $_GET['preview_id'] )

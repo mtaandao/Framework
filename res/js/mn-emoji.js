@@ -15,7 +15,7 @@
 		/**
 		 * Detect if the browser supports SVG.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @return {Boolean} True if the browser supports svg, false if not.
 		 */

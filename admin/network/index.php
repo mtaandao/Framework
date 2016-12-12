@@ -13,9 +13,6 @@ require_once( dirname( __FILE__ ) . '/admin.php' );
 /** Load Mtaandao dashboard API */
 require_once( ABSPATH . 'admin/includes/dashboard.php' );
 
-if ( !is_multisite() )
-	mn_die( __( 'Multisite support is not enabled.' ) );
-
 if ( ! current_user_can( 'manage_network' ) )
 	mn_die( __( 'Sorry, you are not allowed to access this page.' ), 403 );
 
@@ -50,8 +47,8 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Network_Admin" target="_blank">Documentation on the Network Admin</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/forum/multisite/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Network_Admin">Documentation on the Network Admin</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/forum/multisite/">Support Forums</a>') . '</p>'
 );
 
 mn_dashboard_setup();

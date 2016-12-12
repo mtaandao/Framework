@@ -11,7 +11,7 @@ require_once( dirname( __FILE__ ) . '/admin.php' );
 
 $title = __( 'Freedoms' );
 
-list( $display_version ) = explode( '-', $mn_version );
+list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
 
 include( ABSPATH . 'admin/admin-header.php' );
 ?>
@@ -19,7 +19,7 @@ include( ABSPATH . 'admin/admin-header.php' );
 
 <h1><?php printf( __( 'Welcome to Mtaandao %s' ), $display_version ); ?></h1>
 
-<p class="about-text"><?php printf( __( 'Thank you for updating to the latest version. Mtaandao %s changes a lot behind the scenes to make your Mtaandao experience even better!' ), $display_version ); ?></p>
+<p class="about-text"><?php printf( __( 'Thank you for updating to the latest version! Mtaandao %s helps you get your site set up the way you want it.' ), $display_version ); ?></p>
 
 <div class="mn-badge"><?php printf( __( 'Version %s' ), $display_version ); ?></div>
 
@@ -38,14 +38,14 @@ include( ABSPATH . 'admin/admin-header.php' );
 	<li><p><?php _e( 'You have the freedom to distribute copies of your modified versions to others. By doing this you can give the whole community a chance to benefit from your changes.' ); ?></p></li>
 </ol>
 
-<p><?php printf( __( 'Mtaandao grows when people like you tell their friends about it, and the thousands of businesses and services that are built on and around Mtaandao share that fact with their users. We&#8217;re flattered every time someone spreads the good word, just make sure to <a href="%s">check out our trademark guidelines</a> first.' ), 'http://Mtaandaofoundation.org/trademark-policy/' ); ?></p>
+<p><?php printf( __( 'Mtaandao grows when people like you tell their friends about it, and the thousands of businesses and services that are built on and around Mtaandao share that fact with their users. We&#8217;re flattered every time someone spreads the good word, just make sure to <a href="%s">check out our trademark guidelines</a> first.' ), 'http://mtaandaofoundation.org/trademark-policy/' ); ?></p>
 
 <p><?php
 
-$plugins_url = current_user_can( 'activate_plugins' ) ? admin_url( 'plugins.php' ) : 'https://mtaandao.co.ke/plugins/';
-$themes_url = current_user_can( 'switch_themes' ) ? admin_url( 'themes.php' ) : 'https://mtaandao.co.ke/themes/';
+$plugins_url = current_user_can( 'activate_plugins' ) ? admin_url( 'plugins.php' ) : __( 'https://mtaandao.co.ke/plugins/' );
+$themes_url = current_user_can( 'switch_themes' ) ? admin_url( 'themes.php' ) : __( 'https://themes.mtaandao.co.ke/' );
 
-printf( __( 'Every plugin and theme in mtaandao.co.ke&#8217;s directory is 100%% GPL or a similarly free and compatible license, so you can feel safe finding <a href="%1$s">plugins</a> and <a href="%2$s">themes</a> there. If you get a plugin or theme from another source, make sure to <a href="%3$s">ask them if it&#8217;s GPL</a> first. If they don&#8217;t respect the Mtaandao license, we don&#8217;t recommend them.' ), $plugins_url, $themes_url, 'https://mtaandao.co.ke/about/license/' ); ?></p>
+printf( __( 'Every plugin and theme in Mtaandao.org&#8217;s directory is 100%% GPL or a similarly free and compatible license, so you can feel safe finding <a href="%1$s">plugins</a> and <a href="%2$s">themes</a> there. If you get a plugin or theme from another source, make sure to <a href="%3$s">ask them if it&#8217;s GPL</a> first. If they don&#8217;t respect the Mtaandao license, we don&#8217;t recommend them.' ), $plugins_url, $themes_url, 'https://mtaandao.co.ke/about/license/' ); ?></p>
 
 <p><?php _e( 'Don&#8217;t you wish all software came with these freedoms? So do we! For more information, check out the <a href="https://www.fsf.org/">Free Software Foundation</a>.' ); ?></p>
 

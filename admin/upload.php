@@ -25,7 +25,7 @@ if ( 'grid' === $mode ) {
 	mn_enqueue_script( 'media-grid' );
 	mn_enqueue_script( 'media' );
 
-	remove_action( 'admin_head', 'mn_admin_canonical_url' );
+	remove_action( 'admin_head', 'admin_canonical_url' );
 
 	$q = $_GET;
 	// let JS handle this
@@ -63,8 +63,8 @@ if ( 'grid' === $mode ) {
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://mtaandao.co.ke/docs/Media_Library_Screen" target="_blank">Documentation on Media Library</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>' ) . '</p>'
+		'<p>' . __( '<a href="https://mtaandao.github.io/Media_Library_Screen">Documentation on Media Library</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://mtaandao.co.ke/support/">Support Forums</a>' ) . '</p>'
 	);
 
 	$title = __('Media Library');
@@ -163,6 +163,9 @@ if ( $doaction ) {
 			}
 			$location = add_query_arg( 'deleted', count( $post_ids ), $location );
 			break;
+		default:
+			/** This action is documented in admin/edit-comments.php */
+			$location = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $location, $doaction, $post_ids );
 	}
 
 	mn_redirect( $location );
@@ -204,8 +207,8 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://mtaandao.co.ke/docs/Media_Library_Screen" target="_blank">Documentation on Media Library</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://mtaandao.github.io/Media_Library_Screen">Documentation on Media Library</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://mtaandao.co.ke/support/">Support Forums</a>' ) . '</p>'
 );
 
 get_current_screen()->set_screen_reader_content( array(

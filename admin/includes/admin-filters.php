@@ -38,7 +38,7 @@ add_filter( 'media_upload_library', 'media_upload_library' );
 add_filter( 'media_upload_tabs', 'update_gallery_tab' );
 
 // Misc hooks.
-add_action( 'admin_head', 'mn_admin_canonical_url'   );
+add_action( 'admin_head', 'admin_canonical_url'   );
 add_action( 'admin_head', 'mn_color_scheme_settings' );
 add_action( 'admin_head', 'mn_site_icon'             );
 add_action( 'admin_head', '_ipad_meta'               );
@@ -112,7 +112,7 @@ add_action( 'admin_notices', 'maintenance_nag', 10 );
 add_filter( 'update_footer', 'core_update_footer' );
 
 // Update Core hooks.
-add_action( '_core_updated_successfully', '_redirect_to_about_Mtaandao' );
+add_action( '_core_updated_successfully', '_redirect_to_about_mtaandao' );
 
 // Upgrade hooks.
 add_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async_upgrade' ), 20 );

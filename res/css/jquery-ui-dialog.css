@@ -225,7 +225,7 @@
 }
 
 .ui-button:focus {
-	border-color: #5b9dd9;
+	border-color: #21b68e;
 	-webkit-box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
 	box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
 }
@@ -319,7 +319,7 @@
 }
 
 .ui-button.ui-dialog-titlebar-close:hover {
-	color: #cfcfcf;
+	color: #21b68e;
 }
 
 .ui-dialog-titlebar-close .ui-button-text {

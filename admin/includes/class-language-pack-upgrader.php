@@ -4,7 +4,7 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
@@ -12,7 +12,7 @@
  * for plugins, themes, and core.
  *
  * @since 3.7.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
  *
  * @see MN_Upgrader
  */
@@ -67,7 +67,7 @@ class Language_Pack_Upgrader extends MN_Upgrader {
 		 * Noted: this is not the ideal way to accomplish this.
 		 */
 		$check_vcs = new MN_Automatic_Updater;
-		if ( $check_vcs->is_vcs_checkout( MAIN ) ) {
+		if ( $check_vcs->is_vcs_checkout( MAIN_DIR ) ) {
 			return;
 		}
 
@@ -202,7 +202,7 @@ class Language_Pack_Upgrader extends MN_Upgrader {
 		$this->skin->header();
 
 		// Connect to the Filesystem first.
-		$res = $this->fs_connect( array( MAIN, MN_LANG_DIR ) );
+		$res = $this->fs_connect( array( MAIN_DIR, MN_LANG_DIR ) );
 		if ( ! $res ) {
 			$this->skin->footer();
 			return false;

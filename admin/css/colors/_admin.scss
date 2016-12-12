@@ -3,7 +3,7 @@
 @import 'mixins';
 
 
-html {
+body {
 	background: $body-background;
 }
 
@@ -227,22 +227,14 @@ ul#adminmenu > li.current > a.current:after {
 
 /* Admin Menu: collapse button */
 
-#collapse-menu {
+#collapse-button {
     color: $menu-collapse-text;
 }
 
-#collapse-menu:hover {
-    color: $menu-collapse-focus-text;
+#collapse-button:hover,
+#collapse-button:focus {
+    color: $menu-submenu-focus-text;
 }
-
-#collapse-button div:after {
-    color: $menu-collapse-icon;
-}
-
-#collapse-menu:hover #collapse-button div:after {
-    color: $menu-collapse-focus-icon;
-}
-
 
 /* Admin Bar */
 
@@ -324,6 +316,7 @@ ul#adminmenu > li.current > a.current:after {
 #mnadminbar li:hover .ab-item:before,
 #mnadminbar li a:focus .ab-icon:before,
 #mnadminbar li .ab-item:focus:before,
+#mnadminbar li .ab-item:focus .ab-icon:before,
 #mnadminbar li.hover .ab-icon:before,
 #mnadminbar li.hover .ab-item:before,
 #mnadminbar li:hover #adminbarsearch:before,
@@ -352,27 +345,27 @@ ul#adminmenu > li.current > a.current:after {
 	color: $menu-icon;
 }
 
-#mnadminbar > #mn-toolbar > #mn-admin-bar-top-secondary > #mn-admin-bar-search #adminbarsearch input.adminbar-input:focus {
+#mnadminbar > #mn-toolbar > #admin-bar-top-secondary > #admin-bar-search #adminbarsearch input.adminbar-input:focus {
 	color: $menu-text;
 	background: $adminbar-input-background;
 }
 
 /* Admin Bar: my account */
 
-#mnadminbar .quicklinks li#mn-admin-bar-my-account.with-avatar > a img {
+#mnadminbar .quicklinks li#admin-bar-my-account.with-avatar > a img {
 	border-color: $adminbar-avatar-frame;
 	background-color: $adminbar-avatar-frame;
 }
 
-#mnadminbar #mn-admin-bar-user-info .display-name {
+#mnadminbar #admin-bar-user-info .display-name {
 	color: $menu-text;
 }
 
-#mnadminbar #mn-admin-bar-user-info a:hover .display-name {
+#mnadminbar #admin-bar-user-info a:hover .display-name {
 	color: $menu-submenu-focus-text;
 }
 
-#mnadminbar #mn-admin-bar-user-info .username {
+#mnadminbar #admin-bar-user-info .username {
 	color: $menu-submenu-text;
 }
 
@@ -474,17 +467,6 @@ body.more-filters-opened .more-filters:focus:before {
 	color: $menu-highlight-text;
 }
 
-/* Customize */
-
-#customize-theme-controls .widget-area-select .selected {
-	background-color: $menu-highlight-background;
-	color: $menu-highlight-text;
-}
-
-#customize-footer-actions .devices button:focus {
-	border-bottom-color: $highlight-color;
-}
-
 /* Responsive Component */
 
 div#mn-responsive-toggle a:before {
@@ -497,11 +479,11 @@ div#mn-responsive-toggle a:before {
 	background: $menu-highlight-background;
 }
 
-.mn-responsive-open #mnadminbar #mn-admin-bar-menu-toggle a {
+.mn-responsive-open #mnadminbar #admin-bar-menu-toggle a {
 	background: $menu-submenu-background;
 }
 
-.mn-responsive-open #mnadminbar #mn-admin-bar-menu-toggle .ab-icon:before {
+.mn-responsive-open #mnadminbar #admin-bar-menu-toggle .ab-icon:before {
 	color: $menu-icon;
 }
 

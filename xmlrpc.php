@@ -61,7 +61,7 @@ exit;
 
 include_once(ABSPATH . 'admin/includes/admin.php');
 include_once(ABSPATH . RES . '/class-IXR.php');
-include_once(ABSPATH . RES . '/class-mn-xmlrpc-server.php');
+include_once(ABSPATH . RES . '/class-mn-xmlrpc-server.php'); 
 
 /**
  * Posts submitted via the XML-RPC interface get that title

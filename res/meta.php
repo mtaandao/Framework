@@ -567,12 +567,12 @@ function metadata_exists( $meta_type, $object_id, $meta_key ) {
 function get_metadata_by_mid( $meta_type, $meta_id ) {
 	global $mndb;
 
-	if ( ! $meta_type || ! is_numeric( $meta_id ) ) {
+	if ( ! $meta_type || ! is_numeric( $meta_id ) || floor( $meta_id ) != $meta_id ) {
 		return false;
 	}
 
-	$meta_id = absint( $meta_id );
-	if ( ! $meta_id ) {
+	$meta_id = intval( $meta_id );
+	if ( $meta_id <= 0 ) {
 		return false;
 	}
 
@@ -611,12 +611,12 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 	global $mndb;
 
 	// Make sure everything is valid.
-	if ( ! $meta_type || ! is_numeric( $meta_id ) ) {
+	if ( ! $meta_type || ! is_numeric( $meta_id ) || floor( $meta_id ) != $meta_id ) {
 		return false;
 	}
 
-	$meta_id = absint( $meta_id );
-	if ( ! $meta_id ) {
+	$meta_id = intval( $meta_id );
+	if ( $meta_id <= 0 ) {
 		return false;
 	}
 
@@ -702,12 +702,12 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 	global $mndb;
 
 	// Make sure everything is valid.
-	if ( ! $meta_type || ! is_numeric( $meta_id ) ) {
+	if ( ! $meta_type || ! is_numeric( $meta_id ) || floor( $meta_id ) != $meta_id ) {
 		return false;
 	}
 
-	$meta_id = absint( $meta_id );
-	if ( ! $meta_id ) {
+	$meta_id = intval( $meta_id );
+	if ( $meta_id <= 0 ) {
 		return false;
 	}
 
@@ -964,7 +964,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type ) {
  * Registers a meta key.
  *
  * @since 3.3.0
- * @since 16.10.0 {@link https://make.mtaandao.co.ke/core/2016/07/08/enhancing-register_meta-in-4-6/ Modified
+ * @since 4.6.0 {@link https://core.trac.mtaandao.co.ke/ticket/35658 Modified
  *              to support an array of data to attach to registered meta keys}. Previous arguments for
  *              `$sanitize_callback` and `$auth_callback` have been folded into this array.
  *
@@ -1024,7 +1024,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	/**
 	 * Filters the registration arguments when registering meta.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param array  $args        Array of meta registration arguments.
 	 * @param array  $defaults    Array of default arguments.
@@ -1052,7 +1052,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		add_filter( "auth_{$object_type}_meta_{$meta_key}", $args['auth_callback'], 10, 6 );
 	}
 
-	// Global registry only contains meta keys registered with the array of arguments added in 16.10.0.
+	// Global registry only contains meta keys registered with the array of arguments added in 4.6.0.
 	if ( ! $has_old_auth_cb && ! $has_old_sanitize_cb ) {
 		$mn_meta_keys[ $object_type ][ $meta_key ] = $args;
 
@@ -1065,7 +1065,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 /**
  * Checks if a meta key is registered.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @param string $object_type    The type of object.
  * @param string $meta_key       The meta key.
@@ -1093,7 +1093,7 @@ function registered_meta_key_exists( $object_type, $meta_key ) {
 /**
  * Unregisters a meta key from the list of registered keys.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @param string $object_type The type of object.
  * @param string $meta_key    The meta key.
@@ -1129,7 +1129,7 @@ function unregister_meta_key( $object_type, $meta_key ) {
 /**
  * Retrieves a list of registered meta keys for an object type.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @param string $object_type The type of object. Post, comment, user, term.
  * @return array List of registered meta keys.
@@ -1147,7 +1147,7 @@ function get_registered_meta_keys( $object_type ) {
 /**
  * Retrieves registered metadata for a specified object.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @param string $object_type Type of object to request metadata for. (e.g. comment, post, term, user)
  * @param int    $object_id   ID of the object the metadata is for.
@@ -1190,7 +1190,7 @@ function get_registered_metadata( $object_type, $object_id, $meta_key = '' ) {
  * to be explicitly turned off is a warranty seal of sorts.
  *
  * @access private
- * @since  16.10.0
+ * @since  4.6.0
  *
  * @param  array $args         Arguments from `register_meta()`.
  * @param  array $default_args Default arguments for `register_meta()`.

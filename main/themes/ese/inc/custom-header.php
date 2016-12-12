@@ -1,7 +1,7 @@
 <?php
 /**
  * Sample implementation of the Custom Header feature
- * http://mtaandao.co.ke/docs/Custom_Headers
+ * http://codex.mtaandao.co.ke/Custom_Headers
  *
  * You can add an optional custom header image to header.php like so ...
  *

@@ -465,7 +465,7 @@
 		source: "Source"
 	});
 
-	tinyMCE.addI18n( lang + ".Mtaandao", {
+	tinyMCE.addI18n( lang + ".mtaandao", {
 		mn_adv_desc: "Show/Hide Kitchen Sink (Alt + Shift + Z)",
 		mn_more_desc: "Insert More Tag (Alt + Shift + T)",
 		mn_page_desc: "Insert Page break (Alt + Shift + P)",

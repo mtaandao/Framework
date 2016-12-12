@@ -192,7 +192,7 @@
 #customize-theme-controls .widget-area-select .selected {
 	color: #fff;
 	text-shadow: 0 -1px 0 rgba(0,0,0,.4);
-	background: #cfcfcf;
+	background: #21b68e;
 }
 
 #customize-theme-controls .widget-area-select .selected:before {
@@ -229,8 +229,10 @@
 
 #available-widgets .widget-tpl:hover,
 #available-widgets .widget-tpl.selected {
-	background: #eee;
+	background: #f3f3f5;
 	border-bottom-color: #ccc;
+	color: #21b16e;
+	border-left: 4px solid #21b16e;
 }
 
 #customize-controls .widget-title h3 {
@@ -301,7 +303,7 @@ body.adding-widget #customize-preview {
 #available-widgets [class*="super"] .widget-title:before,
 #available-widgets [class*="like"] .widget-title:before { content: "\f155"; top: -4px; }
 
-/* Mtaandao */
+/* mtaandao */
 #available-widgets [class*="meta"] .widget-title:before { content: "\f120"; }
 
 /* archive-box */

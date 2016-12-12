@@ -26,12 +26,12 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Tools_Import_Screen" target="_blank">Documentation on Import</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Tools_Import_Screen">Documentation on Import</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 if ( current_user_can( 'install_plugins' ) ) {
-	// List of popular importer plugins from the mtaandao.co.ke API.
+	// List of popular importer plugins from the Mtaandao.org API.
 	$popular_importers = mn_get_popular_importers();
 } else {
  	$popular_importers = array();
@@ -56,10 +56,7 @@ $parent_file = 'tools.php';
 ?>
 
 <div class="wrap">
-<h2 class="nav-tab-wrapper mn-clearfix">
-			<a href="import.php" class="nav-tab nav-tab-active"><?php _e( 'Import' ); ?></a>
-			<a href="export.php" class="nav-tab"><?php _e( 'Export' ); ?></a>
-		</h2>
+<h1><?php echo esc_html( $title ); ?></h1>
 <?php if ( ! empty( $_GET['invalid'] ) ) : ?>
 	<div class="error">
 		<p><strong><?php _e( 'ERROR:' ); ?></strong> <?php
@@ -81,7 +78,7 @@ foreach ( $popular_importers as $pop_importer => $pop_data ) {
 	if ( isset( $importers[ $pop_data['importer-id'] ] ) )
 		continue;
 
-	// Fill the array of registered (already installed) importers with data of the popular importers from the mtaandao.co.ke API.
+	// Fill the array of registered (already installed) importers with data of the popular importers from the Mtaandao.org API.
 	$importers[ $pop_data['importer-id'] ] = array( $pop_data['name'], $pop_data['description'], 'install' => $pop_data['plugin-slug'] );
 }
 
@@ -100,7 +97,7 @@ if ( empty( $importers ) ) {
 		if ( isset( $data['install'] ) ) {
 			$plugin_slug = $data['install'];
 
-			if ( file_exists( MN_PLUGIN_DIR . '/' . $plugin_slug ) ) {
+			if ( file_exists( PLUGIN_DIR . '/' . $plugin_slug ) ) {
 				// Looks like an importer is installed, but not active.
 				$plugins = get_plugins( '/' . $plugin_slug );
 				if ( ! empty( $plugins ) ) {

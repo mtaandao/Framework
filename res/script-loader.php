@@ -16,6 +16,9 @@
  * @package Mtaandao
  */
 
+/** Mtaandao Dependency Class */
+require( ABSPATH . RES . '/class-mn-dependency.php' );
+
 /** Mtaandao Dependencies Class */
 require( ABSPATH . RES . '/class.mn-dependencies.php' );
 
@@ -57,7 +60,7 @@ function mn_default_scripts( &$scripts ) {
 	}
 
 	$scripts->base_url = $guessurl;
-	$scripts->content_url = defined('MN_CONTENT_URL')? MN_CONTENT_URL : '';
+	$scripts->content_url = defined('MAIN_URL')? MAIN_URL : '';
 	$scripts->default_version = get_bloginfo( 'version' );
 	$scripts->default_dirs = array('/admin/js/', '/res/js/');
 
@@ -74,8 +77,10 @@ function mn_default_scripts( &$scripts ) {
 
 	$scripts->add( 'common', "/admin/js/common$suffix.js", array('jquery', 'hoverIntent', 'utils'), false, 1 );
 	did_action( 'init' ) && $scripts->localize( 'common', 'commonL10n', array(
-		'warnDelete' => __( "You are about to permanently delete these items.\n  'Cancel' to stop, 'OK' to delete." ),
-		'dismiss'    => __( 'Dismiss this notice.' ),
+		'warnDelete'   => __( "You are about to permanently delete these items.\n  'Cancel' to stop, 'OK' to delete." ),
+		'dismiss'      => __( 'Dismiss this notice.' ),
+		'collapseMenu' => __( 'Collapse Main menu' ),
+		'expandMenu'   => __( 'Expand Main menu' ),
 	) );
 
 	$scripts->add( 'mn-a11y', "/res/js/mn-a11y$suffix.js", array( 'jquery' ), false, 1 );
@@ -226,11 +231,12 @@ function mn_default_scripts( &$scripts ) {
 
 	// Strings for 'jquery-ui-autocomplete' live region messages
 	did_action( 'init' ) && $scripts->localize( 'jquery-ui-autocomplete', 'uiAutocompleteL10n', array(
-		'noResults' => __( 'No search results.' ),
+		'noResults' => __( 'No results found.' ),
 		/* translators: Number of results found when using jQuery UI Autocomplete */
 		'oneResult' => __( '1 result found. Use up and down arrow keys to navigate.' ),
 		/* translators: %d: Number of results found when using jQuery UI Autocomplete */
 		'manyResults' => __( '%d results found. Use up and down arrow keys to navigate.' ),
+		'itemSelected' => __( 'Item selected.' ),
 	) );
 
 	// deprecated, not used in core, most functionality is included in jQuery 1.3
@@ -238,13 +244,15 @@ function mn_default_scripts( &$scripts ) {
 
 	// jQuery plugins
 	$scripts->add( 'jquery-color', "/res/js/jquery/jquery.color.min.js", array('jquery'), '2.1.1', 1 );
-	$scripts->add( 'suggest', "/res/js/jquery/suggest$suffix.js", array('jquery'), '1.1-20110113', 1 );
 	$scripts->add( 'schedule', '/res/js/jquery/jquery.schedule.js', array('jquery'), '20m', 1 );
 	$scripts->add( 'jquery-query', "/res/js/jquery/jquery.query.js", array('jquery'), '2.1.7', 1 );
 	$scripts->add( 'jquery-serialize-object', "/res/js/jquery/jquery.serialize-object.js", array('jquery'), '0.2', 1 );
 	$scripts->add( 'jquery-hotkeys', "/res/js/jquery/jquery.hotkeys$suffix.js", array('jquery'), '0.0.2m', 1 );
 	$scripts->add( 'jquery-table-hotkeys', "/res/js/jquery/jquery.table-hotkeys$suffix.js", array('jquery', 'jquery-hotkeys'), false, 1 );
 	$scripts->add( 'jquery-touch-punch', "/res/js/jquery/jquery.ui.touch-punch.js", array('jquery-ui-widget', 'jquery-ui-mouse'), '0.2.2', 1 );
+
+	// Not used any more, registered for backwards compatibility.
+	$scripts->add( 'suggest', "/res/js/jquery/suggest$suffix.js", array('jquery'), '1.1-20110113', 1 );
 
 	// Masonry v2 depended on jQuery. v3 does not. The older jquery-masonry handle is a shiv.
 	// It sets jQuery as a dependency, as the theme may have been implicitly loading it this way.
@@ -260,7 +268,7 @@ function mn_default_scripts( &$scripts ) {
 		'of' => __('of'),
 		'close' => __('Close'),
 		'noiframes' => __('This feature requires inline frames. You have iframes disabled or your browser does not support them.'),
-		'loadingAnimation' => includes_url('js/thickbox/loadingAnimation.gif'),
+		'loadingAnimation' => res_url('js/thickbox/loadingAnimation.gif'),
 	) );
 
 	$scripts->add( 'jcrop', "/res/js/jcrop/jquery.Jcrop.min.js", array('jquery'), '0.9.12');
@@ -281,6 +289,7 @@ function mn_default_scripts( &$scripts ) {
 		'upload_limit_exceeded' => __('You may only upload 1 file.'),
 		'http_error' => __('HTTP error.'),
 		'upload_failed' => __('Upload failed.'),
+		/* translators: 1: Opening link tag, 2: Closing link tag */
 		'big_upload_failed' => __('Please try uploading this file with the %1$sbrowser uploader%2$s.'),
 		'big_upload_queued' => __('%s exceeds the maximum upload size for the multi-file uploader when used in your browser.'),
 		'io_error' => __('IO error.'),
@@ -366,7 +375,7 @@ function mn_default_scripts( &$scripts ) {
 
 	$scripts->add( 'mn-mediaelement', "/res/js/mediaelement/mn-mediaelement$suffix.js", array('mediaelement'), false, 1 );
 	$mejs_settings = array(
-		'pluginPath' => includes_url( 'js/mediaelement/', 'relative' ),
+		'pluginPath' => res_url( 'js/mediaelement/', 'relative' ),
 	);
 	did_action( 'init' ) && $scripts->localize( 'mediaelement', '_mnmejsSettings',
 		/**
@@ -384,7 +393,7 @@ function mn_default_scripts( &$scripts ) {
 
 	$scripts->add( 'zxcvbn-async', "/res/js/zxcvbn-async$suffix.js", array(), '1.0' );
 	did_action( 'init' ) && $scripts->localize( 'zxcvbn-async', '_zxcvbnSettings', array(
-		'src' => empty( $guessed_url ) ? includes_url( '/js/zxcvbn.min.js' ) : $scripts->base_url . '/res/js/zxcvbn.min.js',
+		'src' => empty( $guessed_url ) ? res_url( '/js/zxcvbn.min.js' ) : $scripts->base_url . '/res/js/zxcvbn.min.js',
 	) );
 
 	$scripts->add( 'password-strength-meter', "/admin/js/password-strength-meter$suffix.js", array( 'jquery', 'zxcvbn-async' ), false, 1 );
@@ -400,7 +409,7 @@ function mn_default_scripts( &$scripts ) {
 	$scripts->add( 'user-profile', "/admin/js/user-profile$suffix.js", array( 'jquery', 'password-strength-meter', 'mn-util' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize( 'user-profile', 'userProfileL10n', array(
 		'warn'     => __( 'Your new password has not been saved.' ),
-		'warnWeak' => __( 'Confirm use of weak password.' ),
+		'warnWeak' => __( 'Confirm use of weak password' ),
 		'show'     => __( 'Show' ),
 		'hide'     => __( 'Hide' ),
 		'cancel'   => __( 'Cancel' ),
@@ -444,10 +453,10 @@ function mn_default_scripts( &$scripts ) {
 
 	$scripts->add( 'customize-base',     "/res/js/customize-base$suffix.js",     array( 'jquery', 'json2', 'underscore' ), false, 1 );
 	$scripts->add( 'customize-loader',   "/res/js/customize-loader$suffix.js",   array( 'customize-base' ), false, 1 );
-	$scripts->add( 'customize-preview',  "/res/js/customize-preview$suffix.js",  array( 'customize-base' ), false, 1 );
+	$scripts->add( 'customize-preview',  "/res/js/customize-preview$suffix.js",  array( 'mn-a11y', 'customize-base' ), false, 1 );
 	$scripts->add( 'customize-models',   "/res/js/customize-models.js", array( 'underscore', 'backbone' ), false, 1 );
 	$scripts->add( 'customize-views',    "/res/js/customize-views.js",  array( 'jquery', 'underscore', 'imgareaselect', 'customize-models', 'media-editor', 'media-views' ), false, 1 );
-	$scripts->add( 'customize-controls', "/admin/js/customize-controls$suffix.js", array( 'customize-base', 'mn-a11y' ), false, 1 );
+	$scripts->add( 'customize-controls', "/admin/js/customize-controls$suffix.js", array( 'customize-base', 'mn-a11y', 'mn-util' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize( 'customize-controls', '_mnCustomizeControlsL10n', array(
 		'activate'           => __( 'Save &amp; Activate' ),
 		'save'               => __( 'Save &amp; Publish' ),
@@ -459,8 +468,8 @@ function mn_default_scripts( &$scripts ) {
 		'notAllowed'         => __( 'Sorry, you are not allowed to customize this site.' ),
 		'previewIframeTitle' => __( 'Site Preview' ),
 		'loginIframeTitle'   => __( 'Session expired' ),
-		'collapseSidebar'    => __( 'Collapse Sidebar' ),
-		'expandSidebar'      => __( 'Expand Sidebar' ),
+		'collapseSidebar'    => _x( 'Hide Controls', 'label for hide controls button without length constraints' ),
+		'expandSidebar'      => _x( 'Show Controls', 'label for hide controls button without length constraints' ),
 		'untitledBlogName'   => __( '(Untitled)' ),
 		// Used for overriding the file types allowed in plupload.
 		'allowedFiles'       => __( 'Allowed Files' ),
@@ -472,6 +481,8 @@ function mn_default_scripts( &$scripts ) {
 
 	$scripts->add( 'customize-nav-menus', "/admin/js/customize-nav-menus$suffix.js", array( 'jquery', 'mn-backbone', 'customize-controls', 'accordion', 'nav-menu' ), false, 1 );
 	$scripts->add( 'customize-preview-nav-menus', "/res/js/customize-preview-nav-menus$suffix.js", array( 'jquery', 'mn-util', 'customize-preview', 'customize-selective-refresh' ), false, 1 );
+
+	$scripts->add( 'mn-custom-header', "/res/js/mn-custom-header$suffix.js", array( 'mn-a11y' ), false, 1 );
 
 	$scripts->add( 'accordion', "/admin/js/accordion$suffix.js", array( 'jquery' ), false, 1 );
 
@@ -492,6 +503,13 @@ function mn_default_scripts( &$scripts ) {
 	$scripts->add( 'media-editor', "/res/js/media-editor$suffix.js", array( 'shortcode', 'media-views' ), false, 1 );
 	$scripts->add( 'media-audiovideo', "/res/js/media-audiovideo$suffix.js", array( 'media-editor' ), false, 1 );
 	$scripts->add( 'mce-view', "/res/js/mce-view$suffix.js", array( 'shortcode', 'jquery', 'media-views', 'media-audiovideo' ), false, 1 );
+
+	$scripts->add( 'mn-api', "/res/js/mn-api$suffix.js", array( 'jquery', 'backbone', 'underscore' ), false, 1 );
+	did_action( 'init' ) && $scripts->localize( 'mn-api', 'mnApiSettings', array(
+		'root'          => esc_url_raw( get_rest_url() ),
+		'nonce'         => mn_create_nonce( 'mn_rest' ),
+		'versionString' => 'mn/v2/',
+	) );
 
 	if ( is_admin() ) {
 		$scripts->add( 'admin-tags', "/admin/js/tags$suffix.js", array( 'jquery', 'mn-ajax-response' ), false, 1 );
@@ -520,9 +538,15 @@ function mn_default_scripts( &$scripts ) {
 			'postBoxEmptyString' => __( 'Drag boxes here' ),
 		) );
 
-		$scripts->add( 'tags-box', "/admin/js/tags-box$suffix.js", array( 'jquery', 'suggest' ), false, 1 );
-		did_action( 'init' ) && $scripts->localize( 'tags-box', 'tagsBoxL10n', array(
+		$scripts->add( 'tags-box', "/admin/js/tags-box$suffix.js", array( 'jquery', 'tags-suggest' ), false, 1 );
+
+		$scripts->add( 'tags-suggest', "/admin/js/tags-suggest$suffix.js", array( 'jquery-ui-autocomplete', 'mn-a11y' ), false, 1 );
+		did_action( 'init' ) && $scripts->localize( 'tags-suggest', 'tagsSuggestL10n', array(
 			'tagDelimiter' => _x( ',', 'tag delimiter' ),
+			'removeTerm'   => __( 'Remove term:' ),
+			'termSelected' => __( 'Term selected.' ),
+			'termAdded'    => __( 'Term added.' ),
+			'termRemoved'  => __( 'Term removed.' ),
 		) );
 
 		$scripts->add( 'post', "/admin/js/post$suffix.js", array( 'suggest', 'mn-lists', 'postbox', 'tags-box', 'underscore', 'word-count', 'mn-a11y' ), false, 1 );
@@ -581,7 +605,7 @@ function mn_default_scripts( &$scripts ) {
 
 		$scripts->add( 'theme', "/admin/js/theme$suffix.js", array( 'mn-backbone', 'mn-a11y' ), false, 1 );
 
-		$scripts->add( 'inline-edit-post', "/admin/js/inline-edit-post$suffix.js", array( 'jquery', 'suggest', 'mn-a11y' ), false, 1 );
+		$scripts->add( 'inline-edit-post', "/admin/js/inline-edit-post$suffix.js", array( 'jquery', 'tags-suggest', 'mn-a11y' ), false, 1 );
 		did_action( 'init' ) && $scripts->localize( 'inline-edit-post', 'inlineEditL10n', array(
 			'error'      => __( 'Error while saving the changes.' ),
 			'ntdeltitle' => __( 'Remove From Bulk Edit' ),
@@ -603,7 +627,7 @@ function mn_default_scripts( &$scripts ) {
 			'ays' => __('Are you sure you want to install this plugin?')
 		) );
 
-		$scripts->add( 'updates', "/admin/js/updates$suffix.js", array( 'jquery', 'mn-util', 'mn-a11y' ) );
+		$scripts->add( 'updates', "/admin/js/updates$suffix.js", array( 'jquery', 'mn-util', 'mn-a11y' ), false, 1 );
 		did_action( 'init' ) && $scripts->localize( 'updates', '_mnUpdatesSettings', array(
 			'ajax_nonce' => mn_create_nonce( 'updates' ),
 			'l10n'       => array(
@@ -762,7 +786,7 @@ function mn_default_styles( &$styles ) {
 		$guessurl = mn_guess_url();
 
 	$styles->base_url = $guessurl;
-	$styles->content_url = defined('MN_CONTENT_URL')? MN_CONTENT_URL : '';
+	$styles->content_url = defined('MAIN_URL')? MAIN_URL : '';
 	$styles->default_version = get_bloginfo( 'version' );
 	$styles->text_direction = function_exists( 'is_rtl' ) && is_rtl() ? 'rtl' : 'ltr';
 	$styles->default_dirs = array('/admin/', '/res/css/');
@@ -837,7 +861,7 @@ function mn_default_styles( &$styles ) {
 	$styles->add( 'editor-buttons',       "/res/css/editor$suffix.css", array( 'dashicons' ) );
 	$styles->add( 'media-views',          "/res/css/media-views$suffix.css", array( 'buttons', 'dashicons', 'mn-mediaelement' ) );
 	$styles->add( 'mn-pointer',           "/res/css/mn-pointer$suffix.css", array( 'dashicons' ) );
-	$styles->add( 'customize-preview',    "/res/css/customize-preview$suffix.css" );
+	$styles->add( 'customize-preview',    "/res/css/customize-preview$suffix.css", array( 'dashicons' ) );
 	$styles->add( 'mn-embed-template-ie', "/res/css/mn-embed-template-ie$suffix.css" );
 	$styles->add_data( 'mn-embed-template-ie', 'conditional', 'lte IE 8' );
 
@@ -853,15 +877,15 @@ function mn_default_styles( &$styles ) {
 	$styles->add( 'farbtastic',       "/admin/css/farbtastic$suffix.css", array(), '1.3u1' );
 	$styles->add( 'jcrop',            "/res/js/jcrop/jquery.Jcrop.min.css", array(), '0.9.12' );
 	$styles->add( 'colors-fresh', false, array( 'admin', 'buttons' ) ); // Old handle.
-	$styles->add( 'open-sans', $open_sans_font_url ); // No longer used in core as of 16.10
+	$styles->add( 'open-sans', $open_sans_font_url ); // No longer used in core as of 4.6
 
 	// RTL CSS
 	$rtl_styles = array(
-		// mn-admin
+		// admin
 		'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus',
-		'widgets', 'site-icon', 'l10n', 'install', 'mn-color-picker', 'customize-controls', 'customize-widgets', 'customize-nav-menus',
+		'widgets', 'site-icon', 'l10n', 'install', 'mn-color-picker', 'customize-controls', 'customize-widgets', 'customize-nav-menus', 'customize-preview',
 		'ie', 'login', 'press-this',
-		// mn-includes
+		// res
 		'buttons', 'admin-bar', 'mn-auth-check', 'editor-buttons', 'media-views', 'mn-pointer',
 		'mn-jquery-ui-dialog',
 		// deprecated
@@ -919,7 +943,7 @@ function mn_just_in_time_script_localization() {
 /**
  * Localizes the jQuery UI datepicker.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @link http://api.jqueryui.com/datepicker/#options
  *
@@ -970,23 +994,23 @@ function mn_localize_jquery_ui_datepicker() {
  *
  * If installing the 'admin/' directory will be replaced with './'.
  *
- * The $_mn_admin_css_colors global manages the Administration Screens CSS
+ * The $_admin_css_colors global manages the Administration Screens CSS
  * stylesheet that is loaded. The option that is set is 'admin_color' and is the
  * color and key for the array. The value for the color key is an object with
  * a 'url' parameter that has the URL path to the CSS file.
  *
  * The query from $src parameter will be appended to the URL that is given from
- * the $_mn_admin_css_colors array value URL.
+ * the $_admin_css_colors array value URL.
  *
  * @since 2.6.0
- * @global array $_mn_admin_css_colors
+ * @global array $_admin_css_colors
  *
  * @param string $src    Source URL.
  * @param string $handle Either 'colors' or 'colors-rtl'.
  * @return string|false URL path to CSS stylesheet for Administration Screens.
  */
 function mn_style_loader_src( $src, $handle ) {
-	global $_mn_admin_css_colors;
+	global $_admin_css_colors;
 
 	if ( mn_installing() )
 		return preg_replace( '#^admin/#', './', $src );
@@ -994,10 +1018,10 @@ function mn_style_loader_src( $src, $handle ) {
 	if ( 'colors' == $handle ) {
 		$color = get_user_option('admin_color');
 
-		if ( empty($color) || !isset($_mn_admin_css_colors[$color]) )
+		if ( empty($color) || !isset($_admin_css_colors[$color]) )
 			$color = 'fresh';
 
-		$color = $_mn_admin_css_colors[$color];
+		$color = $_admin_css_colors[$color];
 		$url = $color->url;
 
 		if ( ! $url ) {

@@ -4,7 +4,7 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
@@ -14,7 +14,7 @@
  * the admin/includes/update-core.php file.
  *
  * @since 2.8.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
  *
  * @see MN_Upgrader
  */
@@ -82,7 +82,7 @@ class Core_Upgrader extends MN_Upgrader {
 		if ( !isset( $current->response ) || $current->response == 'latest' )
 			return new MN_Error('up_to_date', $this->strings['up_to_date']);
 
-		$res = $this->fs_connect( array( ABSPATH, MAIN ), $parsed_args['allow_relaxed_file_ownership'] );
+		$res = $this->fs_connect( array( ABSPATH, MAIN_DIR ), $parsed_args['allow_relaxed_file_ownership'] );
 		if ( ! $res || is_mn_error( $res ) ) {
 			return $res;
 		}

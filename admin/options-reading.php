@@ -35,18 +35,15 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Settings_Reading_Screen" target="_blank">Documentation on Reading Settings</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Settings_Reading_Screen">Documentation on Reading Settings</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 include( ABSPATH . 'admin/admin-header.php' );
 ?>
 
 <div class="wrap">
-<h2 class="nav-tab-wrapper mn-clearfix">
-			<a href="options-writing.php" class="nav-tab "><?php _e( 'Writing Options' ); ?></a>
-			<a href="options-reading.php" class="nav-tab nav-tab-active"><?php _e( 'Reading Options' ); ?></a>
-</h2>
+<h1><?php echo esc_html( $title ); ?></h1>
 
 <form method="post" action="options.php">
 <?php

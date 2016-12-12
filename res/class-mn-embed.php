@@ -384,4 +384,3 @@ class MN_Embed {
 		return apply_filters( 'embed_maybe_make_link', $output, $url );
 	}
 }
-$GLOBALS['mn_embed'] = new MN_Embed();

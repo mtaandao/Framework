@@ -321,9 +321,10 @@ function _mn_put_post_revision( $post = null, $autosave = false ) {
  * @since 2.6.0
  *
  * @param int|MN_Post $post   The post ID or object.
- * @param string      $output Optional. OBJECT, ARRAY_A, or ARRAY_N.
+ * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
+ *                            a MN_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
  * @param string      $filter Optional sanitation filter. See sanitize_post().
- * @return MN_Post|array|null Null if error or post object if success.
+ * @return MN_Post|array|null MN_Post (or array) on success, or null on failure.
  */
 function mn_get_post_revision(&$post, $output = OBJECT, $filter = 'raw') {
 	if ( !$revision = get_post( $post, OBJECT, $filter ) )
@@ -581,7 +582,7 @@ function _mn_preview_terms_filter( $terms, $post_id, $taxonomy ) {
 /**
  * Filters post thumbnail lookup to set the post thumbnail.
  *
- * @since 16.10.0
+ * @since 4.6.0
  * @access private
  *
  * @param null|array|string $value    The value to return - a single metadata value, or an array of values.

@@ -27,7 +27,7 @@ class MN_Network {
 	 * Network ID.
 	 *
 	 * @since 4.4.0
-	 * @since 16.10.0 Converted from public to private to explicitly enable more intuitive
+	 * @since 4.6.0 Converted from public to private to explicitly enable more intuitive
 	 *              access via magic methods. As part of the access change, the type was
 	 *              also changed from `string` to `int`.
 	 * @access private
@@ -146,7 +146,7 @@ class MN_Network {
 	 *
 	 * Allows current multisite naming conventions when getting properties.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string $key Property to get.
@@ -170,7 +170,7 @@ class MN_Network {
 	 *
 	 * Allows current multisite naming conventions when checking for properties.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string $key Property to check if set.
@@ -192,7 +192,7 @@ class MN_Network {
 	 *
 	 * Allows current multisite naming conventions while setting properties.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string $key   Property to set.

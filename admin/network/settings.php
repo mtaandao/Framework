@@ -13,9 +13,6 @@ require_once( dirname( __FILE__ ) . '/admin.php' );
 /** Mtaandao Translation Install API */
 require_once( ABSPATH . 'admin/includes/translation-install.php' );
 
-if ( ! is_multisite() )
-	mn_die( __( 'Multisite support is not enabled.' ) );
-
 if ( ! current_user_can( 'manage_network_options' ) )
 	mn_die( __( 'Sorry, you are not allowed to access this page.' ), 403 );
 
@@ -40,8 +37,8 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Network_Admin_Settings_Screen" target="_blank">Documentation on Network Settings</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Network_Admin_Settings_Screen">Documentation on Network Settings</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 if ( $_POST ) {
@@ -107,7 +104,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="site_name"><?php _e( 'Network Title' ) ?></label></th>
 				<td>
-					<input name="site_name" type="text" id="site_name" class="regular-text" value="<?php echo esc_attr( $current_site->site_name ) ?>" />
+					<input name="site_name" type="text" id="site_name" class="regular-text" value="<?php echo esc_attr( get_network()->site_name ) ?>" />
 				</td>
 			</tr>
 
@@ -139,10 +136,10 @@ if ( isset( $_GET['updated'] ) ) {
 					<label><input name="registration" type="radio" id="registration4" value="all"<?php checked( $reg, 'all') ?> /> <?php _e( 'Both sites and user accounts can be registered.' ); ?></label>
 					<?php if ( is_subdomain_install() ) {
 						echo '<p class="description">';
-						/* translators: 1: NOBLOGREDIRECT 2: configuration.php */
+						/* translators: 1: NOBLOGREDIRECT 2: db.php */
 						printf( __( 'If registration is disabled, please set %1$s in %2$s to a URL you will redirect visitors to if they visit a non-existent site.' ),
 							'<code>NOBLOGREDIRECT</code>',
-							'<code>configuration.php</code>'
+							'<code>db.php</code>'
 						);
 						echo '</p>';
 					} ?>
@@ -309,7 +306,13 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="fileupload_maxk"><?php _e( 'Max upload file size' ) ?></label></th>
 				<td>
-					<?php printf( _x( '%s KB', 'File size in kilobytes' ), '<input name="fileupload_maxk" type="number" min="0" style="width: 100px" id="fileupload_maxk" aria-describedby="fileupload-maxk-desc" value="' . esc_attr( get_site_option( 'fileupload_maxk', 300 ) ) . '" />' ); ?>
+					<?php
+						printf(
+							/* translators: %s: File size in kilobytes */
+							__( '%s KB' ),
+							'<input name="fileupload_maxk" type="number" min="0" style="width: 100px" id="fileupload_maxk" aria-describedby="fileupload-maxk-desc" value="' . esc_attr( get_site_option( 'fileupload_maxk', 300 ) ) . '" />'
+						);
+					?>
 					<p class="screen-reader-text" id="fileupload-maxk-desc">
 						<?php _e( 'Size in kilobytes' ) ?>
 					</p>

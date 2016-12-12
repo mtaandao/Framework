@@ -191,10 +191,11 @@ final class MN_Comment {
 	public static function get_instance( $id ) {
 		global $mndb;
 
-		$comment_id = (int) $id;
-		if ( ! $comment_id ) {
+		if ( ! is_numeric( $id ) || $id != floor( $id ) || ! $id ) {
 			return false;
 		}
+
+		$comment_id = (int) $id;
 
 		$_comment = mn_cache_get( $comment_id, 'comment' );
 

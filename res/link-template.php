@@ -58,8 +58,8 @@ function user_trailingslashit($string, $type_of_url = '') {
 	 *
 	 * @param string $string      URL with or without a trailing slash.
 	 * @param string $type_of_url The type of URL being considered. Accepts 'single', 'single_trackback',
-	 *                            'single_feed', 'single_paged', 'feed', 'category', 'page', 'year',
-	 *                            'month', 'day', 'paged', 'post_type_archive'.
+	 *                            'single_feed', 'single_paged', 'commentpaged', 'paged', 'home', 'feed',
+	 *                            'category', 'page', 'year', 'month', 'day', 'post_type_archive'.
 	 */
 	return apply_filters( 'user_trailingslashit', $string, $type_of_url );
 }
@@ -169,15 +169,17 @@ function get_permalink( $post = 0, $leavename = false ) {
 		if ( strpos($permalink, '%category%') !== false ) {
 			$cats = get_the_category($post->ID);
 			if ( $cats ) {
-				usort($cats, '_usort_terms_by_ID'); // order by ID
+				$cats = mn_list_sort( $cats, array(
+					'term_id' => 'ASC',
+				) );
 
 				/**
 				 * Filters the category that gets used in the %category% permalink token.
 				 *
 				 * @since 3.5.0
 				 *
-				 * @param stdClass $cat  The category to use in the permalink.
-				 * @param array    $cats Array of all categories associated with the post.
+				 * @param MN_Term  $cat  The category to use in the permalink.
+				 * @param array    $cats Array of all categories (MN_Term objects) associated with the post.
 				 * @param MN_Post  $post The post in question.
 				 */
 				$category_object = apply_filters( 'post_link_category', $cats[0], $cats, $post );
@@ -930,7 +932,7 @@ function get_edit_term_link( $term_id, $taxonomy = '', $object_type = '' ) {
 	}
 
 	$tax = get_taxonomy( $term->taxonomy );
-	if ( ! $tax || ! current_user_can( $tax->cap->edit_terms ) ) {
+	if ( ! $tax || ! current_user_can( 'edit_term', $term->term_id ) ) {
 		return;
 	}
 
@@ -984,8 +986,9 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $e
 		return;
 
 	$tax = get_taxonomy( $term->taxonomy );
-	if ( ! current_user_can( $tax->cap->edit_terms ) )
+	if ( ! current_user_can( 'edit_term', $term->term_id ) ) {
 		return;
+	}
 
 	if ( empty( $link ) )
 		$link = __('Edit This');
@@ -2528,8 +2531,8 @@ function get_the_posts_pagination( $args = array() ) {
 	if ( $GLOBALS['mn_query']->max_num_pages > 1 ) {
 		$args = mn_parse_args( $args, array(
 			'mid_size'           => 1,
-			'prev_text'          => _x( 'Previous', 'previous post' ),
-			'next_text'          => _x( 'Next', 'next post' ),
+			'prev_text'          => _x( 'Previous', 'previous set of posts' ),
+			'next_text'          => _x( 'Next', 'next set of posts' ),
 			'screen_reader_text' => __( 'Posts navigation' ),
 		) );
 
@@ -2897,20 +2900,13 @@ function the_comments_pagination( $args = array() ) {
  *
  * @since 2.6.0
  *
- * @global bool   $is_IE      Whether the browser matches an Internet Explorer user agent.
- * @global string $mn_version MN version.
- *
- * @global bool          $is_IE
- * @global string        $mn_version
- * @global MN_Press_This $mn_press_this
- *
- * @return string The Press This bookmarklet link URL.
+ * @global bool          $is_IE      Whether the browser matches an Internet Explorer user agent.
  */
 function get_shortcut_link() {
-	global $is_IE, $mn_version;
+	global $is_IE;
 
 	include_once( ABSPATH . 'admin/includes/class-mn-press-this.php' );
-	$bookmarklet_version = $GLOBALS['mn_press_this']->version;
+
 	$link = '';
 
 	if ( $is_IE ) {
@@ -2928,7 +2924,7 @@ function get_shortcut_link() {
 
 			$link = 'javascript:var d=document,w=window,e=w.getSelection,k=d.getSelection,x=d.selection,' .
 				's=(e?e():(k)?k():(x?x.createRange().text:0)),f=' . $url . ',l=d.location,e=encodeURIComponent,' .
-				'u=f+"?u="+e(l.href)+"&t="+e(d.title)+"&s="+e(s)+"&v=' . $bookmarklet_version . '";' .
+				'u=f+"?u="+e(l.href)+"&t="+e(d.title)+"&s="+e(s)+"&v=' . MN_Press_This::VERSION . '";' .
 				'a=function(){if(!w.open(u,"t","toolbar=0,resizable=1,scrollbars=1,status=1,width=600,height=700"))l.href=u;};' .
 				'if(/Firefox/.test(navigator.userAgent))setTimeout(a,0);else a();void(0)';
 		}
@@ -2938,7 +2934,7 @@ function get_shortcut_link() {
 		$src = @file_get_contents( ABSPATH . 'admin/js/bookmarklet.min.js' );
 
 		if ( $src ) {
-			$url = mn_json_encode( admin_url( 'press-this.php' ) . '?v=' . $bookmarklet_version );
+			$url = mn_json_encode( admin_url( 'press-this.php' ) . '?v=' . MN_Press_This::VERSION );
 			$link = 'javascript:' . str_replace( 'window.pt_url', $url, $src );
 		}
 	}
@@ -2958,9 +2954,9 @@ function get_shortcut_link() {
 /**
  * Retrieves the URL for the current site where the front end is accessible.
  *
- * Returns the 'home' option with the appropriate protocol, 'https' if
- * is_ssl() and 'http' otherwise. If `$scheme` is 'http' or 'https',
- * `is_ssl()` is overridden.
+ * Returns the 'home' option with the appropriate protocol. The protocol will be 'https'
+ * if is_ssl() evaluates to true; otherwise, it will be the same as the 'home' option.
+ * If `$scheme` is 'http' or 'https', is_ssl() is overridden.
  *
  * @since 3.0.0
  *
@@ -2976,9 +2972,9 @@ function home_url( $path = '', $scheme = null ) {
 /**
  * Retrieves the URL for a given site where the front end is accessible.
  *
- * Returns the 'home' option with the appropriate protocol, 'https' if
- * is_ssl() and 'http' otherwise. If `$scheme` is 'http' or 'https',
- * `is_ssl()` is overridden.
+ * Returns the 'home' option with the appropriate protocol. The protocol will be 'https'
+ * if is_ssl() evaluates to true; otherwise, it will be the same as the 'home' option.
+ * If `$scheme` is 'http' or 'https', is_ssl() is overridden.
  *
  * @since 3.0.0
  *
@@ -3146,7 +3142,7 @@ function get_admin_url( $blog_id = null, $path = '', $scheme = 'admin' ) {
  *                       'http', 'https', or 'relative'. Default null.
  * @return string Includes URL link with optional path appended.
  */
-function includes_url( $path = '', $scheme = null ) {
+function res_url( $path = '', $scheme = null ) {
 	$url = site_url( '/' . RES . '/', $scheme );
 
 	if ( $path && is_string( $path ) )
@@ -3158,10 +3154,10 @@ function includes_url( $path = '', $scheme = null ) {
 	 * @since 2.8.0
 	 *
 	 * @param string $url  The complete URL to the includes directory including scheme and path.
-	 * @param string $path Path relative to the URL to the mn-includes directory. Blank string
+	 * @param string $path Path relative to the URL to the res directory. Blank string
 	 *                     if no path is specified.
 	 */
-	return apply_filters( 'includes_url', $url, $path );
+	return apply_filters( 'res_url', $url, $path );
 }
 
 /**
@@ -3173,7 +3169,7 @@ function includes_url( $path = '', $scheme = null ) {
  * @return string Content URL link with optional path appended.
  */
 function content_url( $path = '' ) {
-	$url = set_url_scheme( MN_CONTENT_URL );
+	$url = set_url_scheme( MAIN_URL );
 
 	if ( $path && is_string( $path ) )
 		$url .= '/' . ltrim($path, '/');
@@ -3211,9 +3207,9 @@ function plugins_url( $path = '', $plugin = '' ) {
 	$mu_plugin_dir = mn_normalize_path( MNMU_PLUGIN_DIR );
 
 	if ( !empty($plugin) && 0 === strpos($plugin, $mu_plugin_dir) )
-		$url = MNMU_PLUGIN_URL;
+		$url = MU_PLUGIN_URL;
 	else
-		$url = MN_PLUGIN_URL;
+		$url = PLUGIN_URL;
 
 
 	$url = set_url_scheme( $url );
@@ -3261,12 +3257,12 @@ function network_site_url( $path = '', $scheme = null ) {
 	if ( ! is_multisite() )
 		return site_url($path, $scheme);
 
-	$current_site = get_current_site();
+	$current_network = get_network();
 
 	if ( 'relative' == $scheme )
-		$url = $current_site->path;
+		$url = $current_network->path;
 	else
-		$url = set_url_scheme( 'http://' . $current_site->domain . $current_site->path, $scheme );
+		$url = set_url_scheme( 'http://' . $current_network->domain . $current_network->path, $scheme );
 
 	if ( $path && is_string( $path ) )
 		$url .= ltrim( $path, '/' );
@@ -3303,16 +3299,16 @@ function network_home_url( $path = '', $scheme = null ) {
 	if ( ! is_multisite() )
 		return home_url($path, $scheme);
 
-	$current_site = get_current_site();
+	$current_network = get_network();
 	$orig_scheme = $scheme;
 
 	if ( ! in_array( $scheme, array( 'http', 'https', 'relative' ) ) )
 		$scheme = is_ssl() && ! is_admin() ? 'https' : 'http';
 
 	if ( 'relative' == $scheme )
-		$url = $current_site->path;
+		$url = $current_network->path;
 	else
-		$url = set_url_scheme( 'http://' . $current_site->domain . $current_site->path, $scheme );
+		$url = set_url_scheme( 'http://' . $current_network->domain . $current_network->path, $scheme );
 
 	if ( $path && is_string( $path ) )
 		$url .= ltrim( $path, '/' );
@@ -3546,7 +3542,7 @@ function get_edit_profile_url( $user_id = 0, $scheme = 'admin' ) {
  * When the post is the same as the current requested page the function will handle the
  * pagination arguments too.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @param int|MN_Post $post Optional. Post ID or object. Default is global `$post`.
  * @return string|false The canonical URL, or false if the post does not exist or has not
@@ -3585,7 +3581,7 @@ function mn_get_canonical_url( $post = null ) {
 	/**
 	 * Filters the canonical URL for a post.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param string  $string The post's canonical URL.
 	 * @param MN_Post $post   Post object.
@@ -3597,7 +3593,7 @@ function mn_get_canonical_url( $post = null ) {
  * Outputs rel=canonical for singular queries.
  *
  * @since 2.9.0
- * @since 16.10.0 Adjusted to use mn_get_canonical_url().
+ * @since 4.6.0 Adjusted to use mn_get_canonical_url().
  */
 function rel_canonical() {
 	if ( ! is_singular() ) {
@@ -4025,4 +4021,126 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	 *                            user email, MN_User object, MN_Post object, or MN_Comment object.
 	 */
 	return apply_filters( 'get_avatar_data', $args, $id_or_email );
+}
+
+/**
+ * Retrieves the URL of a file in the theme.
+ *
+ * Searches in the stylesheet directory before the template directory so themes
+ * which inherit from a parent theme can just override one file.
+ *
+ * @since 4.7.0
+ *
+ * @param string $file Optional. File to search for in the stylesheet directory.
+ * @return string The URL of the file.
+ */
+function get_theme_file_uri( $file = '' ) {
+	$file = ltrim( $file, '/' );
+
+	if ( empty( $file ) ) {
+		$url = get_stylesheet_directory_uri();
+	} elseif ( file_exists( get_stylesheet_directory() . '/' . $file ) ) {
+		$url = get_stylesheet_directory_uri() . '/' . $file;
+	} else {
+		$url = get_template_directory_uri() . '/' . $file;
+	}
+
+	/**
+	 * Filters the URL to a file in the theme.
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param string $url  The file URL.
+	 * @param string $file The requested file to search for.
+	 */
+	return apply_filters( 'theme_file_uri', $url, $file );
+}
+
+/**
+ * Retrieves the URL of a file in the parent theme.
+ *
+ * @since 4.7.0
+ *
+ * @param string $file Optional. File to return the URL for in the template directory.
+ * @return string The URL of the file.
+ */
+function get_parent_theme_file_uri( $file = '' ) {
+	$file = ltrim( $file, '/' );
+
+	if ( empty( $file ) ) {
+		$url = get_template_directory_uri();
+	} else {
+		$url = get_template_directory_uri() . '/' . $file;
+	}
+
+	/**
+	 * Filters the URL to a file in the parent theme.
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param string $url  The file URL.
+	 * @param string $file The requested file to search for.
+	 */
+	return apply_filters( 'parent_theme_file_uri', $url, $file );
+}
+
+/**
+ * Retrieves the path of a file in the theme.
+ *
+ * Searches in the stylesheet directory before the template directory so themes
+ * which inherit from a parent theme can just override one file.
+ *
+ * @since 4.7.0
+ *
+ * @param string $file Optional. File to search for in the stylesheet directory.
+ * @return string The path of the file.
+ */
+function get_theme_file_path( $file = '' ) {
+	$file = ltrim( $file, '/' );
+
+	if ( empty( $file ) ) {
+		$path = get_stylesheet_directory();
+	} elseif ( file_exists( get_stylesheet_directory() . '/' . $file ) ) {
+		$path = get_stylesheet_directory() . '/' . $file;
+	} else {
+		$path = get_template_directory() . '/' . $file;
+	}
+
+	/**
+	 * Filters the path to a file in the theme.
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param string $path The file path.
+	 * @param string $file The requested file to search for.
+	 */
+	return apply_filters( 'theme_file_path', $path, $file );
+}
+
+/**
+ * Retrieves the path of a file in the parent theme.
+ *
+ * @since 4.7.0
+ *
+ * @param string $file Optional. File to return the path for in the template directory.
+ * @return string The path of the file.
+ */
+function get_parent_theme_file_path( $file = '' ) {
+	$file = ltrim( $file, '/' );
+
+	if ( empty( $file ) ) {
+		$path = get_template_directory();
+	} else {
+		$path = get_template_directory() . '/' . $file;
+	}
+
+	/**
+	 * Filters the path to a file in the parent theme.
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param string $path The file path.
+	 * @param string $file The requested file to search for.
+	 */
+	return apply_filters( 'parent_theme_file_path', $path, $file );
 }

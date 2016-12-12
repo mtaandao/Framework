@@ -4,7 +4,7 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
@@ -12,7 +12,7 @@
  *
  * This skin is designed to be used for Ajax updates.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @see Automatic_Upgrader_Skin
  */
@@ -21,7 +21,7 @@ class MN_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	/**
 	 * Holds the MN_Error object.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access protected
 	 * @var null|MN_Error
 	 */
@@ -30,7 +30,7 @@ class MN_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	/**
 	 * Constructor.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param array $args Options for the upgrader, see MN_Upgrader_Skin::__construct().
@@ -44,7 +44,7 @@ class MN_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	/**
 	 * Retrieves the list of errors.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @return MN_Error Errors during an upgrade.
@@ -56,7 +56,7 @@ class MN_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	/**
 	 * Retrieves a string for error messages.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @return string Error messages during an upgrade.
@@ -78,7 +78,7 @@ class MN_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	/**
 	 * Stores a log entry for an error.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string|MN_Error $errors Errors.
@@ -114,7 +114,7 @@ class MN_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	/**
 	 * Stores a log entry.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string|array|MN_Error $data Log entry data.

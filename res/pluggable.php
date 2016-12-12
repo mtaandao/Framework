@@ -314,7 +314,7 @@ function mn_mail( $to, $subject, $message, $headers = '', $attachments = array()
 	if ( !isset( $from_name ) )
 		$from_name = 'Mtaandao';
 
-	/* If we don't have an email from the input headers default to Mtaandao@$sitename
+	/* If we don't have an email from the input headers default to mtaandao@$sitename
 	 * Some hosts will block outgoing mail from this address if it doesn't exist but
 	 * there's no easy alternative. Defaulting to admin_email might appear to be another
 	 * option but some hosts may refuse to relay mail from an unknown domain. See
@@ -328,7 +328,7 @@ function mn_mail( $to, $subject, $message, $headers = '', $attachments = array()
 			$sitename = substr( $sitename, 4 );
 		}
 
-		$from_email = 'Mtaandao@' . $sitename;
+		$from_email = 'mtaandao@' . $sitename;
 	}
 
 	/**
@@ -472,16 +472,17 @@ function mn_mail( $to, $subject, $message, $headers = '', $attachments = array()
 	} catch ( phpmailerException $e ) {
 
 		$mail_error_data = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
+		$mail_error_data['phpmailer_exception_code'] = $e->getCode();
 
 		/**
 		 * Fires after a phpmailerException is caught.
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param MN_Error $error A MN_Error object with the phpmailerException code, message, and an array
+		 * @param MN_Error $error A MN_Error object with the phpmailerException message, and an array
 		 *                        containing the mail recipient, subject, message, headers, and attachments.
 		 */
- 		do_action( 'mn_mail_failed', new MN_Error( $e->getCode(), $e->getMessage(), $mail_error_data ) );
+		do_action( 'mn_mail_failed', new MN_Error( 'mn_mail_failed', $e->getMessage(), $mail_error_data ) );
 
 		return false;
 	}
@@ -603,7 +604,7 @@ function mn_validate_auth_cookie($cookie = '', $scheme = '') {
 	$expired = $expiration = $cookie_elements['expiration'];
 
 	// Allow a grace period for POST and Ajax requests
-	if ( defined('DOING_AJAX') || 'POST' == $_SERVER['REQUEST_METHOD'] ) {
+	if ( mn_doing_ajax() || 'POST' == $_SERVER['REQUEST_METHOD'] ) {
 		$expired += HOUR_IN_SECONDS;
 	}
 
@@ -1081,6 +1082,10 @@ if ( !function_exists('check_ajax_referer') ) :
  *                   0-12 hours ago, 2 if the nonce is valid and generated between 12-24 hours ago.
  */
 function check_ajax_referer( $action = -1, $query_arg = false, $die = true ) {
+	if ( -1 == $action ) {
+		_doing_it_wrong( __FUNCTION__, __( 'You should specify a nonce action to be verified by using the first parameter.' ), '4.7' );
+	}
+
 	$nonce = '';
 
 	if ( $query_arg && isset( $_REQUEST[ $query_arg ] ) )
@@ -1104,8 +1109,8 @@ function check_ajax_referer( $action = -1, $query_arg = false, $die = true ) {
 	do_action( 'check_ajax_referer', $action, $result );
 
 	if ( $die && false === $result ) {
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			mn_die( -1 );
+		if ( mn_doing_ajax() ) {
+			mn_die( -1, 403 );
 		} else {
 			die( '-1' );
 		}
@@ -1128,7 +1133,7 @@ if ( !function_exists('mn_redirect') ) :
  * Exiting can also be selectively manipulated by using mn_redirect() as a conditional
  * in conjunction with the {@see 'mn_redirect'} and {@see 'mn_redirect_location'} hooks:
  *
- *     if ( mn_redirect( $url ) {
+ *     if ( mn_redirect( $url ) ) {
  *         exit;
  *     }
  *
@@ -1233,7 +1238,7 @@ if ( !function_exists('mn_safe_redirect') ) :
  * path. A plugin can therefore set or remove allowed host(s) to or from the
  * list.
  *
- * If the host is not allowed, then the redirect defaults to mn-admin on the siteurl
+ * If the host is not allowed, then the redirect defaults to admin on the siteurl
  * instead. This prevents malicious redirects which redirect to another host,
  * but only used in a few places.
  *
@@ -1414,6 +1419,8 @@ function mn_notify_postauthor( $comment_id, $deprecated = null ) {
 		$emails = array_flip( $emails );
 	}
 
+	$switched_locale = switch_to_locale( get_locale() );
+
 	$comment_author_domain = @gethostbyaddr($comment->comment_author_IP);
 
 	// The blogname option is escaped with esc_html on the way into the database in sanitize_option
@@ -1423,8 +1430,9 @@ function mn_notify_postauthor( $comment_id, $deprecated = null ) {
 
 	switch ( $comment->comment_type ) {
 		case 'trackback':
+			/* translators: 1: Post title */
 			$notify_message  = sprintf( __( 'New trackback on your post "%s"' ), $post->post_title ) . "\r\n";
-			/* translators: 1: website name, 2: website IP, 3: website hostname */
+			/* translators: 1: Trackback/pingback website name, 2: website IP, 3: website hostname */
 			$notify_message .= sprintf( __('Website: %1$s (IP: %2$s, %3$s)'), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 			$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
 			$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
@@ -1433,8 +1441,9 @@ function mn_notify_postauthor( $comment_id, $deprecated = null ) {
 			$subject = sprintf( __('[%1$s] Trackback: "%2$s"'), $blogname, $post->post_title );
 			break;
 		case 'pingback':
+			/* translators: 1: Post title */
 			$notify_message  = sprintf( __( 'New pingback on your post "%s"' ), $post->post_title ) . "\r\n";
-			/* translators: 1: website name, 2: website IP, 3: website hostname */
+			/* translators: 1: Trackback/pingback website name, 2: website IP, 3: website hostname */
 			$notify_message .= sprintf( __('Website: %1$s (IP: %2$s, %3$s)'), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 			$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
 			$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
@@ -1466,7 +1475,7 @@ function mn_notify_postauthor( $comment_id, $deprecated = null ) {
 		$notify_message .= sprintf( __( 'Spam it: %s' ), admin_url( "comment.php?action=spam&c={$comment->comment_ID}#mnbody-content" ) ) . "\r\n";
 	}
 
-	$mn_email = 'Mtaandao@' . preg_replace('#^www\.#', '', strtolower($_SERVER['SERVER_NAME']));
+	$mn_email = 'mtaandao@' . preg_replace('#^www\.#', '', strtolower($_SERVER['SERVER_NAME']));
 
 	if ( '' == $comment->comment_author ) {
 		$from = "From: \"$blogname\" <$mn_email>";
@@ -1518,6 +1527,10 @@ function mn_notify_postauthor( $comment_id, $deprecated = null ) {
 		@mn_mail( $email, mn_specialchars_decode( $subject ), $notify_message, $message_headers );
 	}
 
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
 	return true;
 }
 endif;
@@ -1565,6 +1578,8 @@ function mn_notify_moderator($comment_id) {
 			$emails[] = $user->user_email;
 	}
 
+	$switched_locale = switch_to_locale( get_locale() );
+
 	$comment_author_domain = @gethostbyaddr($comment->comment_author_IP);
 	$comments_waiting = $mndb->get_var("SELECT count(comment_ID) FROM $mndb->comments WHERE comment_approved = '0'");
 
@@ -1575,44 +1590,60 @@ function mn_notify_moderator($comment_id) {
 
 	switch ( $comment->comment_type ) {
 		case 'trackback':
+			/* translators: 1: Post title */
 			$notify_message  = sprintf( __('A new trackback on the post "%s" is waiting for your approval'), $post->post_title ) . "\r\n";
 			$notify_message .= get_permalink($comment->comment_post_ID) . "\r\n\r\n";
-			/* translators: 1: website name, 2: website IP, 3: website hostname */
+			/* translators: 1: Trackback/pingback website name, 2: website IP, 3: website hostname */
 			$notify_message .= sprintf( __( 'Website: %1$s (IP: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+			/* translators: 1: Trackback/pingback/comment author URL */
 			$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
 			$notify_message .= __('Trackback excerpt: ') . "\r\n" . $comment_content . "\r\n\r\n";
 			break;
 		case 'pingback':
+			/* translators: 1: Post title */
 			$notify_message  = sprintf( __('A new pingback on the post "%s" is waiting for your approval'), $post->post_title ) . "\r\n";
 			$notify_message .= get_permalink($comment->comment_post_ID) . "\r\n\r\n";
-			/* translators: 1: website name, 2: website IP, 3: website hostname */
+			/* translators: 1: Trackback/pingback website name, 2: website IP, 3: website hostname */
 			$notify_message .= sprintf( __( 'Website: %1$s (IP: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+			/* translators: 1: Trackback/pingback/comment author URL */
 			$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
 			$notify_message .= __('Pingback excerpt: ') . "\r\n" . $comment_content . "\r\n\r\n";
 			break;
 		default: // Comments
+			/* translators: 1: Post title */
 			$notify_message  = sprintf( __('A new comment on the post "%s" is waiting for your approval'), $post->post_title ) . "\r\n";
 			$notify_message .= get_permalink($comment->comment_post_ID) . "\r\n\r\n";
+			/* translators: 1: Comment author name, 2: comment author's IP, 3: comment author IP's hostname */
 			$notify_message .= sprintf( __( 'Author: %1$s (IP: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+			/* translators: 1: Comment author URL */
 			$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
+			/* translators: 1: Trackback/pingback/comment author URL */
 			$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+			/* translators: 1: Comment text */
 			$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 			break;
 	}
 
+	/* translators: Comment moderation. 1: Comment action URL */
 	$notify_message .= sprintf( __( 'Approve it: %s' ), admin_url( "comment.php?action=approve&c={$comment_id}#mnbody-content" ) ) . "\r\n";
 
-	if ( EMPTY_TRASH_DAYS )
+	if ( EMPTY_TRASH_DAYS ) {
+		/* translators: Comment moderation. 1: Comment action URL */
 		$notify_message .= sprintf( __( 'Trash it: %s' ), admin_url( "comment.php?action=trash&c={$comment_id}#mnbody-content" ) ) . "\r\n";
-	else
+	} else {
+		/* translators: Comment moderation. 1: Comment action URL */
 		$notify_message .= sprintf( __( 'Delete it: %s' ), admin_url( "comment.php?action=delete&c={$comment_id}#mnbody-content" ) ) . "\r\n";
+	}
 
+	/* translators: Comment moderation. 1: Comment action URL */
 	$notify_message .= sprintf( __( 'Spam it: %s' ), admin_url( "comment.php?action=spam&c={$comment_id}#mnbody-content" ) ) . "\r\n";
 
+	/* translators: Comment moderation. 1: Number of comments awaiting approval */
 	$notify_message .= sprintf( _n('Currently %s comment is waiting for approval. Please visit the moderation panel:',
  		'Currently %s comments are waiting for approval. Please visit the moderation panel:', $comments_waiting), number_format_i18n($comments_waiting) ) . "\r\n";
 	$notify_message .= admin_url( "edit-comments.php?comment_status=moderated#mnbody-content" ) . "\r\n";
 
+	/* translators: Comment moderation notification email subject. 1: Site name, 2: Post title */
 	$subject = sprintf( __('[%1$s] Please moderate: "%2$s"'), $blogname, $post->post_title );
 	$message_headers = '';
 
@@ -1660,6 +1691,10 @@ function mn_notify_moderator($comment_id) {
 		@mn_mail( $email, mn_specialchars_decode( $subject ), $notify_message, $message_headers );
 	}
 
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
 	return true;
 }
 endif;
@@ -1696,7 +1731,7 @@ if ( !function_exists('mn_new_user_notification') ) :
  * @since 2.0.0
  * @since 4.3.0 The `$plaintext_pass` parameter was changed to `$notify`.
  * @since 4.3.1 The `$plaintext_pass` parameter was deprecated. `$notify` added as a third parameter.
- * @since 16.10.0 The `$notify` parameter accepts 'user' for sending notification only to the user created.
+ * @since 4.6.0 The `$notify` parameter accepts 'user' for sending notification only to the user created.
  *
  * @global mndb         $mndb      Mtaandao database object for queries.
  * @global PasswordHash $mn_hasher Portable PHP password hashing framework instance.
@@ -1719,14 +1754,19 @@ function mn_new_user_notification( $user_id, $deprecated = null, $notify = '' ) 
 	$blogname = mn_specialchars_decode(get_option('blogname'), ENT_QUOTES);
 
 	if ( 'user' !== $notify ) {
+		$switched_locale = switch_to_locale( get_locale() );
 		$message  = sprintf( __( 'New user registration on your site %s:' ), $blogname ) . "\r\n\r\n";
 		$message .= sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
 		$message .= sprintf( __( 'Email: %s' ), $user->user_email ) . "\r\n";
 
 		@mn_mail( get_option( 'admin_email' ), sprintf( __( '[%s] New User Registration' ), $blogname ), $message );
+
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
 	}
 
-	// `$deprecated was pre-4.3 `$plaintext_pass`. An empty `$plaintext_pass` didn't sent a user notifcation.
+	// `$deprecated was pre-4.3 `$plaintext_pass`. An empty `$plaintext_pass` didn't sent a user notification.
 	if ( 'admin' === $notify || ( empty( $deprecated ) && empty( $notify ) ) ) {
 		return;
 	}
@@ -1739,11 +1779,12 @@ function mn_new_user_notification( $user_id, $deprecated = null, $notify = '' ) 
 
 	// Now insert the key, hashed, into the DB.
 	if ( empty( $mn_hasher ) ) {
-		require_once ABSPATH . RES . '/class-phpass.php';
 		$mn_hasher = new PasswordHash( 8, true );
 	}
 	$hashed = time() . ':' . $mn_hasher->HashPassword( $key );
 	$mndb->update( $mndb->users, array( 'user_activation_key' => $hashed ), array( 'user_login' => $user->user_login ) );
+
+	$switched_locale = switch_to_locale( get_user_locale( $user ) );
 
 	$message = sprintf(__('Username: %s'), $user->user_login) . "\r\n\r\n";
 	$message .= __('To set your password, visit the following address:') . "\r\n\r\n";
@@ -1752,6 +1793,10 @@ function mn_new_user_notification( $user_id, $deprecated = null, $notify = '' ) 
 	$message .= mn_login_url() . "\r\n";
 
 	mn_mail($user->user_email, sprintf(__('[%s] Your username and password info'), $blogname), $message);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 }
 endif;
 
@@ -1877,12 +1922,12 @@ if ( !function_exists('mn_salt') ) :
  * Get salt to add to hashes.
  *
  * Salts are created using secret keys. Secret keys are located in two places:
- * in the database and in the configuration.php file. The secret key in the database
- * is randomly generated and will be appended to the secret keys in configuration.php.
+ * in the database and in the db.php file. The secret key in the database
+ * is randomly generated and will be appended to the secret keys in db.php.
  *
- * The secret keys in configuration.php should be updated to strong, random keys to maximize
+ * The secret keys in db.php should be updated to strong, random keys to maximize
  * security. Below is an example of how the secret key constants are defined.
- * Do not paste this example directly into configuration.php. Instead, have a
+ * Do not paste this example directly into db.php. Instead, have a
  * {@link https://api.mtaandao.co.ke/secret-key/1.1/salt/ secret key created} just
  * for you.
  *
@@ -1900,7 +1945,7 @@ if ( !function_exists('mn_salt') ) :
  *
  * @since 2.5.0
  *
- * @link https://api.mtaandao.co.ke/secret-key/1.1/salt/ Create secrets for configuration.php
+ * @link https://api.mtaandao.co.ke/secret-key/1.1/salt/ Create secrets for db.php
  *
  * @staticvar array $cached_salts
  * @staticvar array $duplicated_keys
@@ -2014,7 +2059,6 @@ function mn_hash_password($password) {
 	global $mn_hasher;
 
 	if ( empty($mn_hasher) ) {
-		require_once( ABSPATH . RES . '/class-phpass.php');
 		// By default, use the portable hash from phpass
 		$mn_hasher = new PasswordHash(8, true);
 	}
@@ -2074,7 +2118,6 @@ function mn_check_password($password, $hash, $user_id = '') {
 	// If the stored hash is longer than an MD5, presume the
 	// new style phpass portable hash.
 	if ( empty($mn_hasher) ) {
-		require_once( ABSPATH . RES . '/class-phpass.php');
 		// By default, use the portable hash from phpass
 		$mn_hasher = new PasswordHash(8, true);
 	}

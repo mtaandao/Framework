@@ -144,8 +144,18 @@ function network_step1( $errors = false ) {
 		$error_codes = $errors->get_error_codes();
 	}
 
-	$site_name = ( ! empty( $_POST['sitename'] ) && ! in_array( 'empty_sitename', $error_codes ) ) ? $_POST['sitename'] : sprintf( _x('%s Sites', 'Default network name' ), get_option( 'blogname' ) );
-	$admin_email = ( ! empty( $_POST['email'] ) && ! in_array( 'invalid_email', $error_codes ) ) ? $_POST['email'] : get_option( 'admin_email' );
+	if ( ! empty( $_POST['sitename'] ) && ! in_array( 'empty_sitename', $error_codes ) ) {
+		$site_name = $_POST['sitename'];
+	} else {
+		/* translators: %s: Default network name */
+		$site_name = sprintf( __( '%s Sites' ), get_option( 'blogname' ) );
+	}
+
+	if ( ! empty( $_POST['email'] ) && ! in_array( 'invalid_email', $error_codes ) ) {
+		$admin_email = $_POST['email'];
+	} else {
+		$admin_email = get_option( 'admin_email' );
+	}
 	?>
 	<p><?php _e( 'Welcome to the Network installation process!' ); ?></p>
 	<p><?php _e( 'Fill in the information below and you&#8217;ll be on your way to creating a network of Mtaandao sites. We will create configuration files in the next step.' ); ?></p>
@@ -215,7 +225,7 @@ function network_step1( $errors = false ) {
 <?php
 	endif;
 
-		if ( MAIN != ABSPATH . 'main' && ( allow_subdirectory_install() || ! allow_subdomain_install() ) )
+		if ( MAIN_DIR != ABSPATH . 'main' && ( allow_subdirectory_install() || ! allow_subdomain_install() ) )
 			echo '<div class="error inline"><p><strong>' . __('Warning!') . '</strong> ' . __( 'Subdirectory networks may not be fully compatible with custom main directories.' ) . '</p></div>';
 
 		$is_www = ( 0 === strpos( $hostname, 'www.' ) );
@@ -337,7 +347,7 @@ function network_step2( $errors = false ) {
 
 
 	$location_of_mn_config = $abspath_fix;
-	if ( ! file_exists( ABSPATH . 'configuration.php' ) && file_exists( dirname( ABSPATH ) . '/configuration.php' ) ) {
+	if ( ! file_exists( ABSPATH . 'admin/config/db.php' ) && file_exists( dirname( ABSPATH ) . '/install' . '/config' . '/db.php' ) ) {
 		$location_of_mn_config = dirname( $abspath_fix );
 	}
 	$location_of_mn_config = trailingslashit( $location_of_mn_config );
@@ -378,25 +388,25 @@ function network_step2( $errors = false ) {
 			if ( file_exists( $home_path . '.htaccess' ) ) {
 				echo '<strong>' . __( 'Caution:' ) . '</strong> ';
 				printf(
-					/* translators: 1: configuration.php 2: .htaccess */
+					/* translators: 1: db.php 2: .htaccess */
 					__( 'We recommend you back up your existing %1$s and %2$s files.' ),
-					'<code>configuration.php</code>',
+					'<code>db.php</code>',
 					'<code>.htaccess</code>'
 				);
 			} elseif ( file_exists( $home_path . 'web.config' ) ) {
 				echo '<strong>' . __( 'Caution:' ) . '</strong> ';
 				printf(
-					/* translators: 1: configuration.php 2: web.config */
+					/* translators: 1: db.php 2: web.config */
 					__( 'We recommend you back up your existing %1$s and %2$s files.' ),
-					'<code>configuration.php</code>',
+					'<code>db.php</code>',
 					'<code>web.config</code>'
 				);
 			} else {
 				echo '<strong>' . __( 'Caution:' ) . '</strong> ';
 				printf(
-					/* translators: 1: configuration.php */
+					/* translators: 1: db.php */
 					__( 'We recommend you back up your existing %s file.' ),
-					'<code>configuration.php</code>'
+					'<code>db.php</code>'
 				);
 			}
 		?></p></div>
@@ -405,14 +415,14 @@ function network_step2( $errors = false ) {
 ?>
 		<ol>
 			<li><p><?php printf(
-				/* translators: 1: configuration.php 2: location of mn-config file, 3: translated version of "That's all, stop editing! Happy blogging." */
+				/* translators: 1: db.php 2: location of mn-config file, 3: translated version of "That's all, stop editing! Happy blogging." */
 				__( 'Add the following to your %1$s file in %2$s <strong>above</strong> the line reading %3$s:' ),
-				'<code>configuration.php</code>',
+				'<code>db.php</code>',
 				'<code>' . $location_of_mn_config . '</code>',
 				/*
-				 * translators: This string should only be translated if config-sample.php is localized.
+				 * translators: This string should only be translated if sample.php is localized.
 				 * You can check the localized release package or
-				 * https://i18n.svn.mtaandao.co.ke/<locale code>/branches/<mn version>/dist/config-sample.php
+				 * https://i18n.svn.mtaandao.co.ke/<locale code>/branches/<mn version>/dist/sample.php
 				 */
 				'<code>/* ' . __( 'That&#8217;s all, stop editing! Happy blogging.' ) . ' */</code>'
 			); ?></p>
@@ -450,15 +460,15 @@ define('BLOG_ID_CURRENT_SITE', 1);
 		<?php
 			if ( 1 == $num_keys_salts ) {
 				printf(
-					/* translators: 1: configuration.php */
+					/* translators: 1: db.php */
 					__( 'This unique authentication key is also missing from your %s file.' ),
-					'<code>configuration.php</code>'
+					'<code>db.php</code>'
 				);
 			} else {
 				printf(
-					/* translators: 1: configuration.php */
+					/* translators: 1: db.php */
 					__( 'These unique authentication keys are also missing from your %s file.' ),
-					'<code>configuration.php</code>'
+					'<code>db.php</code>'
 				);
 			}
 		?>
@@ -494,7 +504,7 @@ define('BLOG_ID_CURRENT_SITE', 1);
                 }
                 $web_config_file .= '
                 <rule name="Mtaandao Rule 2" stopProcessing="true">
-                    <match url="^' . $iis_subdir_match . 'mn-admin$" ignoreCase="false" />
+                    <match url="^' . $iis_subdir_match . 'admin$" ignoreCase="false" />
                     <action type="Redirect" url="' . $iis_subdir_replacement . 'admin/" redirectType="Permanent" />
                 </rule>
                 <rule name="Mtaandao Rule 3" stopProcessing="true">
@@ -531,7 +541,7 @@ define('BLOG_ID_CURRENT_SITE', 1);
 			'<code>' . $home_path . '</code>'
 		);
 		echo '</p>';
-		if ( ! $subdomain_install && MAIN != ABSPATH . 'main' )
+		if ( ! $subdomain_install && MAIN_DIR != ABSPATH . 'main' )
 			echo '<p><strong>' . __('Warning:') . ' ' . __( 'Subdirectory networks may not be fully compatible with custom main directories.' ) . '</strong></p>';
 		?>
 		<textarea class="code" readonly="readonly" cols="100" rows="20"><?php echo esc_textarea( $web_config_file ); ?>
@@ -552,7 +562,7 @@ RewriteBase {$base}
 RewriteRule ^index\.php$ - [L]
 {$ms_files_rewriting}
 # add a trailing slash to /admin
-RewriteRule ^{$subdir_match}mn-admin$ {$subdir_replacement_01}admin/ [R=301,L]
+RewriteRule ^{$subdir_match}admin$ {$subdir_replacement_01}admin/ [R=301,L]
 
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
@@ -571,7 +581,7 @@ EOF;
 			'<code>' . $home_path . '</code>'
 		);
 		echo '</p>';
-		if ( ! $subdomain_install && MAIN != ABSPATH . 'main' )
+		if ( ! $subdomain_install && MAIN_DIR != ABSPATH . 'main' )
 			echo '<p><strong>' . __('Warning:') . ' ' . __( 'Subdirectory networks may not be fully compatible with custom main directories.' ) . '</strong></p>';
 		?>
 		<textarea class="code" readonly="readonly" cols="100" rows="<?php echo substr_count( $htaccess_file, "\n" ) + 1; ?>">

@@ -4,14 +4,14 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
  * Plugin Installer Skin for Mtaandao Plugin Installer.
  *
  * @since 2.8.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
  *
  * @see MN_Upgrader_Skin
  */
@@ -52,12 +52,12 @@ class Plugin_Installer_Skin extends MN_Upgrader_Skin {
 		$from = isset($_GET['from']) ? mn_unslash( $_GET['from'] ) : 'plugins';
 
 		if ( 'import' == $from )
-			$install_actions['activate_plugin'] = '<a href="' . mn_nonce_url( 'plugins.php?action=activate&amp;from=import&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ) . '" target="_parent">' . __( 'Activate Plugin &amp; Run Importer' ) . '</a>';
+			$install_actions['activate_plugin'] = '<a class="button button-primary" href="' . mn_nonce_url( 'plugins.php?action=activate&amp;from=import&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ) . '" target="_parent">' . __( 'Activate Plugin &amp; Run Importer' ) . '</a>';
 		else
-			$install_actions['activate_plugin'] = '<a href="' . mn_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ) . '" target="_parent">' . __( 'Activate Plugin' ) . '</a>';
+			$install_actions['activate_plugin'] = '<a class="button button-primary" href="' . mn_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ) . '" target="_parent">' . __( 'Activate Plugin' ) . '</a>';
 
 		if ( is_multisite() && current_user_can( 'manage_network_plugins' ) ) {
-			$install_actions['network_activate'] = '<a href="' . mn_nonce_url( 'plugins.php?action=activate&amp;networkwide=1&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ) . '" target="_parent">' . __( 'Network Activate' ) . '</a>';
+			$install_actions['network_activate'] = '<a class="button button-primary" href="' . mn_nonce_url( 'plugins.php?action=activate&amp;networkwide=1&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ) . '" target="_parent">' . __( 'Network Activate' ) . '</a>';
 			unset( $install_actions['activate_plugin'] );
 		}
 
@@ -83,14 +83,15 @@ class Plugin_Installer_Skin extends MN_Upgrader_Skin {
 		 * @since 2.7.0
 		 *
 		 * @param array  $install_actions Array of plugin action links.
-		 * @param object $api             Object containing mtaandao.co.ke API plugin data. Empty
+		 * @param object $api             Object containing Mtaandao.org API plugin data. Empty
 		 *                                for non-API installs, such as when a plugin is installed
 		 *                                via upload.
 		 * @param string $plugin_file     Path to the plugin file.
 		 */
 		$install_actions = apply_filters( 'install_plugin_complete_actions', $install_actions, $this->api, $plugin_file );
 
-		if ( ! empty($install_actions) )
-			$this->feedback(implode(' | ', (array)$install_actions));
+		if ( ! empty( $install_actions ) ) {
+			$this->feedback( implode( ' ', (array) $install_actions ) );
+		}
 	}
 }

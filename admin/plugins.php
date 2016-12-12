@@ -262,7 +262,7 @@ if ( $action ) {
 						$plugin_slug = dirname( $plugin );
 
 						if ( '.' == $plugin_slug ) {
-							if ( $data = get_plugin_data( MN_PLUGIN_DIR . '/' . $plugin ) ) {
+							if ( $data = get_plugin_data( PLUGIN_DIR . '/' . $plugin ) ) {
 								$plugin_info[ $plugin ] = $data;
 								$plugin_info[ $plugin ]['is_uninstallable'] = is_uninstallable_plugin( $plugin );
 								if ( ! $plugin_info[ $plugin ]['Network'] ) {
@@ -327,13 +327,13 @@ if ( $action ) {
 						}
 					?>
 					<?php mn_nonce_field('bulk-plugins') ?>
-					<?php submit_button( $data_to_delete ? __( 'Yes, delete these files and data' ) : __( 'Yes, delete these files' ), 'button', 'submit', false ); ?>
+					<?php submit_button( $data_to_delete ? __( 'Yes, delete these files and data' ) : __( 'Yes, delete these files' ), '', 'submit', false ); ?>
 				</form>
 				<?php
 				$referer = mn_get_referer();
 				?>
 				<form method="post" action="<?php echo $referer ? esc_url( $referer ) : ''; ?>" style="display:inline;">
-					<?php submit_button( __( 'No, return me to the plugin list' ), 'button', 'submit', false ); ?>
+					<?php submit_button( __( 'No, return me to the plugin list' ), '', 'submit', false ); ?>
 				</form>
 			</div>
 				<?php
@@ -356,7 +356,21 @@ if ( $action ) {
 				update_site_option( 'recently_activated', array() );
 			}
 			break;
+
+		default:
+			if ( isset( $_POST['checked'] ) ) {
+				check_admin_referer('bulk-plugins');
+				$plugins = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
+				$sendback = mn_get_referer();
+
+				/** This action is documented in admin/edit-comments.php */
+				$sendback = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $sendback, $action, $plugins );
+				mn_safe_redirect( $sendback );
+				exit;
+			}
+			break;
 	}
+
 }
 
 $mn_list_table->prepare_items();
@@ -374,8 +388,8 @@ get_current_screen()->add_help_tab( array(
 	'<p>' . __( 'The search for installed plugins will search for terms in their name, description, or author.' ) . ' <span id="live-search-desc" class="hide-if-no-js">' . __( 'The search results will be updated as you type.' ) . '</span></p>' .
 	'<p>' . sprintf(
 		/* translators: %s: Mtaandao Plugin Directory URL */
-		__( 'If you would like to see more plugins to choose from, click on the &#8220;Add New&#8221; button and you will be able to browse or search for additional plugins from the <a href="%s" target="_blank">Mtaandao Plugin Directory</a>. Plugins in the Mtaandao Plugin Directory are designed and developed by third parties, and are compatible with the license Mtaandao uses. Oh, and they&#8217;re free!' ),
-		'https://mtaandao.co.ke/plugins/'
+		__( 'If you would like to see more plugins to choose from, click on the &#8220;Add New&#8221; button and you will be able to browse or search for additional plugins from the <a href="%s">Mtaandao Plugin Directory</a>. Plugins in the Mtaandao Plugin Directory are designed and developed by third parties, and are compatible with the license Mtaandao uses. Oh, and they&#8217;re free!' ),
+		__( 'https://mtaandao.co.ke/plugins/' )
 	) . '</p>'
 ) );
 get_current_screen()->add_help_tab( array(
@@ -384,16 +398,16 @@ get_current_screen()->add_help_tab( array(
 'content'	=>
 	'<p>' . __('Most of the time, plugins play nicely with the core of Mtaandao and with other plugins. Sometimes, though, a plugin&#8217;s code will get in the way of another plugin, causing compatibility issues. If your site starts doing strange things, this may be the problem. Try deactivating all your plugins and re-activating them in various combinations until you isolate which one(s) caused the issue.') . '</p>' .
 	'<p>' . sprintf(
-		/* translators: MN_PLUGIN_DIR constant value */
+		/* translators: PLUGIN_DIR constant value */
 		__( 'If something goes wrong with a plugin and you can&#8217;t use Mtaandao, delete or rename that file in the %s directory and it will be automatically deactivated.' ),
-		'<code>' . MN_PLUGIN_DIR . '</code>'
+		'<code>' . PLUGIN_DIR . '</code>'
 	) . '</p>'
 ) );
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Managing_Plugins#Plugin_Management" target="_blank">Documentation on Managing Plugins</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Managing_Plugins#Plugin_Management">Documentation on Managing Plugins</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 get_current_screen()->set_screen_reader_content( array(

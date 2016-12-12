@@ -105,11 +105,11 @@ class MN_Roles {
 	 * @since 2.1.0
 	 * @access protected
 	 *
-	 * @global mndb  $mndb          Mtaandao database abstraction object.
 	 * @global array $mn_user_roles Used to set the 'roles' property value.
 	 */
 	protected function _init() {
-		global $mndb, $mn_user_roles;
+		global $mn_user_roles, $mndb;
+
 		$this->role_key = $mndb->get_blog_prefix() . 'user_roles';
 		if ( ! empty( $mn_user_roles ) ) {
 			$this->roles = $mn_user_roles;
@@ -127,6 +127,15 @@ class MN_Roles {
 			$this->role_objects[$role] = new MN_Role( $role, $this->roles[$role]['capabilities'] );
 			$this->role_names[$role] = $this->roles[$role]['name'];
 		}
+
+		/**
+		 * After the roles have been initialized, allow plugins to add their own roles.
+		 *
+		 * @since 4.7.0
+		 *
+		 * @param MN_Roles $this A reference to the MN_Roles object.
+		 */
+		do_action( 'mn_roles_init', $this );
 	}
 
 	/**
@@ -136,29 +145,12 @@ class MN_Roles {
 	 * after switching mndb to a new site ID.
 	 *
 	 * @since 3.5.0
+	 * @deprecated 4.7.0 Use new MN_Roles()
 	 * @access public
-	 *
-	 * @global mndb $mndb Mtaandao database abstraction object.
 	 */
 	public function reinit() {
-		// There is no need to reinit if using the mn_user_roles global.
-		if ( ! $this->use_db )
-			return;
-
-		global $mndb;
-
-		// Duplicated from _init() to avoid an extra function call.
-		$this->role_key = $mndb->get_blog_prefix() . 'user_roles';
-		$this->roles = get_option( $this->role_key );
-		if ( empty( $this->roles ) )
-			return;
-
-		$this->role_objects = array();
-		$this->role_names =  array();
-		foreach ( array_keys( $this->roles ) as $role ) {
-			$this->role_objects[$role] = new MN_Role( $role, $this->roles[$role]['capabilities'] );
-			$this->role_names[$role] = $this->roles[$role]['name'];
-		}
+		_deprecated_function( __METHOD__, '4.7.0', 'new MN_Roles()' );
+		$this->_init();
 	}
 
 	/**

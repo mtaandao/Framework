@@ -214,7 +214,7 @@ function the_post_thumbnail_url( $size = 'post-thumbnail' ) {
 /**
  * Returns the post thumbnail caption.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @param int|MN_Post $post Optional. Post ID or MN_Post object. Default is global `$post`.
  * @return string Post thumbnail caption.
@@ -237,7 +237,7 @@ function get_the_post_thumbnail_caption( $post = null ) {
 /**
  * Displays the post thumbnail caption.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @param int|MN_Post $post Optional. Post ID or MN_Post object. Default is global `$post`.
  */
@@ -245,7 +245,7 @@ function the_post_thumbnail_caption( $post = null ) {
 	/**
 	 * Filters the displayed post thumbnail caption.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param string $caption Caption for the given attachment.
 	 */

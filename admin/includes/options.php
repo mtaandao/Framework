@@ -35,7 +35,7 @@ function options_general_add_js() {
 ?>
 <script type="text/javascript">
 	jQuery(document).ready(function($){
-		var $siteName = $( '#mn-admin-bar-site-name' ).children( 'a' ).first(),
+		var $siteName = $( '#admin-bar-site-name' ).children( 'a' ).first(),
 			homeURL = ( <?php echo mn_json_encode( get_home_url() ); ?> || '' ).replace( /^(https?:\/\/)?(www\.)?/, '' );
 
 		$( '#blogname' ).on( 'input', function() {
@@ -137,5 +137,5 @@ function options_reading_add_js() {
  */
 function options_reading_blog_charset() {
 	echo '<input name="blog_charset" type="text" id="blog_charset" value="' . esc_attr( get_option( 'blog_charset' ) ) . '" class="regular-text" />';
-	echo '<p class="description">' . __( 'The <a href="https://mtaandao.co.ke/docs/Glossary#Character_set">character encoding</a> of your site (UTF-8 is recommended)' ) . '</p>';
+	echo '<p class="description">' . __( 'The <a href="https://mtaandao.github.io/Glossary#Character_set">character encoding</a> of your site (UTF-8 is recommended)' ) . '</p>';
 }

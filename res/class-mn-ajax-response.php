@@ -149,7 +149,7 @@ class MN_Ajax_Response {
 		foreach ( (array) $this->responses as $response )
 			echo $response;
 		echo '</mn_ajax>';
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX )
+		if ( mn_doing_ajax() )
 			mn_die();
 		else
 			die();

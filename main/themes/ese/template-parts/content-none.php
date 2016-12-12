@@ -2,7 +2,7 @@
 /**
  * The template part for displaying a message that posts cannot be found.
  *
- * Learn more: http://mtaandao.co.ke/docs/Template_Hierarchy
+ * Learn more: http://codex.mtaandao.co.ke/Template_Hierarchy
  *
  * @package Ese
  */

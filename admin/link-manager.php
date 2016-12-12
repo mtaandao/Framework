@@ -19,17 +19,23 @@ $doaction = $mn_list_table->current_action();
 if ( $doaction && isset( $_REQUEST['linkcheck'] ) ) {
 	check_admin_referer( 'bulk-bookmarks' );
 
+	$redirect_to = admin_url( 'link-manager.php' );
+	$bulklinks = (array) $_REQUEST['linkcheck'];
+
 	if ( 'delete' == $doaction ) {
-		$bulklinks = (array) $_REQUEST['linkcheck'];
 		foreach ( $bulklinks as $link_id ) {
 			$link_id = (int) $link_id;
 
 			mn_delete_link( $link_id );
 		}
 
-		mn_redirect( add_query_arg('deleted', count( $bulklinks ), admin_url( 'link-manager.php' ) ) );
-		exit;
+		$redirect_to = add_query_arg( 'deleted', count( $bulklinks ), $redirect_to );
+	} else {
+		/** This action is documented in admin/edit-comments.php */
+		$redirect_to = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $redirect_to, $doaction, $bulklinks );
 	}
+	mn_redirect( $redirect_to );
+	exit;
 } elseif ( ! empty( $_GET['_mn_http_referer'] ) ) {
 	 mn_redirect( remove_query_arg( array( '_mn_http_referer', '_mnnonce' ), mn_unslash( $_SERVER['REQUEST_URI'] ) ) );
 	 exit;
@@ -57,8 +63,8 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Links_Screen" target="_blank">Documentation on Managing Links</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Links_Screen">Documentation on Managing Links</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 get_current_screen()->set_screen_reader_content( array(

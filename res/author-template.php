@@ -4,7 +4,7 @@
  *
  * These functions must be used within the Mtaandao Loop.
  *
- * @link https://mtaandao.co.ke/docs/Author_Templates
+ * @link https://mtaandao.github.io/Author_Templates
  *
  * @package Mtaandao
  * @subpackage Template
@@ -49,7 +49,7 @@ function get_the_author($deprecated = '') {
  *
  * @since 0.71
  * @see get_the_author()
- * @link https://mtaandao.co.ke/docs/Template_Tags/the_author
+ * @link https://mtaandao.github.io/Template_Tags/the_author
  *
  * @param string $deprecated Deprecated.
  * @param string $deprecated_echo Deprecated. Use get_the_author(). Echo the string or return it.
@@ -112,7 +112,7 @@ function the_modified_author() {
 
 /**
  * Retrieve the requested data of the author of the current post.
- * @link https://mtaandao.co.ke/docs/Template_Tags/the_author_meta
+ * @link https://mtaandao.github.io/Template_Tags/the_author_meta
  * @since 2.8.0
  *
  * @global object $authordata The current author's DB object.
@@ -154,7 +154,7 @@ function get_the_author_meta( $field = '', $user_id = false ) {
 /**
  * Outputs the field from the user's DB object. Defaults to current post's author.
  *
- * @link https://mtaandao.co.ke/docs/Template_Tags/the_author_meta
+ * @link https://mtaandao.github.io/Template_Tags/the_author_meta
  *
  * @since 2.8.0
  *
@@ -188,7 +188,12 @@ function the_author_meta( $field = '', $user_id = false ) {
  */
 function get_the_author_link() {
 	if ( get_the_author_meta('url') ) {
-		return '<a href="' . esc_url( get_the_author_meta('url') ) . '" title="' . esc_attr( sprintf(__("Visit %s&#8217;s website"), get_the_author()) ) . '" rel="author external">' . get_the_author() . '</a>';
+		return sprintf( '<a href="%1$s" title="%2$s" rel="author external">%3$s</a>',
+			esc_url( get_the_author_meta('url') ),
+			/* translators: %s: author's display name */
+			esc_attr( sprintf( __( 'Visit %s&#8217;s website' ), get_the_author() ) ),
+			get_the_author()
+		);
 	} else {
 		return get_the_author();
 	}
@@ -200,7 +205,7 @@ function get_the_author_link() {
  * If the author has a home page set, echo an HTML link, otherwise just echo the
  * author's name.
  *
- * @link https://mtaandao.co.ke/docs/Template_Tags/the_author_link
+ * @link https://mtaandao.github.io/Template_Tags/the_author_link
  *
  * @since 2.1.0
  */
@@ -226,7 +231,7 @@ function get_the_author_posts() {
 /**
  * Display the number of posts by the author of the current post.
  *
- * @link https://mtaandao.co.ke/docs/Template_Tags/the_author_posts
+ * @link https://mtaandao.github.io/Template_Tags/the_author_posts
  * @since 0.71
  */
 function the_author_posts() {
@@ -250,9 +255,9 @@ function get_the_author_posts_link() {
 		return;
 	}
 
-	$link = sprintf(
-		'<a href="%1$s" title="%2$s" rel="author">%3$s</a>',
+	$link = sprintf( '<a href="%1$s" title="%2$s" rel="author">%3$s</a>',
 		esc_url( get_author_posts_url( $authordata->ID, $authordata->user_nicename ) ),
+		/* translators: %s: author's display name */
 		esc_attr( sprintf( __( 'Posts by %s' ), get_the_author() ) ),
 		get_the_author()
 	);
@@ -328,7 +333,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
 /**
  * List all the authors of the site, with several options available.
  *
- * @link https://mtaandao.co.ke/docs/Template_Tags/mn_list_authors
+ * @link https://mtaandao.github.io/Template_Tags/mn_list_authors
  *
  * @since 1.2.0
  *
@@ -412,7 +417,12 @@ function mn_list_authors( $args = '' ) {
 			$return .= '<li>';
 		}
 
-		$link = '<a href="' . get_author_posts_url( $author->ID, $author->user_nicename ) . '" title="' . esc_attr( sprintf(__("Posts by %s"), $author->display_name) ) . '">' . $name . '</a>';
+		$link = sprintf( '<a href="%1$s" title="%2$s">%3$s</a>',
+			get_author_posts_url( $author->ID, $author->user_nicename ),
+			/* translators: %s: author's display name */
+			esc_attr( sprintf( __( 'Posts by %s' ), $author->display_name ) ),
+			$name
+		);
 
 		if ( ! empty( $args['feed_image'] ) || ! empty( $args['feed'] ) ) {
 			$link .= ' ';

@@ -86,8 +86,8 @@ if ( isset($_GET['action']) ) {
 
 			error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 			@ini_set('display_errors', true); //Ensure that Fatal errors are displayed.
-			mn_register_plugin_realpath( MN_PLUGIN_DIR . '/' . $plugin );
-			include( MN_PLUGIN_DIR . '/' . $plugin );
+			mn_register_plugin_realpath( PLUGIN_DIR . '/' . $plugin );
+			include( PLUGIN_DIR . '/' . $plugin );
 		}
 		iframe_footer();
 	} elseif ( 'install-plugin' == $action ) {

@@ -1,26 +1,13 @@
 <!doctype html>
-<!--
-  Material Design Lite
-  Copyright 2015 Google Inc. All rights reserved.
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-      https://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License
--->
-
 <?php require_once( dirname( dirname( __FILE__ ) ) . '/load.php' ); 
 
           if ( ! defined( 'ABSPATH' ) ) {
         define( 'ABSPATH', dirname( dirname( __FILE__ ) ) . '/' );
           }
+          if ( ! defined( 'INIT' ) ) {
+        define( 'INIT', dirname( dirname( __FILE__ ) ) . '/install/' );
+          }
+
       ?>
 <html lang="en">
   <head>
@@ -56,7 +43,7 @@
     <link rel="stylesheet" href="css/material.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <style>
-    #view-source {
+    #install-now {
       position: fixed;
       display: block;
       right: 0;
@@ -75,52 +62,88 @@
         <div class="init-container mdl-grid">
           <div class="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
           <div class="init-content mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col">
-            <center><img src="images/mtaandao-logo.png" width="200px">
-            <h3>System Requirements</h3></center>
-            <ul>
-            <li><a href="https://secure.php.net/">PHP</a> version <strong>5.2.4</strong> or higher.</li>
-            <li><a href="https://www.mysql.com/">MySQL</a> version <strong>5.0</strong> or higher.</li>
-          </ul>
+            <center><img src="images/mtaandao-logo.png" width="200px"></center>
 
-          <h4>Recommendations</h4>
-          <ul>
-            <li><a href="https://secure.php.net/">PHP</a> version <strong>5.6</strong> or higher.</li>
-            <li><a href="https://www.mysql.com/">MySQL</a> version <strong>5.6</strong> or higher.</li>
-            <li>The <a href="https://httpd.apache.org/docs/2.2/mod/mod_rewrite.html">mod_rewrite</a> Apache module.</li>
-            <li>A link to <a href="https://mtaandao.co.ke/">mtaandao.co.ke</a> on your site.</li>
-          </ul>
-            <center><h3>Installation</h3></center>
-              <p>
-                <li>Create a database for your Mtaandao Installation. Note the username and password.</li>
-              </p>
-              <h4>
-                <a>If you have satisfied all the above requirements, click the "INSTALL NOW" button to proceed. Mtaandao will take care of everything moving forward.</a>
-              </h4>
+<h2>First Things First</h2>
+<p>Welcome. Mtaandao is a very special project to me. Every developer and contributor adds something unique to the mix, and together we create something beautiful that I&#8217;m proud to be a part of. Thousands of hours have gone into Mtaandao, and we&#8217;re dedicated to making it better every day. Thank you for making it part of your world.</p>
+<p style="text-align: right">&#8212; Mauko Maunde</p>
 
-              <ol>
-              <li>If for some reason the auto-installation process doesn&#8217;t work, don&#8217;t worry. It doesn&#8217;t work on all web hosts. Open up <code>config-sample.php</code> with a text editor like Sublime Text or similar and fill in your database connection details.</li>
-              <li>Save the file as <code>configuration.php</code> and upload it.</li>
-              <li>Open <a href="<?php echo esc_url( admin_url( '/' ). 'install.php' ); ?>">admin/install.php</a> in your browser.</li>
-            </ol>
+<h2>Set-up in 5 Minutes or Less</h2>
+<ol>
+  <li>Unzip the package in an empty directory and upload everything.</li>
+  <li>Open <span class="file"><a href="<?php echo esc_url( admin_url( '/' ). 'install.php' ); ?>">admin/install.php</a></span> in your browser. It will take you through the process to set up a <code>db.php</code> file with your database connection details.
+    <ol>
+      <li>If for some reason this doesn&#8217;t work, don&#8217;t worry. It doesn&#8217;t work on all web hosts. Open up <code>sample.php</code> with a text editor like WordPad or similar and fill in your database connection details.</li>
+      <li>Save the file as <code>db.php</code> and upload it.</li>
+      <li>Open <span class="file"><a href="<?php echo esc_url( admin_url( '/' ). 'install.php' ); ?>">admin/install.php</a></span> in your browser.</li>
+    </ol>
+  </li>
+  <li>Once the configuration file is set up, the installer will set up the tables needed for your blog. If there is an error, double check your <code>db.php</code> file, and try again. If it fails again, please go to the <a href="https://mtaandao.co.ke/support/" title="Mtaandao support">support forums</a> with as much data as you can gather.</li>
+  <li><strong>If you did not enter a password, note the password given to you.</strong> If you did not provide a username, it will be <code>admin</code>.</li>
+  <li>The installer should then send you to the <a href="<?php echo esc_url( admin_url( '/' ). 'login.php' ); ?>">login page</a>. Sign in with the username and password you chose during the installation. If a password was generated for you, you can then click on &#8220;Profile&#8221; to change the password.</li>
+</ol>
 
-            <center><h3>Updating</h3></center>
-            <h4>Using the Automatic Updater</h4>
-            <p>If you are updating from version 2.7 or higher, you can use the automatic updater:</p>
-            <ol>
-              <li>Open <span class="file"><a href="<?php echo esc_url( admin_url( '/' ). 'update-core.php'); ?>">admin/update-core.php</a></span> in your browser and follow the instructions.</li>
-              <li>You wanted more, perhaps? That&#8217;s it!</li>
-            </ol>
+<h2>Updating</h2>
+<h3>Using the Automatic Updater</h3>
+<p>If you are updating from version 2.7 or higher, you can use the automatic updater:</p>
+<ol>
+  <li>Open <span class="file"><a href="<?php echo esc_url( admin_url( '/' ). 'upgrade.php' ); ?>">admin/update-core.php</a></span> in your browser and follow the instructions.</li>
+  <li>You wanted more, perhaps? That&#8217;s it!</li>
+</ol>
 
-            <h4>Updating Manually</h4>
-            <ol>
-              <li>Before you update anything, make sure you have backup copies of any files you may have modified such as <code>index.php</code>.</li>
-              <li>Delete your old Mtaandao files, saving ones you&#8217;ve modified.</li>
-              <li>Upload the new files.</li>
-              <li>Point your browser to <span class="file"><a href="<?php echo esc_url( admin_url( '/' ). 'upgrade.php'); ?>">admin/upgrade.php</a>.</span></li>
-            </ol>
+<h3>Updating Manually</h3>
+<ol>
+  <li>Before you update anything, make sure you have backup copies of any files you may have modified such as <code>index.php</code>.</li>
+  <li>Delete your old Mtaandao files, saving ones you&#8217;ve modified.</li>
+  <li>Upload the new files.</li>
+  <li>Point your browser to <span class="file"><a href="<?php echo esc_url( admin_url( '/' ). 'upgrade.php' ); ?>">/admin/upgrade.php</a>.</span></li>
+</ol>
 
-            <center><h3>Migrating from other systems</h3></center>
-            <p>Mtaandao can <a href="https://mtaandao.co.ke/docs/Importing_Content">import from a number of systems</a>. First you need to get Mtaandao installed and working as described above, before using <a href="<?php echo esc_url( admin_url( '/' ). 'import.php'); ?>" title="Import to Mtaandao">our import tools</a>.</p>
+<h2>Migrating from other systems</h2>
+<p>Mtaandao can <a href="https://mtaandao.github.io/Importing_Content">import from a number of systems</a>. First you need to get Mtaandao installed and working as described above, before using <a href="<?php echo esc_url( admin_url( '/' ). 'import.php' ); ?> title="Import to Mtaandao">our import tools</a>.</p>
+
+<h2>System Requirements</h2>
+<ul>
+  <li><a href="https://secure.php.net/">PHP</a> version <strong>5.2.4</strong> or higher.</li>
+  <li><a href="https://www.mysql.com/">MySQL</a> version <strong>5.0</strong> or higher.</li>
+</ul>
+
+<h3>Recommendations</h3>
+<ul>
+  <li><a href="https://secure.php.net/">PHP</a> version <strong>7</strong> or higher.</li>
+  <li><a href="https://www.mysql.com/">MySQL</a> version <strong>5.6</strong> or higher.</li>
+  <li>The <a href="https://httpd.apache.org/docs/2.2/mod/mod_rewrite.html">mod_rewrite</a> Apache module.</li>
+  <li><a href="https://mtaandao.co.ke/news/2016/12/moving-toward-ssl/">HTTPS</a> support.</li>
+  <li>A link to <a href="https://mtaandao.co.ke/">mtaandao.co.ke</a> on your site.</li>
+</ul>
+
+<h2>Online Resources</h2>
+<p>If you have any questions that aren&#8217;t addressed in this document, please take advantage of Mtaandao&#8217; numerous online resources:</p>
+<dl>
+  <dt><a href="https://mtaandao.github.io/">The Mtaandao Codex</a></dt>
+    <dd>The Codex is the encyclopedia of all things Mtaandao. It is the most comprehensive source of information for Mtaandao available.</dd>
+  <dt><a href="https://mtaandao.co.ke/news/">The Mtaandao Blog</a></dt>
+    <dd>This is where you&#8217;ll find the latest updates and news related to Mtaandao. Recent Mtaandao news appears in your administrative dashboard by default.</dd>
+  <dt><a href="https://mtaandao.co.ke/blog/">Mtaandao Planet</a></dt>
+    <dd>The Mtaandao Planet is a news aggregator that brings together posts from Mtaandao blogs around the web.</dd>
+  <dt><a href="https://mtaandao.co.ke/support/">Mtaandao Support Forums</a></dt>
+    <dd>If you&#8217;ve looked everywhere and still can&#8217;t find an answer, the support forums are very active and have a large community ready to help. To help them help you be sure to use a descriptive thread title and describe your question in as much detail as possible.</dd>
+  <dt><a href="https://github.com/mtaandao">Mtaandao <abbr title="Github Repo">Github</abbr> Repo</a></dt>
+    <dd>View all our projects on Github</dd>
+</dl>
+
+<h2>Final Notes</h2>
+<ul>
+  <li>If you have any suggestions, ideas, or comments, or if you (gasp!) found a bug, join us in the <a href="https://mtaandao.co.ke/support/">Support Forums</a>.</li>
+  <li>Mtaandao has a robust plugin <abbr title="application programming interface">API</abbr> that makes extending the code easy. If you are a developer interested in utilizing this, see the <a href="https://github.com/mtaandao/">Plugin Developer Handbook</a>. You shouldn&#8217;t modify any of the core code.</li>
+</ul>
+
+<p>Mtaandao is a reconstruction of Mtaandao, the official continuation of <a href="http://cafelog.com/">b2/caf&#233;log</a>, which came from Michel V. The work has been continued by the <a href="https://mtaandao.co.ke/about/dev">Mtaandao developers</a>. If you would like to develop Mtaandao, please consider <a href="https://mtaandao.co.ke/about/dev/" title="Develop">joining the development team.</a>.</p>
+
+<p>This is free software, and is released under the terms of the <abbr title="GNU General Public License">GPL</abbr> version 2 or (at your option) any later version. See <a href="license.txt">license.txt</a>.</p>
+
+            
+
           </div>
         </div>
         <footer class="init-footer mdl-mini-footer">
@@ -134,7 +157,7 @@
         </footer>
       </main>
     </div>
-      <a href="<?php echo esc_url( admin_url( '/' ). 'install.php' ); ?>" target="_blank" id="view-source" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast">INSTALL NOW</a>
+      <a href="<?php echo esc_url( admin_url( '/' ). 'install.php' ); ?>" target="_self" id="install-now" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast">INSTALL NOW</a>
     <script src="js/material.min.js"></script>
   </body>
 </html>

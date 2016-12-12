@@ -43,7 +43,7 @@ define( 'ARRAY_N', 'ARRAY_N' );
  * file to your class. The mndb class will still be included,
  * so you can extend it or simply use your own.
  *
- * @link https://mtaandao.co.ke/docs/Function_Reference/mndb_Class
+ * @link https://mtaandao.github.io/Function_Reference/mndb_Class
  *
  * @package Mtaandao
  * @subpackage Database
@@ -650,7 +650,7 @@ class mndb {
 		$this->dbname = $dbname;
 		$this->dbhost = $dbhost;
 
-		// configuration.php creation will manually connect when ready.
+		// db.php creation will manually connect when ready.
 		if ( defined( 'MN_SETUP_CONFIG' ) ) {
 			return;
 		}
@@ -763,7 +763,7 @@ class mndb {
 	 *
 	 * For example, when able, utf8mb4 should be used instead of utf8.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @param string $charset The character set to check.
@@ -777,6 +777,11 @@ class mndb {
 
 		if ( 'utf8' === $charset && $this->has_cap( 'utf8mb4' ) ) {
 			$charset = 'utf8mb4';
+		}
+
+		if ( 'utf8mb4' === $charset && ! $this->has_cap( 'utf8mb4' ) ) {
+			$charset = 'utf8';
+			$collate = str_replace( 'utf8mb4_', 'utf8_', $collate );
 		}
 
 		if ( 'utf8mb4' === $charset ) {
@@ -1184,18 +1189,19 @@ class mndb {
 	 *
 	 * @uses mndb::_real_escape()
 	 * @since  2.8.0
-	 * @access private
+	 * @access public
 	 *
 	 * @param  string|array $data
 	 * @return string|array escaped
 	 */
-	function _escape( $data ) {
+	public function _escape( $data ) {
 		if ( is_array( $data ) ) {
 			foreach ( $data as $k => $v ) {
-				if ( is_array($v) )
+				if ( is_array( $v ) ) {
 					$data[$k] = $this->_escape( $v );
-				else
+				} else {
 					$data[$k] = $this->_real_escape( $v );
+				}
 			}
 		} else {
 			$data = $this->_real_escape( $data );
@@ -1268,8 +1274,8 @@ class mndb {
 	 *
 	 * Both %d and %s should be left unquoted in the query string.
 	 *
-	 *     mndb::prepare( "SELECT * FROM `table` WHERE `column` = %s AND `field` = %d", 'foo', 1337 )
-	 *     mndb::prepare( "SELECT DATE_FORMAT(`field`, '%%c') FROM `table` WHERE `column` = %s", 'foo' );
+	 *     $mndb->prepare( "SELECT * FROM `table` WHERE `column` = %s AND `field` = %d", 'foo', 1337 );
+	 *     $mndb->prepare( "SELECT DATE_FORMAT(`field`, '%%c') FROM `table` WHERE `column` = %s", 'foo' );
 	 *
 	 * @link https://secure.php.net/sprintf Description of syntax.
 	 * @since 2.3.0
@@ -1358,10 +1364,13 @@ class mndb {
 
 		mn_load_translations_early();
 
-		if ( $caller = $this->get_caller() )
+		if ( $caller = $this->get_caller() ) {
+			/* translators: 1: Database error message, 2: SQL query, 3: Name of the calling function */
 			$error_str = sprintf( __( 'Mtaandao database error %1$s for query %2$s made by %3$s' ), $str, $this->last_query, $caller );
-		else
+		} else {
+			/* translators: 1: Database error message, 2: SQL query */
 			$error_str = sprintf( __( 'Mtaandao database error %1$s for query %2$s' ), $str, $this->last_query );
+		}
 
 		error_log( $error_str );
 
@@ -1566,17 +1575,17 @@ class mndb {
 			mn_load_translations_early();
 
 			// Load custom DB error template, if present.
-			if ( file_exists( MAIN . '/db-error.php' ) ) {
-				require_once( MAIN . '/db-error.php' );
+			if ( file_exists( MAIN_DIR . '/db-error.php' ) ) {
+				require_once( MAIN_DIR . '/db-error.php' );
 				die();
 			}
 
 			$message = '<h1>' . __( 'Error establishing a database connection' ) . "</h1>\n";
 
 			$message .= '<p>' . sprintf(
-				/* translators: 1: configuration.php. 2: database host */
+				/* translators: 1: db.php. 2: database host */
 				__( 'This either means that the username and password information in your %1$s file is incorrect or we can&#8217;t contact the database server at %2$s. This could mean your host&#8217;s database server is down.' ),
-				'<code>configuration.php</code>',
+				'<code>db.php</code>',
 				'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
 			) . "</p>\n";
 
@@ -2288,10 +2297,8 @@ class mndb {
 	 * @since 0.71
 	 *
 	 * @param string|null $query  SQL query.
-	 * @param string      $output Optional. one of ARRAY_A | ARRAY_N | OBJECT constants.
-	 *                            Return an associative array (column => value, ...),
-	 *                            a numerically indexed array (0 => value, ...) or
-	 *                            an object ( ->column = value ), respectively.
+	 * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
+	 *                            an stdClass object, an associative array, or a numeric array, respectively. Default OBJECT.
 	 * @param int         $y      Optional. Row to return. Indexed from 0.
 	 * @return array|object|null|void Database query result in format specified by $output or null on failure
 	 */
@@ -3028,17 +3035,23 @@ class mndb {
 				. '|INSERT(?:\s+LOW_PRIORITY|\s+DELAYED|\s+HIGH_PRIORITY)?(?:\s+IGNORE)?(?:\s+INTO)?'
 				. '|REPLACE(?:\s+LOW_PRIORITY|\s+DELAYED)?(?:\s+INTO)?'
 				. '|UPDATE(?:\s+LOW_PRIORITY)?(?:\s+IGNORE)?'
-				. '|DELETE(?:\s+LOW_PRIORITY|\s+QUICK|\s+IGNORE)*(?:\s+FROM)?'
+				. '|DELETE(?:\s+LOW_PRIORITY|\s+QUICK|\s+IGNORE)*(?:.+?FROM)?'
 				. ')\s+((?:[0-9a-zA-Z$_.`-]|[\xC2-\xDF][\x80-\xBF])+)/is', $query, $maybe ) ) {
 			return str_replace( '`', '', $maybe[1] );
 		}
 
-		// SHOW TABLE STATUS and SHOW TABLES
-		if ( preg_match( '/^\s*(?:'
-				. 'SHOW\s+TABLE\s+STATUS.+(?:LIKE\s+|WHERE\s+Name\s*=\s*)'
-				. '|SHOW\s+(?:FULL\s+)?TABLES.+(?:LIKE\s+|WHERE\s+Name\s*=\s*)'
-				. ')\W((?:[0-9a-zA-Z$_.`-]|[\xC2-\xDF][\x80-\xBF])+)\W/is', $query, $maybe ) ) {
-			return str_replace( '`', '', $maybe[1] );
+		// SHOW TABLE STATUS and SHOW TABLES WHERE Name = 'mn_posts'
+		if ( preg_match( '/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES).+WHERE\s+Name\s*=\s*("|\')((?:[0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)\\1/is', $query, $maybe ) ) {
+			return $maybe[2];
+		}
+
+		// SHOW TABLE STATUS LIKE and SHOW TABLES LIKE 'mn\_123\_%'
+		// This quoted LIKE operand seldom holds a full table name.
+		// It is usually a pattern for matching a prefix so we just
+		// strip the trailing % and unescape the _ to get 'mn_123_'
+		// which drop-ins can use for routing these SQL statements.
+		if ( preg_match( '/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES)\s+(?:WHERE\s+Name\s+)?LIKE\s*("|\')((?:[\\\\0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)%?\\1/is', $query, $maybe ) ) {
+			return str_replace( '\\_', '_', $maybe[2] );
 		}
 
 		// Big pattern for the rest of the table-related queries.
@@ -3203,8 +3216,10 @@ class mndb {
 	public function check_database_version() {
 		global $mn_version, $required_mysql_version;
 		// Make sure the server has the required MySQL version
-		if ( version_compare($this->db_version(), $required_mysql_version, '<') )
+		if ( version_compare($this->db_version(), $required_mysql_version, '<') ) {
+			/* translators: 1: Mtaandao version number, 2: Minimum required MySQL version number */
 			return new MN_Error('database_version', sprintf( __( '<strong>ERROR</strong>: Mtaandao %1$s requires MySQL %2$s or higher' ), $mn_version, $required_mysql_version ));
+		}
 	}
 
 	/**
@@ -3247,7 +3262,7 @@ class mndb {
 	 *
 	 * @since 2.7.0
 	 * @since 4.1.0 Added support for the 'utf8mb4' feature.
-	 * @since 16.10.0 Added support for the 'utf8mb4_520' feature.
+	 * @since 4.6.0 Added support for the 'utf8mb4_520' feature.
 	 *
 	 * @see mndb::db_version()
 	 *
@@ -3286,7 +3301,7 @@ class mndb {
 				} else {
 					return version_compare( $client_version, '5.5.3', '>=' );
 				}
-			case 'utf8mb4_520' : // @since 16.10.0
+			case 'utf8mb4_520' : // @since 4.6.0
 				return version_compare( $version, '5.6', '>=' );
 		}
 

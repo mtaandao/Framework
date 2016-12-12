@@ -2,8 +2,6 @@
 /**
  * These functions are needed to load Mtaandao.
  *
- * @internal This file must be parsable by PHP4.
- *
  * @package Mtaandao
  */
 
@@ -130,10 +128,11 @@ function mn_check_php_mysql_versions() {
 		$protocol = mn_get_server_protocol();
 		header( sprintf( '%s 500 Internal Server Error', $protocol ), true, 500 );
 		header( 'Content-Type: text/html; charset=utf-8' );
+		/* translators: 1: Current PHP version number, 2: Mtaandao version number, 3: Minimum required PHP version number */
 		die( sprintf( __( 'Your server is running PHP version %1$s but Mtaandao %2$s requires at least %3$s.' ), $php_version, $mn_version, $required_php_version ) );
 	}
 
-	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' ) && ! file_exists( MAIN . '/db.php' ) ) {
+	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' ) && ! file_exists( MAIN_DIR . '/db.php' ) ) {
 		mn_load_translations_early();
 
 		$protocol = mn_get_server_protocol();
@@ -192,7 +191,7 @@ function mn_maintenance() {
 	 * active and the request will end. If false, the request will be allowed to
 	 * continue processing even if maintenance mode should be active.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param bool $enable_checks Whether to enable maintenance mode. Default true.
 	 * @param int  $upgrading     The timestamp set in the .maintenance file.
@@ -201,8 +200,8 @@ function mn_maintenance() {
 		return;
 	}
 
-	if ( file_exists( MAIN . '/maintenance.php' ) ) {
-		require_once( MAIN . '/maintenance.php' );
+	if ( file_exists( MAIN_DIR . '/maintenance.php' ) ) {
+		require_once( MAIN_DIR . '/maintenance.php' );
 		die();
 	}
 
@@ -274,7 +273,7 @@ function timer_stop( $display = 0, $precision = 3 ) {
  * Set PHP error reporting based on Mtaandao debug settings.
  *
  * Uses three constants: `MN_DEBUG`, `MN_DEBUG_DISPLAY`, and `MN_DEBUG_LOG`.
- * All three can be defined in configuration.php. By default, `MN_DEBUG` and
+ * All three can be defined in db.php. By default, `MN_DEBUG` and
  * `MN_DEBUG_LOG` are set to false, and `MN_DEBUG_DISPLAY` is set to true.
  *
  * When `MN_DEBUG` is true, all PHP notices are reported. Mtaandao will also
@@ -310,7 +309,7 @@ function mn_debug_mode() {
 	 * constants to not be checked and the default php values for errors
 	 * will be used unless you take care to update them yourself.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param bool $enable_debug_mode Whether to enable debug mode checks to occur. Default true.
 	 */
@@ -328,13 +327,13 @@ function mn_debug_mode() {
 
 		if ( MN_DEBUG_LOG ) {
 			ini_set( 'log_errors', 1 );
-			ini_set( 'error_log', MAIN . '/debug.log' );
+			ini_set( 'error_log', MAIN_DIR . '/debug.log' );
 		}
 	} else {
 		error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 	}
 
-	if ( defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+	if ( defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || ( defined( 'MN_INSTALLING' ) && MN_INSTALLING ) || mn_doing_ajax() ) {
 		@ini_set( 'display_errors', 0 );
 	}
 }
@@ -343,9 +342,9 @@ function mn_debug_mode() {
  * Set the location of the language directory.
  *
  * To set directory manually, define the `MN_LANG_DIR` constant
- * in configuration.php.
+ * in db.php.
  *
- * If the language directory exists within `MAIN`, it
+ * If the language directory exists within `MAIN_DIR`, it
  * is used. Otherwise the language directory is assumed to live
  * in `RES`.
  *
@@ -354,7 +353,7 @@ function mn_debug_mode() {
  */
 function mn_set_lang_dir() {
 	if ( !defined( 'MN_LANG_DIR' ) ) {
-		if ( file_exists( MAIN . '/languages' ) && @is_dir( MAIN . '/languages' ) || !@is_dir(ABSPATH . RES . '/languages') ) {
+		if ( file_exists( MAIN_DIR . '/languages' ) && @is_dir( MAIN_DIR . '/languages' ) || !@is_dir(ABSPATH . RES . '/languages') ) {
 			/**
 			 * Server path of the language directory.
 			 *
@@ -362,7 +361,7 @@ function mn_set_lang_dir() {
 			 *
 			 * @since 2.1.0
 			 */
-			define( 'MN_LANG_DIR', MAIN . '/languages' );
+			define( 'MN_LANG_DIR', MAIN_DIR . '/languages' );
 			if ( !defined( 'LANGDIR' ) ) {
 				// Old static relative path maintained for limited backward compatibility - won't work in some cases.
 				define( 'LANGDIR', 'main/languages' );
@@ -395,11 +394,12 @@ function require_mn_db() {
 	global $mndb;
 
 	require_once( ABSPATH . RES . '/mn-db.php' );
-	if ( file_exists( MAIN . '/db.php' ) )
-		require_once( MAIN . '/db.php' );
+	if ( file_exists( MAIN_DIR . '/db.php' ) )
+		require_once( MAIN_DIR . '/db.php' );
 
-	if ( isset( $mndb ) )
+	if ( isset( $mndb ) ) {
 		return;
+	}
 
 	$mndb = new mndb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
 }
@@ -434,10 +434,10 @@ function mn_set_mndb_vars() {
 	if ( is_mn_error( $prefix ) ) {
 		mn_load_translations_early();
 		mn_die(
-			/* translators: 1: $table_prefix 2: configuration.php */
+			/* translators: 1: $table_prefix 2: db.php */
 			sprintf( __( '<strong>ERROR</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ),
 				'<code>$table_prefix</code>',
-				'<code>configuration.php</code>'
+				'<code>db.php</code>'
 			)
 		);
 	}
@@ -470,22 +470,19 @@ function mn_using_ext_object_cache( $using = null ) {
  *
  * @since 3.0.0
  * @access private
- *
- * @global int $blog_id Blog ID.
  */
 function mn_start_object_cache() {
-	global $blog_id;
-
 	$first_init = false;
  	if ( ! function_exists( 'mn_cache_init' ) ) {
-		if ( file_exists( MAIN . '/object-cache.php' ) ) {
-			require_once ( MAIN . '/object-cache.php' );
-			if ( function_exists( 'mn_cache_init' ) )
+		if ( file_exists( MAIN_DIR . '/object-cache.php' ) ) {
+			require_once ( MAIN_DIR . '/object-cache.php' );
+			if ( function_exists( 'mn_cache_init' ) ) {
 				mn_using_ext_object_cache( true );
+			}
 		}
 
 		$first_init = true;
-	} elseif ( ! mn_using_ext_object_cache() && file_exists( MAIN . '/object-cache.php' ) ) {
+	} elseif ( ! mn_using_ext_object_cache() && file_exists( MAIN_DIR . '/object-cache.php' ) ) {
 		/*
 		 * Sometimes advanced-cache.php can load object-cache.php before
 		 * it is loaded here. This breaks the function_exists check above
@@ -495,18 +492,20 @@ function mn_start_object_cache() {
 		mn_using_ext_object_cache( true );
 	}
 
-	if ( ! mn_using_ext_object_cache() )
+	if ( ! mn_using_ext_object_cache() ) {
 		require_once ( ABSPATH . RES . '/cache.php' );
+	}
 
 	/*
 	 * If cache supports reset, reset instead of init if already
 	 * initialized. Reset signals to the cache that global IDs
 	 * have changed and it may need to update keys and cleanup caches.
 	 */
-	if ( ! $first_init && function_exists( 'mn_cache_switch_to_blog' ) )
-		mn_cache_switch_to_blog( $blog_id );
-	elseif ( function_exists( 'mn_cache_init' ) )
+	if ( ! $first_init && function_exists( 'mn_cache_switch_to_blog' ) ) {
+		mn_cache_switch_to_blog( get_current_blog_id() );
+	} elseif ( function_exists( 'mn_cache_init' ) ) {
 		mn_cache_init();
+	}
 
 	if ( function_exists( 'mn_cache_add_global_groups' ) ) {
 		mn_cache_add_global_groups( array( 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'site-lookup', 'blog-lookup', 'blog-details', 'site-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites' ) );
@@ -547,8 +546,8 @@ function mn_not_installed() {
  * Retrieve an array of must-use plugin files.
  *
  * The default directory is main/mu-plugins. To change the default
- * directory manually, define `MNMU_PLUGIN_DIR` and `MNMU_PLUGIN_URL`
- * in configuration.php.
+ * directory manually, define `MNMU_PLUGIN_DIR` and `MU_PLUGIN_URL`
+ * in db.php.
  *
  * @since 3.0.0
  * @access private
@@ -577,8 +576,8 @@ function mn_get_mu_plugins() {
  * While upgrading or installing Mtaandao, no plugins are returned.
  *
  * The default directory is main/plugins. To change the default
- * directory manually, define `MN_PLUGIN_DIR` and `MN_PLUGIN_URL`
- * in configuration.php.
+ * directory manually, define `PLUGIN_DIR` and `PLUGIN_URL`
+ * in db.php.
  *
  * @since 3.0.0
  * @access private
@@ -603,11 +602,11 @@ function mn_get_active_and_valid_plugins() {
 	foreach ( $active_plugins as $plugin ) {
 		if ( ! validate_file( $plugin ) // $plugin must validate as file
 			&& '.php' == substr( $plugin, -4 ) // $plugin must end with '.php'
-			&& file_exists( MN_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist
+			&& file_exists( PLUGIN_DIR . '/' . $plugin ) // $plugin must exist
 			// not already included as a network plugin
-			&& ( ! $network_plugins || ! in_array( MN_PLUGIN_DIR . '/' . $plugin, $network_plugins ) )
+			&& ( ! $network_plugins || ! in_array( PLUGIN_DIR . '/' . $plugin, $network_plugins ) )
 			)
-		$plugins[] = MN_PLUGIN_DIR . '/' . $plugin;
+		$plugins[] = PLUGIN_DIR . '/' . $plugin;
 	}
 	return $plugins;
 }
@@ -702,8 +701,8 @@ function mn_clone( $object ) {
 function is_admin() {
 	if ( isset( $GLOBALS['current_screen'] ) )
 		return $GLOBALS['current_screen']->in_admin();
-	elseif ( defined( 'MN_ADMIN' ) )
-		return MN_ADMIN;
+	elseif ( defined( 'ADMIN' ) )
+		return ADMIN;
 
 	return false;
 }
@@ -812,9 +811,7 @@ function get_current_blog_id() {
 /**
  * Retrieves the current network ID.
  *
- * @since 16.10.0
- *
- * @global MN_Network $current_site The current network.
+ * @since 4.6.0
  *
  * @return int The ID of the current network.
  */
@@ -823,13 +820,13 @@ function get_current_network_id() {
 		return 1;
 	}
 
-	$current_site = get_current_site();
+	$current_network = get_network();
 
-	if ( ! isset( $current_site->id ) ) {
+	if ( ! isset( $current_network->id ) ) {
 		return get_main_network_id();
 	}
 
-	return absint( $current_site->id );
+	return absint( $current_network->id );
 }
 
 /**
@@ -845,13 +842,12 @@ function get_current_network_id() {
  * @since 3.4.0
  * @access private
  *
- * @global string    $text_direction
- * @global MN_Locale $mn_locale      The Mtaandao date and time locale object.
+ * @global MN_Locale $mn_locale The Mtaandao date and time locale object.
  *
  * @staticvar bool $loaded
  */
 function mn_load_translations_early() {
-	global $text_direction, $mn_locale;
+	global $mn_locale;
 
 	static $loaded = false;
 	if ( $loaded )
@@ -867,7 +863,8 @@ function mn_load_translations_early() {
 	// Translation and localization
 	require_once ABSPATH . RES . '/pomo/mo.php';
 	require_once ABSPATH . RES . '/l10n.php';
-	require_once ABSPATH . RES . '/locale.php';
+	require_once ABSPATH . RES . '/class-mn-locale.php';
+	require_once ABSPATH . RES . '/class-mn-locale-switcher.php';
 
 	// General libraries
 	require_once ABSPATH . RES . '/plugin.php';
@@ -890,8 +887,8 @@ function mn_load_translations_early() {
 		if ( defined( 'MN_LANG_DIR' ) && @is_dir( MN_LANG_DIR ) )
 			$locations[] = MN_LANG_DIR;
 
-		if ( defined( 'MAIN' ) && @is_dir( MAIN . '/languages' ) )
-			$locations[] = MAIN . '/languages';
+		if ( defined( 'MAIN_DIR' ) && @is_dir( MAIN_DIR . '/languages' ) )
+			$locations[] = MAIN_DIR . '/languages';
 
 		if ( @is_dir( ABSPATH . 'main/languages' ) )
 			$locations[] = ABSPATH . 'main/languages';
@@ -956,7 +953,7 @@ function mn_installing( $is_installing = null ) {
  * Determines if SSL is used.
  *
  * @since 2.6.0
- * @since 16.10.0 Moved from functions.php to load.php.
+ * @since 4.6.0 Moved from functions.php to load.php.
  *
  * @return bool True if SSL, otherwise false.
  */
@@ -979,10 +976,10 @@ function is_ssl() {
  * Converts a shorthand byte value to an integer byte value.
  *
  * @since 2.3.0
- * @since 16.10.0 Moved from media.php to load.php.
+ * @since 4.6.0 Moved from media.php to load.php.
  *
- * @link http://php.net/manual/en/function.ini-get.php
- * @link http://php.net/manual/en/faq.using.php#faq.using.shorthandbytes
+ * @link https://secure.php.net/manual/en/function.ini-get.php
+ * @link https://secure.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
  *
  * @param string $value A (PHP ini) byte value, either shorthand or ordinary.
  * @return int An integer byte value.
@@ -1006,9 +1003,9 @@ function mn_convert_hr_to_bytes( $value ) {
 /**
  * Determines whether a PHP ini value is changeable at runtime.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
- * @link http://php.net/manual/en/function.ini-get-all.php
+ * @link https://secure.php.net/manual/en/function.ini-get-all.php
  *
  * @param string $setting The name of the ini setting to check.
  * @return bool True if the value is changeable at runtime. False otherwise.
@@ -1035,4 +1032,36 @@ function mn_is_ini_value_changeable( $setting ) {
 	}
 
 	return false;
+}
+
+/**
+ * Determines whether the current request is a Mtaandao Ajax request.
+ *
+ * @since 4.7.0
+ *
+ * @return bool True if it's a Mtaandao Ajax request, false otherwise.
+ */
+function mn_doing_ajax() {
+	/**
+	 * Filters whether the current request is a Mtaandao Ajax request.
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param bool $mn_doing_ajax Whether the current request is a Mtaandao Ajax request.
+	 */
+	return apply_filters( 'mn_doing_ajax', defined( 'DOING_AJAX' ) && DOING_AJAX );
+}
+
+/**
+ * Check whether variable is a Mtaandao Error.
+ *
+ * Returns true if $thing is an object of the MN_Error class.
+ *
+ * @since 2.1.0
+ *
+ * @param mixed $thing Check if unknown variable is a MN_Error object.
+ * @return bool True, if MN_Error. False, if not MN_Error.
+ */
+function is_mn_error( $thing ) {
+	return ( $thing instanceof MN_Error );
 }

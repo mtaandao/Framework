@@ -51,7 +51,7 @@ class MN_Widget_Factory {
 	 * This can be eliminated in favor of straight spl_object_hash() when 5.3
 	 * is the minimum requirement for PHP.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access private
 	 * @var array
 	 *
@@ -65,7 +65,7 @@ class MN_Widget_Factory {
 	 * This can be eliminated in favor of straight spl_object_hash() when 5.3
 	 * is the minimum requirement for PHP.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access private
 	 *
 	 * @param MN_Widget $widget Widget.
@@ -93,7 +93,7 @@ class MN_Widget_Factory {
 	 * Registers a widget subclass.
 	 *
 	 * @since 2.8.0
-	 * @since 16.10.0 Updated the `$widget` parameter to also accept a MN_Widget instance object
+	 * @since 4.6.0 Updated the `$widget` parameter to also accept a MN_Widget instance object
 	 *              instead of simply a `MN_Widget` subclass name.
 	 * @access public
 	 *
@@ -111,7 +111,7 @@ class MN_Widget_Factory {
 	 * Un-registers a widget subclass.
 	 *
 	 * @since 2.8.0
-	 * @since 16.10.0 Updated the `$widget` parameter to also accept a MN_Widget instance object
+	 * @since 4.6.0 Updated the `$widget` parameter to also accept a MN_Widget instance object
 	 *              instead of simply a `MN_Widget` subclass name.
 	 * @access public
 	 *

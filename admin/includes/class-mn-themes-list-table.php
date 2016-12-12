@@ -91,13 +91,14 @@ class MN_Themes_List_Table extends MN_List_Table {
 			return;
 		}
 
+		$blog_id = get_current_blog_id();
 		if ( is_multisite() ) {
 			if ( current_user_can( 'install_themes' ) && current_user_can( 'manage_network_themes' ) ) {
-				printf( __( 'You only have one theme enabled for this site right now. Visit the Network Admin to <a href="%1$s">enable</a> or <a href="%2$s">install</a> more themes.' ), network_admin_url( 'site-themes.php?id=' . $GLOBALS['blog_id'] ), network_admin_url( 'theme-install.php' ) );
+				printf( __( 'You only have one theme enabled for this site right now. Visit the Network Admin to <a href="%1$s">enable</a> or <a href="%2$s">install</a> more themes.' ), network_admin_url( 'site-themes.php?id=' . $blog_id ), network_admin_url( 'theme-install.php' ) );
 
 				return;
 			} elseif ( current_user_can( 'manage_network_themes' ) ) {
-				printf( __( 'You only have one theme enabled for this site right now. Visit the Network Admin to <a href="%1$s">enable</a> more themes.' ), network_admin_url( 'site-themes.php?id=' . $GLOBALS['blog_id'] ) );
+				printf( __( 'You only have one theme enabled for this site right now. Visit the Network Admin to <a href="%1$s">enable</a> more themes.' ), network_admin_url( 'site-themes.php?id=' . $blog_id ) );
 
 				return;
 			}
@@ -236,7 +237,7 @@ class MN_Themes_List_Table extends MN_List_Table {
 				<p><?php echo $theme->display('Description'); ?></p>
 				<?php if ( $theme->parent() ) {
 					printf( ' <p class="howto">' . __( 'This <a href="%1$s">child theme</a> requires its parent theme, %2$s.' ) . '</p>',
-						__( 'https://mtaandao.co.ke/docs/Child_Themes' ),
+						__( 'https://mtaandao.github.io/Child_Themes' ),
 						$theme->parent()->display( 'Name' ) );
 				} ?>
 			</div>

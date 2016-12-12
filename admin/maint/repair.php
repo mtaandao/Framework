@@ -19,7 +19,7 @@ header( 'Content-Type: text/html; charset=utf-8' );
 	<meta name="robots" content="noindex,nofollow" />
 	<title><?php _e( 'Mtaandao &rsaquo; Database Repair' ); ?></title>
 	<?php
-	mn_admin_css( 'install', true );
+	admin_css( 'install', true );
 	?>
 </head>
 <body class="mn-core-ui">
@@ -33,9 +33,9 @@ if ( ! defined( 'MN_ALLOW_REPAIR' ) ) {
 
 	echo '<p>';
 	printf(
-		/* translators: %s: configuration.php */
+		/* translators: %s: db.php */
 		__( 'To allow use of this page to automatically repair database problems, please add the following line to your %s file. Once this line is added to your config, reload this page.' ),
-		'<code>configuration.php</code>'
+		'<code>db.php</code>'
 	);
 	echo "</p><p><code>define('MN_ALLOW_REPAIR', true);</code></p>";
 
@@ -65,8 +65,8 @@ if ( ! defined( 'MN_ALLOW_REPAIR' ) ) {
 
 		echo '<h2 class="screen-reader-text">' . __( 'Check secret keys' ) . '</h2>';
 
-		// Translators: 1: configuration.php; 2: Secret key service URL.
-		echo '<p>' . sprintf( __( 'While you are editing your %1$s file, take a moment to make sure you have all 8 keys and that they are unique. You can generate these using the <a href="%2$s">mtaandao.co.ke secret key service</a>.' ), '<code>configuration.php</code>', 'https://api.mtaandao.co.ke/secret-key/1.1/salt/' ) . '</p>';
+		// Translators: 1: db.php; 2: Secret key service URL.
+		echo '<p>' . sprintf( __( 'While you are editing your %1$s file, take a moment to make sure you have all 8 keys and that they are unique. You can generate these using the <a href="%2$s">Mtaandao.org secret key service</a>.' ), '<code>db.php</code>', 'https://api.mtaandao.co.ke/secret-key/1.1/salt/' ) . '</p>';
 	}
 
 } elseif ( isset( $_GET['repair'] ) ) {
@@ -150,7 +150,7 @@ if ( ! defined( 'MN_ALLOW_REPAIR' ) ) {
 			$problem_output .= "$table: $problem\n";
 		echo '<p><textarea name="errors" id="errors" rows="20" cols="60">' . esc_textarea( $problem_output ) . '</textarea></p>';
 	} else {
-		echo '<p>' . __( 'Repairs complete. Please remove the following line from configuration.php to prevent this page from being used by unauthorized users.' ) . "</p><p><code>define('MN_ALLOW_REPAIR', true);</code></p>";
+		echo '<p>' . __( 'Repairs complete. Please remove the following line from db.php to prevent this page from being used by unauthorized users.' ) . "</p><p><code>define('MN_ALLOW_REPAIR', true);</code></p>";
 	}
 } else {
 

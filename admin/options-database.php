@@ -15,24 +15,19 @@ require_once( ABSPATH . 'admin/includes/translation-install.php' );
 if ( ! current_user_can( 'manage_options' ) )
 	mn_die( __( 'Sorry, you are not allowed to manage options for this site.' ) );
 
-$title = __('Mtaandao Database Options');
+$title = __('Database Settings');
 $parent_file = 'options-general.php';
 /* translators: date and time format for exact current time, mainly about timezones, see https://secure.php.net/date */
 $timezone_format = _x('Y-m-d H:i:s', 'timezone date format');
 
 add_action('admin_head', 'options_general_add_js');
 
-$options_help = '<p>' . __('The fields on this screen determine some of the basics of your site setup.') . '</p>' .
+$options_help = '<p>' . __('This page is for adminstering your wordpress database from within your Mtaandao installation.') . '</p>' .
 	'<p>' . __('Most themes display the site title at the top of every page, in the title bar of the browser, and as the identifying name for syndicated feeds. The tagline is also displayed by many themes.') . '</p>';
 
 if ( ! is_multisite() ) {
-	$options_help .= '<p>' . __('The Mtaandao URL and the Site URL can be the same (example.com) or different; for example, having the Mtaandao core files (example.com/Mtaandao) in a subdirectory instead of the root directory.') . '</p>' .
-		'<p>' . __('If you want site visitors to be able to register themselves, as opposed to by the site administrator, check the membership box. A default user role can be set for all new users, whether self-registered or registered by the site admin.') . '</p>';
+	$options_help .= '<p>' . __('You can manage sevral databases fro here since it allows for serverwide login') . '</p>' ;
 }
-
-$options_help .= '<p>' . __( 'You can set the language, and the translation files will be automatically downloaded and installed (available if your filesystem is writable).' ) . '</p>' .
-	'<p>' . __( 'UTC means Coordinated Universal Time.' ) . '</p>' .
-	'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>';
 
 get_current_screen()->add_help_tab( array(
 	'id'      => 'overview',
@@ -42,26 +37,52 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Settings_General_Screen" target="_blank">Documentation on General Settings</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Settings_General_Screen">Documentation on General Settings</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 include( ABSPATH . 'admin/admin-header.php' );
-include( ABSPATH . 'configuration.php' );
+include( ABSPATH . 'admin/config/db.php' );
 ?>
+<div class="wrap">
+<h1><?php echo esc_html( $title ); ?></h1>
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
 
-			<h1><?php echo esc_html( $title ); ?></h1>
-			<?php
-				
-			echo 'Server: ', DB_HOST ;
-			echo ' Database User: ', DB_USER ;
-			echo ' Database Name: ', DB_NAME ;
-			echo ' Database Password: ', DB_PASSWORD ;
-			echo '<div id="login_error" class="headline-feature feature-video">' . '<iframe width="100%" height="900px" src="database.php") frameborder="0" allowfullscreen="yes">	
-						</iframe>' . "</div>\n";
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-		mn_die( __( 'Sorry, you are not allowed to manage the database for this site.' ) );
-		}
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>
+<div id="database-options">
+<table>
+  <tr>
+    <th>Server</th>
+    <th>Database Name</th>
+    <th>Database Password</th>
+    <th>Database Password</th>
+  </tr>
+  <tr>
+    <td><?php echo  DB_HOST ; ?></td>
+    <td><?php echo  DB_USER ; ?></td>
+    <td><?php echo  DB_NAME ; ?></td>
+    <td><?php echo DB_PASSWORD ; ?></td>
+  </tr>
+</table>
+<div id="login_error" class="headline-feature feature-video">
+<iframe width="100%" height="1000px" src="database-admin.php") frameborder="0" allowfullscreen="yes">	
+</iframe>
+</div>
+</div>
+</div>
 
-include( ABSPATH . 'admin/admin-footer.php' ); ?>
+<?php include( ABSPATH . 'admin/admin-footer.php' ); ?>

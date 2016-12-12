@@ -560,8 +560,8 @@
 		} );
 
 		editor.addButton( 'mn_link_remove', {
-			tooltip: 'Remove',
-			icon: 'dashicon dashicons-no',
+			tooltip: 'Remove link',
+			icon: 'dashicon dashicons-editor-unlink',
 			cmd: 'mn_unlink'
 		} );
 

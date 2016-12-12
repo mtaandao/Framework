@@ -1413,7 +1413,7 @@ class MN_Rewrite {
 			 *
 			 * @param array $rules The rewrite rules generated for the current permastruct.
 			 */
-			$rules = apply_filters( $permastructname . '_rewrite_rules', $rules );
+			$rules = apply_filters( "{$permastructname}_rewrite_rules", $rules );
 			if ( 'post_tag' == $permastructname ) {
 
 				/**
@@ -1475,6 +1475,10 @@ class MN_Rewrite {
 		if ( empty($this->rules) ) {
 			$this->matches = 'matches';
 			$this->rewrite_rules();
+			if ( ! did_action( 'mn_loaded' ) ) {
+				add_action( 'mn_loaded', array( $this, 'flush_rules' ) );
+				return $this->rules;
+			}
 			update_option('rewrite_rules', $this->rules);
 		}
 

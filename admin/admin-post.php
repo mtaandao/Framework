@@ -9,8 +9,8 @@
  */
 
 /** We are located in Mtaandao Administration Screens */
-if ( ! defined( 'MN_ADMIN' ) ) {
-	define( 'MN_ADMIN', true );
+if ( ! defined( 'ADMIN' ) ) {
+	define( 'ADMIN', true );
 }
 
 if ( defined('ABSPATH') )

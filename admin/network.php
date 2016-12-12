@@ -40,10 +40,10 @@ foreach ( $mndb->tables( 'ms_global' ) as $table => $prefixed_table ) {
 if ( ! network_domain_check() && ( ! defined( 'MN_ALLOW_MULTISITE' ) || ! MN_ALLOW_MULTISITE ) ) {
 	mn_die(
 		printf(
-			/* translators: 1: MN_ALLOW_MULTISITE 2: configuration.php */
+			/* translators: 1: MN_ALLOW_MULTISITE 2: db.php */
 			__( 'You must define the %1$s constant as true in your %2$s file to allow creation of a Network.' ),
 			'<code>MN_ALLOW_MULTISITE</code>',
-			'<code>configuration.php</code>'
+			'<code>db.php</code>'
 		)
 	);
 }
@@ -58,13 +58,13 @@ if ( is_network_admin() ) {
 
 $network_help = '<p>' . __('This screen allows you to configure a network as having subdomains (<code>site1.example.com</code>) or subdirectories (<code>example.com/site1</code>). Subdomains require wildcard subdomains to be enabled in Apache and DNS records, if your host allows it.') . '</p>' .
 	'<p>' . __('Choose subdomains or subdirectories; this can only be switched afterwards by reconfiguring your install. Fill out the network details, and click install. If this does not work, you may have to add a wildcard DNS record (for subdomains) or change to another setting in Permalinks (for subdirectories).') . '</p>' .
-	'<p>' . __('The next screen for Network Setup will give you individually-generated lines of code to add to your configuration.php and .htaccess files. Make sure the settings of your FTP client make files starting with a dot visible, so that you can find .htaccess; you may have to create this file if it really is not there. Make backup copies of those two files.') . '</p>' .
-	'<p>' . __('Add the designated lines of code to configuration.php (just before <code>/*...stop editing...*/</code>) and <code>.htaccess</code> (replacing the existing Mtaandao rules).') . '</p>' .
+	'<p>' . __('The next screen for Network Setup will give you individually-generated lines of code to add to your db.php and .htaccess files. Make sure the settings of your FTP client make files starting with a dot visible, so that you can find .htaccess; you may have to create this file if it really is not there. Make backup copies of those two files.') . '</p>' .
+	'<p>' . __('Add the designated lines of code to db.php (just before <code>/*...stop editing...*/</code>) and <code>.htaccess</code> (replacing the existing Mtaandao rules).') . '</p>' .
 	'<p>' . __('Once you add this code and refresh your browser, multisite should be enabled. This screen, now in the Network Admin navigation menu, will keep an archive of the added code. You can toggle between Network Admin and Site Admin by clicking on the Network Admin or an individual site name under the My Sites dropdown in the Toolbar.') . '</p>' .
 	'<p>' . __('The choice of subdirectory sites is disabled if this setup is more than a month old because of permalink problems with &#8220;/blog/&#8221; from the main site. This disabling will be addressed in a future version.') . '</p>' .
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Create_A_Network" target="_blank">Documentation on Creating a Network</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Tools_Network_Screen" target="_blank">Documentation on the Network Screen</a>') . '</p>';
+	'<p>' . __( '<a href="https://mtaandao.github.io/Create_A_Network">Documentation on Creating a Network</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://mtaandao.github.io/Tools_Network_Screen">Documentation on the Network Screen</a>' ) . '</p>';
 
 get_current_screen()->add_help_tab( array(
 	'id'      => 'network',
@@ -74,9 +74,9 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Create_A_Network" target="_blank">Documentation on Creating a Network</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Tools_Network_Screen" target="_blank">Documentation on the Network Screen</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __( '<a href="https://mtaandao.github.io/Create_A_Network">Documentation on Creating a Network</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://mtaandao.github.io/Tools_Network_Screen">Documentation on the Network Screen</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://mtaandao.co.ke/support/">Support Forums</a>' ) . '</p>'
 );
 
 include( ABSPATH . 'admin/admin-header.php' );

@@ -94,9 +94,27 @@ function mn_embed_defaults( $url = '' ) {
  * @return false|string False on failure or the embed HTML on success.
  */
 function mn_oembed_get( $url, $args = '' ) {
-	require_once( ABSPATH . RES . '/class-oembed.php' );
 	$oembed = _mn_oembed_get_object();
 	return $oembed->get_html( $url, $args );
+}
+
+/**
+ * Returns the initialized MN_oEmbed object.
+ *
+ * @since 2.9.0
+ * @access private
+ *
+ * @staticvar MN_oEmbed $mn_oembed
+ *
+ * @return MN_oEmbed object.
+ */
+function _mn_oembed_get_object() {
+	static $mn_oembed = null;
+
+	if ( is_null( $mn_oembed ) ) {
+		$mn_oembed = new MN_oEmbed();
+	}
+	return $mn_oembed;
 }
 
 /**
@@ -112,8 +130,6 @@ function mn_oembed_get( $url, $args = '' ) {
  * @param boolean $regex    Optional. Whether the `$format` parameter is in a RegEx format. Default false.
  */
 function mn_oembed_add_provider( $format, $provider, $regex = false ) {
-	require_once( ABSPATH . RES . '/class-oembed.php' );
-
 	if ( did_action( 'plugins_loaded' ) ) {
 		$oembed = _mn_oembed_get_object();
 		$oembed->providers[$format] = array( $provider, $regex );
@@ -133,8 +149,6 @@ function mn_oembed_add_provider( $format, $provider, $regex = false ) {
  * @return bool Was the provider removed successfully?
  */
 function mn_oembed_remove_provider( $format ) {
-	require_once( ABSPATH . RES . '/class-oembed.php' );
-
 	if ( did_action( 'plugins_loaded' ) ) {
 		$oembed = _mn_oembed_get_object();
 
@@ -380,14 +394,10 @@ function get_post_embed_url( $post = null ) {
 function get_oembed_endpoint_url( $permalink = '', $format = 'json' ) {
 	$url = rest_url( 'oembed/1.0/embed' );
 
-	if ( 'json' === $format ) {
-		$format = false;
-	}
-
 	if ( '' !== $permalink ) {
 		$url = add_query_arg( array(
 			'url'    => urlencode( $permalink ),
-			'format' => $format,
+			'format' => ( 'json' !== $format ) ? $format : false,
 		), $url );
 	}
 
@@ -440,7 +450,7 @@ function get_post_embed_html( $width, $height, $post = null ) {
 		 * and edit mn-embed.js directly.
 		 */
 		$output .=<<<JS
-		!function(a,b){"use strict";function c(){if(!e){e=!0;var a,c,d,f,g=-1!==navigator.appVersion.indexOf("MSIE 10"),h=!!navigator.userAgent.match(/Trident.*rv:11\./),i=b.querySelectorAll("iframe.mn-embedded-content");for(c=0;c<i.length;c++)if(d=i[c],!d.getAttribute("data-secret")){if(f=Math.random().toString(36).substr(2,10),d.src+="#?secret="+f,d.setAttribute("data-secret",f),g||h)a=d.cloneNode(!0),a.removeAttribute("security"),d.parentNode.replaceChild(a,d)}else;}}var d=!1,e=!1;if(b.querySelector)if(a.addEventListener)d=!0;if(a.mn=a.mn||{},!a.mn.receiveEmbedMessage)if(a.mn.receiveEmbedMessage=function(c){var d=c.data;if(d.secret||d.message||d.value)if(!/[^a-zA-Z0-9]/.test(d.secret)){var e,f,g,h,i,j=b.querySelectorAll('iframe[data-secret="'+d.secret+'"]'),k=b.querySelectorAll('blockquote[data-secret="'+d.secret+'"]');for(e=0;e<k.length;e++)k[e].style.display="none";for(e=0;e<j.length;e++)if(f=j[e],c.source===f.contentWindow){if(f.removeAttribute("style"),"height"===d.message){if(g=parseInt(d.value,10),g>1e3)g=1e3;else if(~~g<200)g=200;f.height=g}if("link"===d.message)if(h=b.createElement("a"),i=b.createElement("a"),h.href=f.getAttribute("src"),i.href=d.value,i.host===h.host)if(b.activeElement===f)a.top.location.href=d.value}else;}},d)a.addEventListener("message",a.mn.receiveEmbedMessage,!1),b.addEventListener("DOMContentLoaded",c,!1),a.addEventListener("load",c,!1)}(window,document);
+		!function(a,b){"use strict";function c(){if(!e){e=!0;var a,c,d,f,g=-1!==navigator.appVersion.indexOf("MSIE 10"),h=!!navigator.userAgent.match(/Trident.*rv:11\./),i=b.querySelectorAll("iframe.mn-embedded-content");for(c=0;c<i.length;c++){if(d=i[c],!d.getAttribute("data-secret"))f=Math.random().toString(36).substr(2,10),d.src+="#?secret="+f,d.setAttribute("data-secret",f);if(g||h)a=d.cloneNode(!0),a.removeAttribute("security"),d.parentNode.replaceChild(a,d)}}}var d=!1,e=!1;if(b.querySelector)if(a.addEventListener)d=!0;if(a.mn=a.mn||{},!a.mn.receiveEmbedMessage)if(a.mn.receiveEmbedMessage=function(c){var d=c.data;if(d.secret||d.message||d.value)if(!/[^a-zA-Z0-9]/.test(d.secret)){var e,f,g,h,i,j=b.querySelectorAll('iframe[data-secret="'+d.secret+'"]'),k=b.querySelectorAll('blockquote[data-secret="'+d.secret+'"]');for(e=0;e<k.length;e++)k[e].style.display="none";for(e=0;e<j.length;e++)if(f=j[e],c.source===f.contentWindow){if(f.removeAttribute("style"),"height"===d.message){if(g=parseInt(d.value,10),g>1e3)g=1e3;else if(~~g<200)g=200;f.height=g}if("link"===d.message)if(h=b.createElement("a"),i=b.createElement("a"),h.href=f.getAttribute("src"),i.href=d.value,i.host===h.host)if(b.activeElement===f)a.top.location.href=d.value}else;}},d)a.addEventListener("message",a.mn.receiveEmbedMessage,!1),b.addEventListener("DOMContentLoaded",c,!1),a.addEventListener("load",c,!1)}(window,document);
 JS;
 	}
 	$output .= "\n//--><!]]>";
@@ -710,7 +720,6 @@ function mn_filter_oembed_result( $result, $data, $url ) {
 		return $result;
 	}
 
-	require_once( ABSPATH . RES . '/class-oembed.php' );
 	$mn_oembed = _mn_oembed_get_object();
 
 	// Don't modify the HTML for trusted providers.
@@ -872,7 +881,7 @@ function print_embed_styles() {
 			 * and edit mn-embed-template.css directly.
 			 */
 			?>
-			body,html{padding:0;margin:0}body{font-family:sans-serif}.mn-embed,.mn-embed-share-input{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}.screen-reader-text{clip:rect(1px,1px,1px,1px);height:1px;overflow:hidden;position:absolute!important;width:1px}.dashicons{display:inline-block;width:20px;height:20px;background-color:transparent;background-repeat:no-repeat;-webkit-background-size:20px 20px;background-size:20px;background-position:center;-webkit-transition:background .1s ease-in;transition:background .1s ease-in;position:relative;top:5px}.dashicons-no{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M15.55%2013.7l-2.19%202.06-3.42-3.65-3.64%203.43-2.06-2.18%203.64-3.43-3.42-3.64%202.18-2.06%203.43%203.64%203.64-3.42%202.05%202.18-3.64%203.43z%27%20fill%3D%27%23fff%27%2F%3E%3C%2Fsvg%3E")}.dashicons-admin-comments{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M5%202h9q.82%200%201.41.59T16%204v7q0%20.82-.59%201.41T14%2013h-2l-5%205v-5H5q-.82%200-1.41-.59T3%2011V4q0-.82.59-1.41T5%202z%27%20fill%3D%27%2382878c%27%2F%3E%3C%2Fsvg%3E")}.mn-embed-comments a:hover .dashicons-admin-comments{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M5%202h9q.82%200%201.41.59T16%204v7q0%20.82-.59%201.41T14%2013h-2l-5%205v-5H5q-.82%200-1.41-.59T3%2011V4q0-.82.59-1.41T5%202z%27%20fill%3D%27%230073aa%27%2F%3E%3C%2Fsvg%3E")}.dashicons-share{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.5%2012q1.24%200%202.12.88T17.5%2015t-.88%202.12-2.12.88-2.12-.88T11.5%2015q0-.34.09-.69l-4.38-2.3Q6.32%2013%205%2013q-1.24%200-2.12-.88T2%2010t.88-2.12T5%207q1.3%200%202.21.99l4.38-2.3q-.09-.35-.09-.69%200-1.24.88-2.12T14.5%202t2.12.88T17.5%205t-.88%202.12T14.5%208q-1.3%200-2.21-.99l-4.38%202.3Q8%209.66%208%2010t-.09.69l4.38%202.3q.89-.99%202.21-.99z%27%20fill%3D%27%2382878c%27%2F%3E%3C%2Fsvg%3E");display:none}.js .dashicons-share{display:inline-block}.mn-embed-share-dialog-open:hover .dashicons-share{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.5%2012q1.24%200%202.12.88T17.5%2015t-.88%202.12-2.12.88-2.12-.88T11.5%2015q0-.34.09-.69l-4.38-2.3Q6.32%2013%205%2013q-1.24%200-2.12-.88T2%2010t.88-2.12T5%207q1.3%200%202.21.99l4.38-2.3q-.09-.35-.09-.69%200-1.24.88-2.12T14.5%202t2.12.88T17.5%205t-.88%202.12T14.5%208q-1.3%200-2.21-.99l-4.38%202.3Q8%209.66%208%2010t-.09.69l4.38%202.3q.89-.99%202.21-.99z%27%20fill%3D%27%230073aa%27%2F%3E%3C%2Fsvg%3E")}.mn-embed{padding:25px;font-size:14px;font-weight:400;line-height:1.5;color:#82878c;background:#fff;border:1px solid #e5e5e5;-webkit-box-shadow:0 1px 1px rgba(0,0,0,.05);box-shadow:0 1px 1px rgba(0,0,0,.05);overflow:auto;zoom:1}.mn-embed a{color:#82878c;text-decoration:none}.mn-embed a:hover{text-decoration:underline}.mn-embed-featured-image{margin-bottom:20px}.mn-embed-featured-image img{width:100%;height:auto;border:none}.mn-embed-featured-image.square{float:left;max-width:160px;margin-right:20px}.mn-embed p{margin:0}p.mn-embed-heading{margin:0 0 15px;font-weight:600;font-size:22px;line-height:1.3}.mn-embed-heading a{color:#32373c}.mn-embed .mn-embed-more{color:#b4b9be}.mn-embed-footer{display:table;width:100%;margin-top:30px}.mn-embed-site-icon{position:absolute;top:50%;left:0;-webkit-transform:translateY(-50%);-ms-transform:translateY(-50%);transform:translateY(-50%);height:25px;width:25px;border:0}.mn-embed-site-title{font-weight:600;line-height:25px}.mn-embed-site-title a{position:relative;display:inline-block;padding-left:35px}.mn-embed-meta,.mn-embed-site-title{display:table-cell}.mn-embed-meta{text-align:right;white-space:nowrap;vertical-align:middle}.mn-embed-comments,.mn-embed-share{display:inline}.mn-embed-comments a,.mn-embed-share-tab-button{display:inline-block}.mn-embed-meta a:hover{text-decoration:none;color:#21b68e}.mn-embed-comments a{line-height:25px}.mn-embed-comments+.mn-embed-share{margin-left:10px}.mn-embed-share-dialog{position:absolute;top:0;left:0;right:0;bottom:0;background-color:#222;background-color:rgba(10,10,10,.9);color:#fff;opacity:1;-webkit-transition:opacity .25s ease-in-out;transition:opacity .25s ease-in-out}.mn-embed-share-dialog.hidden{opacity:0;visibility:hidden}.mn-embed-share-dialog-close,.mn-embed-share-dialog-open{margin:-8px 0 0;padding:0;background:0 0;border:none;cursor:pointer;outline:0}.mn-embed-share-dialog-close .dashicons,.mn-embed-share-dialog-open .dashicons{padding:4px}.mn-embed-share-dialog-open .dashicons{top:8px}.mn-embed-share-dialog-close:focus .dashicons,.mn-embed-share-dialog-open:focus .dashicons{-webkit-box-shadow:0 0 0 1px #5b9dd9,0 0 2px 1px rgba(30,140,190,.8);box-shadow:0 0 0 1px #5b9dd9,0 0 2px 1px rgba(30,140,190,.8);-webkit-border-radius:100%;border-radius:100%}.mn-embed-share-dialog-close{position:absolute;top:20px;right:20px;font-size:22px}.mn-embed-share-dialog-close:hover{text-decoration:none}.mn-embed-share-dialog-close .dashicons{height:24px;width:24px;-webkit-background-size:24px 24px;background-size:24px}.mn-embed-share-dialog-content{height:100%;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;overflow:hidden}.mn-embed-share-dialog-text{margin-top:25px;padding:20px}.mn-embed-share-tabs{margin:0 0 20px;padding:0;list-style:none}.mn-embed-share-tab-button button{margin:0;padding:0;border:none;background:0 0;font-size:16px;line-height:1.3;color:#aaa;cursor:pointer;-webkit-transition:color .1s ease-in;transition:color .1s ease-in}.mn-embed-share-tab-button [aria-selected=true],.mn-embed-share-tab-button button:hover{color:#fff}.mn-embed-share-tab-button+.mn-embed-share-tab-button{margin:0 0 0 10px;padding:0 0 0 11px;border-left:1px solid #aaa}.mn-embed-share-tab[aria-hidden=true]{display:none}p.mn-embed-share-description{margin:0;font-size:14px;line-height:1;font-style:italic;color:#aaa}.mn-embed-share-input{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;width:100%;border:none;height:28px;margin:0 0 10px;padding:0 5px;font-size:14px;font-weight:400;line-height:1.5;resize:none;cursor:text}textarea.mn-embed-share-input{height:72px}html[dir=rtl] .mn-embed-featured-image.square{float:right;margin-right:0;margin-left:20px}html[dir=rtl] .mn-embed-site-title a{padding-left:0;padding-right:35px}html[dir=rtl] .mn-embed-site-icon{margin-right:0;margin-left:10px;left:auto;right:0}html[dir=rtl] .mn-embed-meta{text-align:left}html[dir=rtl] .mn-embed-share{margin-left:0;margin-right:10px}html[dir=rtl] .mn-embed-share-dialog-close{right:auto;left:20px}html[dir=rtl] .mn-embed-share-tab-button+.mn-embed-share-tab-button{margin:0 10px 0 0;padding:0 11px 0 0;border-left:none;border-right:1px solid #aaa}
+			body,html{padding:0;margin:0}body{font-family:sans-serif}.mn-embed,.mn-embed-share-input{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}.screen-reader-text{clip:rect(1px,1px,1px,1px);height:1px;overflow:hidden;position:absolute!important;width:1px}.dashicons{display:inline-block;width:20px;height:20px;background-color:transparent;background-repeat:no-repeat;-webkit-background-size:20px 20px;background-size:20px;background-position:center;-webkit-transition:background .1s ease-in;transition:background .1s ease-in;position:relative;top:5px}.dashicons-no{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M15.55%2013.7l-2.19%202.06-3.42-3.65-3.64%203.43-2.06-2.18%203.64-3.43-3.42-3.64%202.18-2.06%203.43%203.64%203.64-3.42%202.05%202.18-3.64%203.43z%27%20fill%3D%27%23fff%27%2F%3E%3C%2Fsvg%3E")}.dashicons-admin-comments{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M5%202h9q.82%200%201.41.59T16%204v7q0%20.82-.59%201.41T14%2013h-2l-5%205v-5H5q-.82%200-1.41-.59T3%2011V4q0-.82.59-1.41T5%202z%27%20fill%3D%27%2382878c%27%2F%3E%3C%2Fsvg%3E")}.mn-embed-comments a:hover .dashicons-admin-comments{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M5%202h9q.82%200%201.41.59T16%204v7q0%20.82-.59%201.41T14%2013h-2l-5%205v-5H5q-.82%200-1.41-.59T3%2011V4q0-.82.59-1.41T5%202z%27%20fill%3D%27%230073aa%27%2F%3E%3C%2Fsvg%3E")}.dashicons-share{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.5%2012q1.24%200%202.12.88T17.5%2015t-.88%202.12-2.12.88-2.12-.88T11.5%2015q0-.34.09-.69l-4.38-2.3Q6.32%2013%205%2013q-1.24%200-2.12-.88T2%2010t.88-2.12T5%207q1.3%200%202.21.99l4.38-2.3q-.09-.35-.09-.69%200-1.24.88-2.12T14.5%202t2.12.88T17.5%205t-.88%202.12T14.5%208q-1.3%200-2.21-.99l-4.38%202.3Q8%209.66%208%2010t-.09.69l4.38%202.3q.89-.99%202.21-.99z%27%20fill%3D%27%2382878c%27%2F%3E%3C%2Fsvg%3E");display:none}.js .dashicons-share{display:inline-block}.mn-embed-share-dialog-open:hover .dashicons-share{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.5%2012q1.24%200%202.12.88T17.5%2015t-.88%202.12-2.12.88-2.12-.88T11.5%2015q0-.34.09-.69l-4.38-2.3Q6.32%2013%205%2013q-1.24%200-2.12-.88T2%2010t.88-2.12T5%207q1.3%200%202.21.99l4.38-2.3q-.09-.35-.09-.69%200-1.24.88-2.12T14.5%202t2.12.88T17.5%205t-.88%202.12T14.5%208q-1.3%200-2.21-.99l-4.38%202.3Q8%209.66%208%2010t-.09.69l4.38%202.3q.89-.99%202.21-.99z%27%20fill%3D%27%230073aa%27%2F%3E%3C%2Fsvg%3E")}.mn-embed{padding:25px;font-size:14px;font-weight:400;line-height:1.5;color:#82878c;background:#fff;border:1px solid #e5e5e5;-webkit-box-shadow:0 1px 1px rgba(0,0,0,.05);box-shadow:0 1px 1px rgba(0,0,0,.05);overflow:auto;zoom:1}.mn-embed a{color:#82878c;text-decoration:none}.mn-embed a:hover{text-decoration:underline}.mn-embed-featured-image{margin-bottom:20px}.mn-embed-featured-image img{width:100%;height:auto;border:none}.mn-embed-featured-image.square{float:left;max-width:160px;margin-right:20px}.mn-embed p{margin:0}p.mn-embed-heading{margin:0 0 15px;font-weight:600;font-size:22px;line-height:1.3}.mn-embed-heading a{color:#32373c}.mn-embed .mn-embed-more{color:#b4b9be}.mn-embed-footer{display:table;width:100%;margin-top:30px}.mn-embed-site-icon{position:absolute;top:50%;left:0;-webkit-transform:translateY(-50%);-ms-transform:translateY(-50%);transform:translateY(-50%);height:25px;width:25px;border:0}.mn-embed-site-title{font-weight:600;line-height:25px}.mn-embed-site-title a{position:relative;display:inline-block;padding-left:35px}.mn-embed-meta,.mn-embed-site-title{display:table-cell}.mn-embed-meta{text-align:right;white-space:nowrap;vertical-align:middle}.mn-embed-comments,.mn-embed-share{display:inline}.mn-embed-comments a,.mn-embed-share-tab-button{display:inline-block}.mn-embed-meta a:hover{text-decoration:none;color:#21b16e}.mn-embed-comments a{line-height:25px}.mn-embed-comments+.mn-embed-share{margin-left:10px}.mn-embed-share-dialog{position:absolute;top:0;left:0;right:0;bottom:0;background-color:#222;background-color:rgba(10,10,10,.9);color:#fff;opacity:1;-webkit-transition:opacity .25s ease-in-out;transition:opacity .25s ease-in-out}.mn-embed-share-dialog.hidden{opacity:0;visibility:hidden}.mn-embed-share-dialog-close,.mn-embed-share-dialog-open{margin:-8px 0 0;padding:0;background:0 0;border:none;cursor:pointer;outline:0}.mn-embed-share-dialog-close .dashicons,.mn-embed-share-dialog-open .dashicons{padding:4px}.mn-embed-share-dialog-open .dashicons{top:8px}.mn-embed-share-dialog-close:focus .dashicons,.mn-embed-share-dialog-open:focus .dashicons{-webkit-box-shadow:0 0 0 1px #21b68e,0 0 2px 1px rgba(30,140,190,.8);box-shadow:0 0 0 1px #21b68e,0 0 2px 1px rgba(30,140,190,.8);-webkit-border-radius:100%;border-radius:100%}.mn-embed-share-dialog-close{position:absolute;top:20px;right:20px;font-size:22px}.mn-embed-share-dialog-close:hover{text-decoration:none}.mn-embed-share-dialog-close .dashicons{height:24px;width:24px;-webkit-background-size:24px 24px;background-size:24px}.mn-embed-share-dialog-content{height:100%;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;overflow:hidden}.mn-embed-share-dialog-text{margin-top:25px;padding:20px}.mn-embed-share-tabs{margin:0 0 20px;padding:0;list-style:none}.mn-embed-share-tab-button button{margin:0;padding:0;border:none;background:0 0;font-size:16px;line-height:1.3;color:#aaa;cursor:pointer;-webkit-transition:color .1s ease-in;transition:color .1s ease-in}.mn-embed-share-tab-button [aria-selected=true],.mn-embed-share-tab-button button:hover{color:#fff}.mn-embed-share-tab-button+.mn-embed-share-tab-button{margin:0 0 0 10px;padding:0 0 0 11px;border-left:1px solid #aaa}.mn-embed-share-tab[aria-hidden=true]{display:none}p.mn-embed-share-description{margin:0;font-size:14px;line-height:1;font-style:italic;color:#aaa}.mn-embed-share-input{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;width:100%;border:none;height:28px;margin:0 0 10px;padding:0 5px;font-size:14px;font-weight:400;line-height:1.5;resize:none;cursor:text}textarea.mn-embed-share-input{height:72px}html[dir=rtl] .mn-embed-featured-image.square{float:right;margin-right:0;margin-left:20px}html[dir=rtl] .mn-embed-site-title a{padding-left:0;padding-right:35px}html[dir=rtl] .mn-embed-site-icon{margin-right:0;margin-left:10px;left:auto;right:0}html[dir=rtl] .mn-embed-meta{text-align:left}html[dir=rtl] .mn-embed-share{margin-left:0;margin-right:10px}html[dir=rtl] .mn-embed-share-dialog-close{right:auto;left:20px}html[dir=rtl] .mn-embed-share-tab-button+.mn-embed-share-tab-button{margin:0 10px 0 0;padding:0 11px 0 0;border-left:none;border-right:1px solid #aaa}
 			<?php
 		}
 	?>
@@ -984,17 +993,17 @@ function print_embed_sharing_dialog() {
 		<div class="mn-embed-share-dialog-content">
 			<div class="mn-embed-share-dialog-text">
 				<ul class="mn-embed-share-tabs" role="tablist">
-					<li class="mn-embed-share-tab-button mn-embed-share-tab-button-Mtaandao" role="presentation">
-						<button type="button" role="tab" aria-controls="mn-embed-share-tab-Mtaandao" aria-selected="true" tabindex="0"><?php esc_html_e( 'Mtaandao Embed' ); ?></button>
+					<li class="mn-embed-share-tab-button mn-embed-share-tab-button-mtaandao" role="presentation">
+						<button type="button" role="tab" aria-controls="mn-embed-share-tab-mtaandao" aria-selected="true" tabindex="0"><?php esc_html_e( 'Mtaandao Embed' ); ?></button>
 					</li>
 					<li class="mn-embed-share-tab-button mn-embed-share-tab-button-html" role="presentation">
 						<button type="button" role="tab" aria-controls="mn-embed-share-tab-html" aria-selected="false" tabindex="-1"><?php esc_html_e( 'HTML Embed' ); ?></button>
 					</li>
 				</ul>
-				<div id="mn-embed-share-tab-Mtaandao" class="mn-embed-share-tab" role="tabpanel" aria-hidden="false">
-					<input type="text" value="<?php the_permalink(); ?>" class="mn-embed-share-input" aria-describedby="mn-embed-share-description-Mtaandao" tabindex="0" readonly/>
+				<div id="mn-embed-share-tab-mtaandao" class="mn-embed-share-tab" role="tabpanel" aria-hidden="false">
+					<input type="text" value="<?php the_permalink(); ?>" class="mn-embed-share-input" aria-describedby="mn-embed-share-description-mtaandao" tabindex="0" readonly/>
 
-					<p class="mn-embed-share-description" id="mn-embed-share-description-Mtaandao">
+					<p class="mn-embed-share-description" id="mn-embed-share-description-mtaandao">
 						<?php _e( 'Copy and paste this URL into your Mtaandao site to embed' ); ?>
 					</p>
 				</div>

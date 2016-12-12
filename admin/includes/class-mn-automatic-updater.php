@@ -4,14 +4,14 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
  * Core class used for handling automatic background updates.
  *
  * @since 3.7.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
  */
 class MN_Automatic_Updater {
 
@@ -176,7 +176,7 @@ class MN_Automatic_Updater {
 		 * @param bool   $update Whether to update.
 		 * @param object $item   The update offer.
 		 */
-		$update = apply_filters( 'auto_update_' . $type, $update, $item );
+		$update = apply_filters( "auto_update_{$type}", $update, $item );
 
 		if ( ! $update ) {
 			if ( 'core' == $type )
@@ -189,7 +189,7 @@ class MN_Automatic_Updater {
 			global $mndb;
 
 			$php_compat = version_compare( phpversion(), $item->php_version, '>=' );
-			if ( file_exists( MAIN . '/db.php' ) && empty( $mndb->is_mysql ) )
+			if ( file_exists( MAIN_DIR . '/db.php' ) && empty( $mndb->is_mysql ) )
 				$mysql_compat = true;
 			else
 				$mysql_compat = version_compare( $mndb->db_version(), $item->mysql_version, '>=' );
@@ -223,7 +223,7 @@ class MN_Automatic_Updater {
 		 * Filters whether to notify the site administrator of a new core update.
 		 *
 		 * By default, administrators are notified when the update offer received
-		 * from mtaandao.co.ke sets a particular flag. This allows some discretion
+		 * from Mtaandao.org sets a particular flag. This allows some discretion
 		 * in if and when to notify.
 		 *
 		 * This filter is only evaluated once per release. If the same email address
@@ -268,7 +268,7 @@ class MN_Automatic_Updater {
 				break;
 			case 'plugin':
 				$upgrader = new Plugin_Upgrader( $skin );
-				$context  = MN_PLUGIN_DIR; // We don't support custom Plugin directories, or updates for MNMU_PLUGIN_DIR
+				$context  = PLUGIN_DIR; // We don't support custom Plugin directories, or updates for MNMU_PLUGIN_DIR
 				break;
 			case 'theme':
 				$upgrader = new Theme_Upgrader( $skin );
@@ -276,7 +276,7 @@ class MN_Automatic_Updater {
 				break;
 			case 'translation':
 				$upgrader = new Language_Pack_Upgrader( $skin );
-				$context  = MAIN; // MN_LANG_DIR;
+				$context  = MAIN_DIR; // MN_LANG_DIR;
 				break;
 		}
 
@@ -371,13 +371,8 @@ class MN_Automatic_Updater {
 	 *
 	 * @since 3.7.0
 	 * @access public
-	 *
-	 * @global mndb   $mndb
-	 * @global string $mn_version
 	 */
 	public function run() {
-		global $mndb, $mn_version;
-
 		if ( $this->is_disabled() )
 			return;
 
@@ -457,7 +452,7 @@ class MN_Automatic_Updater {
 
 		// Send debugging email to all development installs.
 		if ( ! empty( $this->update_results ) ) {
-			$development_version = false !== strpos( $mn_version, '-' );
+			$development_version = false !== strpos( get_bloginfo( 'version' ), '-' );
 
 			/**
 			 * Filters whether to send a debugging email for each automatic background update.
@@ -494,12 +489,10 @@ class MN_Automatic_Updater {
 	 * @since Unknown
 	 * @access protected
 	 *
-	 * @global string $mn_version
-	 *
 	 * @param object $update_result The result of the core update. Includes the update offer and result.
 	 */
 	protected function after_core_update( $update_result ) {
-		global $mn_version;
+		$mn_version = get_bloginfo( 'version' );
 
 		$core_update = $update_result->item;
 		$result      = $update_result->result;
@@ -551,7 +544,7 @@ class MN_Automatic_Updater {
 		 *
 		 * For certain 'transient' failures, like download_failed, we should allow retries.
 		 * In fact, let's schedule a special update for an hour from now. (It's possible
-		 * the issue could actually be on mtaandao.co.ke's side.) If that one fails, then email.
+		 * the issue could actually be on Mtaandao.org's side.) If that one fails, then email.
 		 */
 		$send = true;
   		$transient_failures = array( 'incompatible_archive', 'download_failed', 'insane_distro', 'locked' );
@@ -583,8 +576,6 @@ class MN_Automatic_Updater {
 	 *
 	 * @since 3.7.0
 	 * @access protected
-	 *
-	 * @global string $mn_version
 	 *
 	 * @param string $type        The type of email to send. Can be one of 'success', 'fail', 'manual', 'critical'.
 	 * @param object $core_update The update offer that was attempted.
@@ -699,7 +690,7 @@ class MN_Automatic_Updater {
 			$body .= "\n\n" . sprintf( __( "The Mtaandao team is willing to help you. Forward this email to %s and the team will work with you to make sure your site is working." ), $core_update->support_email );
 		} else {
 			// Add a note about the support forums.
-			$body .= "\n\n" . __( 'If you experience any issues or need support, the volunteers in the mtaandao.co.ke support forums may be able to help.' );
+			$body .= "\n\n" . __( 'If you experience any issues or need support, the volunteers in the Mtaandao.org support forums may be able to help.' );
 			$body .= "\n" . __( 'https://mtaandao.co.ke/support/' );
 		}
 
@@ -722,7 +713,7 @@ class MN_Automatic_Updater {
 
 		if ( 'critical' == $type && is_mn_error( $result ) ) {
 			$body .= "\n***\n\n";
-			$body .= sprintf( __( 'Your site was running version %s.' ), $GLOBALS['mn_version'] );
+			$body .= sprintf( __( 'Your site was running version %s.' ), get_bloginfo( 'version' ) );
 			$body .= ' ' . __( 'We have some data that describes the error your site encountered.' );
 			$body .= ' ' . __( 'Your hosting company, support forum volunteers, or a friendly developer may be able to use this information to help you:' );
 

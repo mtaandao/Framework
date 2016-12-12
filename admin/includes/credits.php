@@ -10,23 +10,21 @@
 /**
  * Retrieve the contributor credits.
  *
- * @global string $mn_version The current Mtaandao version.
- *
  * @since 3.2.0
  *
  * @return array|false A list of all of the contributors, or false on error.
  */
 function mn_credits() {
-	global $mn_version;
-	$locale = get_locale();
+	$mn_version = get_bloginfo( 'version' );
+	$locale = get_user_locale();
 
-	$results = get_site_transient( 'Mtaandao_credits_' . $locale );
+	$results = get_site_transient( 'mtaandao_credits_' . $locale );
 
 	if ( ! is_array( $results )
 		|| false !== strpos( $mn_version, '-' )
 		|| ( isset( $results['data']['version'] ) && strpos( $mn_version, $results['data']['version'] ) !== 0 )
 	) {
-		$response = mn_remote_get( "http://api.mtaandao.co.ke/core/credits/1.1/?version=$mn_version&locale=$locale" );
+		$response = mn_remote_get( "http://api.mtaandao.co.ke/core/credits/1.1/?version={$mn_version}&locale={$locale}" );
 
 		if ( is_mn_error( $response ) || 200 != mn_remote_retrieve_response_code( $response ) )
 			return false;
@@ -36,21 +34,21 @@ function mn_credits() {
 		if ( ! is_array( $results ) )
 			return false;
 
-		set_site_transient( 'Mtaandao_credits_' . $locale, $results, DAY_IN_SECONDS );
+		set_site_transient( 'mtaandao_credits_' . $locale, $results, DAY_IN_SECONDS );
 	}
 
 	return $results;
 }
 
 /**
- * Retrieve the link to a contributor's mtaandao.co.ke profile page.
+ * Retrieve the link to a contributor's Mtaandao.org profile page.
  *
  * @access private
  * @since 3.2.0
  *
  * @param string $display_name  The contributor's display name, passed by reference.
  * @param string $username      The contributor's username.
- * @param string $profiles      URL to the contributor's mtaandao.co.ke profile page.
+ * @param string $profiles      URL to the contributor's Mtaandao.org profile page.
  */
 function _mn_credits_add_profile_link( &$display_name, $username, $profiles ) {
 	$display_name = '<a href="' . esc_url( sprintf( $profiles, $username ) ) . '">' . esc_html( $display_name ) . '</a>';

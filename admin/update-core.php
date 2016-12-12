@@ -26,15 +26,16 @@ if ( ! current_user_can( 'update_core' ) && ! current_user_can( 'update_themes' 
  *
  * @global string $mn_local_package
  * @global mndb   $mndb
- * @global string $mn_version
  *
  * @staticvar bool $first_pass
  *
  * @param object $update
  */
 function list_core_update( $update ) {
- 	global $mn_local_package, $mndb, $mn_version;
+ 	global $mn_local_package, $mndb;
   	static $first_pass = true;
+
+	$mn_version = get_bloginfo( 'version' );
 
  	if ( 'en_US' == $update->locale && 'en_US' == get_locale() )
  		$version_string = $update->current;
@@ -53,32 +54,34 @@ function list_core_update( $update ) {
 	$mysql_version  = $mndb->db_version();
 	$show_buttons = true;
 	if ( 'development' == $update->response ) {
-		$message = __('You are using a development version of Mtaandao. You can update to the latest nightly build automatically or download the nightly build and install it manually:');
-		$download = __('Download nightly build');
+		$message = __('You are using a development version of Mtaandao. You can update to the latest nightly build automatically:');
 	} else {
 		if ( $current ) {
-			$message = sprintf( __( 'If you need to re-install version %s, you can do so here or download the package and re-install manually:' ), $version_string );
+			$message = sprintf( __( 'If you need to re-install version %s, you can do so here:' ), $version_string );
 			$submit = __('Re-install Now');
 			$form_action = 'update-core.php?action=do-core-reinstall';
 		} else {
 			$php_compat     = version_compare( $php_version, $update->php_version, '>=' );
-			if ( file_exists( MAIN . '/db.php' ) && empty( $mndb->is_mysql ) )
+			if ( file_exists( MAIN_DIR . '/db.php' ) && empty( $mndb->is_mysql ) )
 				$mysql_compat = true;
 			else
 				$mysql_compat = version_compare( $mysql_version, $update->mysql_version, '>=' );
 
 			if ( !$mysql_compat && !$php_compat )
-				$message = sprintf( __('You cannot update because <a href="https://mtaandao.co.ke/docs/Version_%1$s">Mtaandao %1$s</a> requires PHP version %2$s or higher and MySQL version %3$s or higher. You are running PHP version %4$s and MySQL version %5$s.'), $update->current, $update->php_version, $update->mysql_version, $php_version, $mysql_version );
+				/* translators: 1: Mtaandao version number, 2: Minimum required PHP version number, 3: Minimum required MySQL version number, 4: Current PHP version number, 5: Current MySQL version number */
+				$message = sprintf( __('You cannot update because <a href="https://mtaandao.github.io/Version_%1$s">Mtaandao %1$s</a> requires PHP version %2$s or higher and MySQL version %3$s or higher. You are running PHP version %4$s and MySQL version %5$s.'), $update->current, $update->php_version, $update->mysql_version, $php_version, $mysql_version );
 			elseif ( !$php_compat )
-				$message = sprintf( __('You cannot update because <a href="https://mtaandao.co.ke/docs/Version_%1$s">Mtaandao %1$s</a> requires PHP version %2$s or higher. You are running version %3$s.'), $update->current, $update->php_version, $php_version );
+				/* translators: 1: Mtaandao version number, 2: Minimum required PHP version number, 3: Current PHP version number */
+				$message = sprintf( __('You cannot update because <a href="https://mtaandao.github.io/Version_%1$s">Mtaandao %1$s</a> requires PHP version %2$s or higher. You are running version %3$s.'), $update->current, $update->php_version, $php_version );
 			elseif ( !$mysql_compat )
-				$message = sprintf( __('You cannot update because <a href="https://mtaandao.co.ke/docs/Version_%1$s">Mtaandao %1$s</a> requires MySQL version %2$s or higher. You are running version %3$s.'), $update->current, $update->mysql_version, $mysql_version );
+				/* translators: 1: Mtaandao version number, 2: Minimum required MySQL version number, 3: Current MySQL version number */
+				$message = sprintf( __('You cannot update because <a href="https://mtaandao.github.io/Version_%1$s">Mtaandao %1$s</a> requires MySQL version %2$s or higher. You are running version %3$s.'), $update->current, $update->mysql_version, $mysql_version );
 			else
-				$message = 	sprintf(__('You can update to <a href="https://mtaandao.co.ke/docs/Version_%1$s">Mtaandao %2$s</a> automatically or download the package and install it manually:'), $update->current, $version_string);
+				/* translators: 1: Mtaandao version number, 2: Mtaandao version number including locale if necessary */
+				$message = 	sprintf(__('You can update to <a href="https://mtaandao.github.io/Version_%1$s">Mtaandao %2$s</a> automatically:'), $update->current, $version_string);
 			if ( !$mysql_compat || !$php_compat )
 				$show_buttons = false;
 		}
-		$download = sprintf(__('Download %s'), $version_string);
 	}
 
 	echo '<p>';
@@ -91,18 +94,17 @@ function list_core_update( $update ) {
 	echo '<input name="locale" value="'. esc_attr($update->locale) .'" type="hidden"/>';
 	if ( $show_buttons ) {
 		if ( $first_pass ) {
-			submit_button( $submit, $current ? 'button' : 'primary regular', 'upgrade', false );
+			submit_button( $submit, $current ? '' : 'primary regular', 'upgrade', false );
 			$first_pass = false;
 		} else {
-			submit_button( $submit, 'button', 'upgrade', false );
+			submit_button( $submit, '', 'upgrade', false );
 		}
-		echo '&nbsp;<a href="' . esc_url( $update->download ) . '" class="button">' . $download . '</a>&nbsp;';
 	}
 	if ( 'en_US' != $update->locale )
 		if ( !isset( $update->dismissed ) || !$update->dismissed )
-			submit_button( __('Hide this update'), 'button', 'dismiss', false );
+			submit_button( __( 'Hide this update' ), '', 'dismiss', false );
 		else
-			submit_button( __('Bring back this update'), 'button', 'undismiss', false );
+			submit_button( __( 'Bring back this update' ), '', 'undismiss', false );
 	echo '</p>';
 	if ( 'en_US' != $update->locale && ( !isset($mn_local_package) || $mn_local_package != $update->locale ) )
 	    echo '<p class="hint">'.__('This localized version contains both the translation and various other localization fixes. You can skip upgrading if you want to keep your current translation.').'</p>';
@@ -149,13 +151,13 @@ function dismissed_updates() {
  *
  * @since 2.7.0
  *
- * @global string $mn_version
  * @global string $required_php_version
  * @global string $required_mysql_version
  */
 function core_upgrade_preamble() {
-	global $mn_version, $required_php_version, $required_mysql_version;
+	global $required_php_version, $required_mysql_version;
 
+	$mn_version = get_bloginfo( 'version' );
 	$updates = get_core_updates();
 
 	if ( !isset($updates[0]->response) || 'latest' == $updates[0]->response ) {
@@ -178,7 +180,7 @@ function core_upgrade_preamble() {
 		echo '</h2>';
 	} else {
 		echo '<div class="notice notice-warning"><p>';
-		_e('<strong>Important:</strong> before updating, please <a href="https://mtaandao.co.ke/docs/Mtaandao_Backups">back up your database and files</a>. For help with updates, visit the <a href="https://mtaandao.co.ke/docs/Updating_Mtaandao">Updating Mtaandao</a> Codex page.');
+		_e('<strong>Important:</strong> before updating, please <a href="https://mtaandao.github.io/Mtaandao_Backups">back up your database and files</a>. For help with updates, visit the <a href="https://mtaandao.github.io/Updating_Mtaandao">Updating Mtaandao</a> Codex page.');
 		echo '</p></div>';
 
 		echo '<h2 class="response">';
@@ -213,14 +215,9 @@ function core_upgrade_preamble() {
 	dismissed_updates();
 }
 
-/**
- *
- * @global string $mn_version
- */
 function list_plugin_updates() {
-	global $mn_version;
-
-	$cur_mn_version = preg_replace('/-.*$/', '', $mn_version);
+	$mn_version = get_bloginfo( 'version' );
+	$cur_mn_version = preg_replace( '/-.*$/', '', $mn_version );
 
 	require_once(ABSPATH . 'admin/includes/plugin-install.php');
 	$plugins = get_plugin_updates();
@@ -346,7 +343,7 @@ function list_theme_updates() {
 ?>
 <h2><?php _e( 'Themes' ); ?></h2>
 <p><?php _e( 'The following themes have new versions available. Check the ones you want to update and then click &#8220;Update Themes&#8221;.' ); ?></p>
-<p><?php printf( __( '<strong>Please Note:</strong> Any customizations you have made to theme files will be lost. Please consider using <a href="%s">child themes</a> for modifications.' ), __( 'https://mtaandao.co.ke/docs/Child_Themes' ) ); ?></p>
+<p><?php printf( __( '<strong>Please Note:</strong> Any customizations you have made to theme files will be lost. Please consider using <a href="%s">child themes</a> for modifications.' ), __( 'https://mtaandao.github.io/Child_Themes' ) ); ?></p>
 <form method="post" action="<?php echo esc_url( $form_action ); ?>" name="upgrade-themes" class="upgrade">
 <?php mn_nonce_field('upgrade-core'); ?>
 <p><input id="upgrade-themes" class="button" type="submit" value="<?php esc_attr_e('Update Themes'); ?>" name="upgrade" /></p>
@@ -549,7 +546,7 @@ if ( ( 'do-theme-upgrade' == $action || ( 'do-plugin-upgrade' == $action && ! is
 $title = __('Mtaandao Updates');
 $parent_file = 'index.php';
 
-$updates_overview  = '<p>' . __( 'On this screen, you can update to the latest version of Mtaandao, as well as update your themes, plugins, and translations from the mtaandao.co.ke repositories.' ) . '</p>';
+$updates_overview  = '<p>' . __( 'On this screen, you can update to the latest version of Mtaandao, as well as update your themes, plugins, and translations from the Mtaandao.org repositories.' ) . '</p>';
 $updates_overview .= '<p>' . __( 'If an update is available, you&#8127;ll see a notification appear in the Toolbar and navigation menu.' ) . ' ' . __( 'Keeping your site updated is important for security. It also makes the internet a safer place for you and your readers.' ) . '</p>';
 
 get_current_screen()->add_help_tab( array(
@@ -573,8 +570,8 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __( '<a href="https://mtaandao.co.ke/docs/Dashboard_Updates_Screen" target="_blank">Documentation on Updating Mtaandao</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://mtaandao.github.io/Dashboard_Updates_Screen">Documentation on Updating Mtaandao</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://mtaandao.co.ke/support/">Support Forums</a>' ) . '</p>'
 );
 
 if ( 'upgrade-core' == $action ) {
@@ -596,9 +593,16 @@ if ( 'upgrade-core' == $action ) {
 		echo '</p></div>';
 	}
 
+	$last_update_check = false;
+	$current = get_site_transient( 'update_core' );
+
+	if ( $current && isset ( $current->last_checked ) )	{
+		$last_update_check = $current->last_checked + get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+	}
+
 	echo '<p>';
 	/* translators: %1 date, %2 time. */
-	printf( __( 'Last checked on %1$s at %2$s.' ), date_i18n( __( 'F j, Y' ) ), date_i18n( __( 'g:i a' ) ) );
+	printf( __( 'Last checked on %1$s at %2$s.' ), date_i18n( __( 'F j, Y' ), $last_update_check ), date_i18n( __( 'g:i a' ), $last_update_check ) );
 	echo ' &nbsp; <a class="button" href="' . esc_url( self_admin_url('update-core.php?force-check=1') ) . '">' . __( 'Check Again' ) . '</a>';
 	echo '</p>';
 
@@ -618,6 +622,11 @@ if ( 'upgrade-core' == $action ) {
 	 */
 	do_action( 'core_upgrade_preamble' );
 	echo '</div>';
+
+	mn_localize_script( 'updates', '_mnUpdatesItemCounts', array(
+		'totals'  => mn_get_update_data(),
+	) );
+
 	include(ABSPATH . 'admin/admin-footer.php');
 
 } elseif ( 'do-core-upgrade' == $action || 'do-core-reinstall' == $action ) {
@@ -641,6 +650,10 @@ if ( 'upgrade-core' == $action ) {
 
 	if ( isset( $_POST['upgrade'] ) )
 		do_core_upgrade($reinstall);
+
+	mn_localize_script( 'updates', '_mnUpdatesItemCounts', array(
+		'totals'  => mn_get_update_data(),
+	) );
 
 	include(ABSPATH . 'admin/admin-footer.php');
 
@@ -670,6 +683,11 @@ if ( 'upgrade-core' == $action ) {
 	echo '<h1>' . __( 'Update Plugins' ) . '</h1>';
 	echo '<iframe src="', $url, '" style="width: 100%; height: 100%; min-height: 750px;" frameborder="0" title="' . esc_attr__( 'Update progress' ) . '"></iframe>';
 	echo '</div>';
+
+	mn_localize_script( 'updates', '_mnUpdatesItemCounts', array(
+		'totals'  => mn_get_update_data(),
+	) );
+
 	include(ABSPATH . 'admin/admin-footer.php');
 
 } elseif ( 'do-theme-upgrade' == $action ) {
@@ -700,6 +718,11 @@ if ( 'upgrade-core' == $action ) {
 		<iframe src="<?php echo $url ?>" style="width: 100%; height: 100%; min-height: 750px;" frameborder="0" title="<?php esc_attr_e( 'Update progress' ); ?>"></iframe>
 	</div>
 	<?php
+
+	mn_localize_script( 'updates', '_mnUpdatesItemCounts', array(
+		'totals'  => mn_get_update_data(),
+	) );
+
 	include(ABSPATH . 'admin/admin-footer.php');
 
 } elseif ( 'do-translation-upgrade' == $action ) {
@@ -719,6 +742,10 @@ if ( 'upgrade-core' == $action ) {
 
 	$upgrader = new Language_Pack_Upgrader( new Language_Pack_Upgrader_Skin( compact( 'url', 'nonce', 'title', 'context' ) ) );
 	$result = $upgrader->bulk_upgrade();
+
+	mn_localize_script( 'updates', '_mnUpdatesItemCounts', array(
+		'totals'  => mn_get_update_data(),
+	) );
 
 	require_once( ABSPATH . 'admin/admin-footer.php' );
 

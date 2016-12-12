@@ -112,7 +112,14 @@ function get_core_checksums( $version, $locale ) {
 
 	$response = mn_remote_get( $url, $options );
 	if ( $ssl && is_mn_error( $response ) ) {
-		trigger_error( __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ) . ' ' . __( '(Mtaandao could not establish a secure connection to mtaandao.co.ke. Please contact your server administrator.)' ), headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE );
+		trigger_error(
+			sprintf(
+				/* translators: %s: support forums URL */
+				__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+				__( 'https://mtaandao.co.ke/support/' )
+			) . ' ' . __( '(Mtaandao could not establish a secure connection to Mtaandao.org. Please contact your server administrator.)' ),
+			headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+		);
 		$response = mn_remote_get( $http_url, $options );
 	}
 
@@ -200,14 +207,15 @@ function core_update_footer( $msg = '' ) {
 
 	switch ( $cur->response ) {
 	case 'development' :
-		//return sprintf( __( 'You are using a development version (%1$s). Cool! Please <a href="%2$s">stay updated</a>.' ), get_bloginfo( 'version', 'display' ), network_admin_url( 'update-core.php' ) );
+		/* translators: 1: Mtaandao version number, 2: Mtaandao updates admin screen URL */
+		return sprintf( __( 'You are using a development version (%1$s). Cool! Please <a href="%2$s">stay updated</a>.' ), get_bloginfo( 'version', 'display' ), network_admin_url( 'update-core.php' ) );
 
 	case 'upgrade' :
-		//return '<strong><a href="' . network_admin_url( 'update-core.php' ) . '">' . sprintf( __( 'Get Version %s' ), $cur->current ) . '</a></strong>';
+		return '<strong><a href="' . network_admin_url( 'update-core.php' ) . '">' . sprintf( __( 'Get Version %s' ), $cur->current ) . '</a></strong>';
 
 	case 'latest' :
 	default :
-		//return sprintf( __( 'Version %s' ), get_bloginfo( 'version', 'display' ) );
+		return sprintf( __( 'Version %s' ), get_bloginfo( 'version', 'display' ) );
 	}
 }
 
@@ -236,7 +244,7 @@ function update_nag() {
 			__( '<a href="%1$s">Mtaandao %2$s</a> is available! <a href="%3$s" aria-label="%4$s">Please update now</a>.' ),
 			sprintf(
 				/* translators: %s: Mtaandao version */
-				esc_url( __( 'https://mtaandao.co.ke/docs/Version_%s' ) ),
+				esc_url( __( 'https://mtaandao.github.io/Version_%s' ) ),
 				$cur->current
 			),
 			$cur->current,
@@ -249,7 +257,7 @@ function update_nag() {
 			__( '<a href="%1$s">Mtaandao %2$s</a> is available! Please notify the site administrator.' ),
 			sprintf(
 				/* translators: %s: Mtaandao version */
-				esc_url( __( 'https://mtaandao.co.ke/docs/Version_%s' ) ),
+				esc_url( __( 'https://mtaandao.github.io/Version_%s' ) ),
 				$cur->current
 			),
 			$cur->current
@@ -557,7 +565,7 @@ function mn_theme_update_row( $theme_key, $theme ) {
 	 * row of the themes list table.
 	 *
 	 * The dynamic portion of the hook name, `$theme_key`, refers to
-	 * the theme slug as found in the mtaandao.co.ke themes repository.
+	 * the theme slug as found in the Mtaandao.org themes repository.
 	 *
 	 * @since 3.1.0
 	 *
@@ -626,7 +634,7 @@ function maintenance_nag() {
  *         @type string type      The type of update the notice is for. Either 'plugin' or 'theme'.
  *     }
  *
- * @since 16.10.0
+ * @since 4.6.0
  */
 function mn_print_admin_notice_templates() {
 	?>
@@ -718,7 +726,7 @@ function mn_print_admin_notice_templates() {
  *         @type string colspan The number of table columns this row spans.
  *     }
  *
- * @since 16.10.0
+ * @since 4.6.0
  */
 function mn_print_update_row_templates() {
 	?>

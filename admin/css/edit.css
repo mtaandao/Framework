@@ -101,7 +101,7 @@ input#link_url {
 	padding: 0;
 	font-size: 11px;
 	text-decoration: underline;
-	color: #21b68e;
+	color: #21b16e;
 }
 
 #comment-link-box {
@@ -129,21 +129,8 @@ input#link_url {
 	float: left;
 }
 
-.submitbox .submitdelete {
-	text-decoration: none;
-	padding: 1px 2px;
-}
-
 body.post-new-php .submitbox .submitdelete {
 	display: none;
-}
-
-/* @todo: do we really need this? word on the street is we don't and this
-stray rule may actually be compensated for elsewhere. */
-#normal-sortables .submitbox .submitdelete:hover {
-	color: #000;
-	background-color: #f00;
-	border-bottom-color: #f00;
 }
 
 .submitbox .submit a:hover {
@@ -373,22 +360,22 @@ form#tags-filter {
 	padding: 2px 10px;
 }
 
-#mn-content-editor-container {
+#main-editor-container {
 	position: relative;
 }
 
-.mn-editor-expand #mn-content-editor-tools {
+.mn-editor-expand #main-editor-tools {
 	z-index: 1000;
 	border-bottom: 1px solid #e5e5e5;
 }
 
-.mn-editor-expand #mn-content-editor-container {
+.mn-editor-expand #main-editor-container {
 	-webkit-box-shadow: none;
 	box-shadow: none;
 	margin-top: -1px;
 }
 
-.mn-editor-expand #mn-content-editor-container {
+.mn-editor-expand #main-editor-container {
 	border-bottom: 0 none;
 }
 
@@ -405,30 +392,30 @@ form#tags-filter {
 }
 
 /* TinyMCE native fullscreen mode override */
-.mce-fullscreen #mn-content-wrap .mce-menubar,
-.mce-fullscreen #mn-content-wrap .mce-toolbar-grp,
-.mce-fullscreen #mn-content-wrap .mce-edit-area,
-.mce-fullscreen #mn-content-wrap .mce-statusbar {
+.mce-fullscreen #main-wrap .mce-menubar,
+.mce-fullscreen #main-wrap .mce-toolbar-grp,
+.mce-fullscreen #main-wrap .mce-edit-area,
+.mce-fullscreen #main-wrap .mce-statusbar {
 	position: static !important;
 	width: auto !important;
 	padding: 0 !important;
 }
 
-.mce-fullscreen #mn-content-wrap .mce-statusbar {
+.mce-fullscreen #main-wrap .mce-statusbar {
 	visibility: visible !important;
 }
 
-.mce-fullscreen #mn-content-wrap .mce-tinymce .mce-mn-dfw {
+.mce-fullscreen #main-wrap .mce-tinymce .mce-mn-dfw {
 	display: none;
 }
 
 .post-php.mce-fullscreen #mnadminbar,
-.mce-fullscreen #mn-content-wrap .mce-mn-dfw {
+.mce-fullscreen #main-wrap .mce-mn-dfw {
 	display: none;
 }
 /* End TinyMCE native fullscreen mode override */
 
-#mn-content-editor-tools {
+#main-editor-tools {
 	background-color: #f1f1f1;
 	padding-top: 20px;
 }
@@ -464,7 +451,7 @@ form#tags-filter {
 	height: auto !important;
 }
 
-#misc-publishing-actions label[for="post_status"]:before,
+#post-body .misc-pub-post-status:before,
 #post-body #visibility:before,
 .curtime #timestamp:before,
 #post-body .misc-pub-revisions:before,
@@ -472,20 +459,22 @@ span.mn-media-buttons-icon:before {
 	color: #82878c;
 }
 
+#post-body .misc-pub-post-status:before,
 #post-body #visibility:before,
 .curtime #timestamp:before,
 #post-body .misc-pub-revisions:before {
 	font: normal 20px/1 dashicons;
 	speak: none;
 	display: inline-block;
-	padding: 0 2px 0 0;
-	top: 0;
-	left: -1px;
-	position: relative;
+	margin-left: -1px;
+	padding-right: 3px;
 	vertical-align: top;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	text-decoration: none !important;
+}
+
+#post-body .misc-pub-post-status:before {
+	content: "\f173";
 }
 
 #post-body #visibility:before {
@@ -494,6 +483,7 @@ span.mn-media-buttons-icon:before {
 
 .curtime #timestamp:before {
 	content: "\f145";
+	position: relative;
 	top: -1px;
 }
 
@@ -592,10 +582,9 @@ span.mn-media-buttons-icon:before {
 	position: absolute;
 }
 
-.tagchecklist span {
-	margin-right: 25px;
-	display: block;
+.tagchecklist > span {
 	float: left;
+	margin-right: 25px;
 	font-size: 13px;
 	line-height: 1.8em;
 	cursor: default;
@@ -604,16 +593,16 @@ span.mn-media-buttons-icon:before {
 	text-overflow: ellipsis;
 }
 
-.tagchecklist span a {
-	margin: 1px 0 0 -17px;
-	cursor: pointer;
-	width: 20px;
-	height: 20px;
-	display: block;
-	float: left;
-	text-indent: 0;
-	overflow: hidden;
+.tagchecklist .ntdelbutton {
 	position: absolute;
+	width: 24px;
+	height: 24px;
+	border: none;
+	margin: 0 0 0 -19px;
+	padding: 0;
+	background: none;
+	cursor: pointer;
+	text-indent: 0;
 }
 
 #poststuff h3.hndle, /* Back-compat for pre-4.4 */
@@ -639,11 +628,21 @@ span.mn-media-buttons-icon:before {
 	width: 250px;
 }
 
+.post-attributes-label-wrapper {
+	margin-bottom: 0.5em;
+}
+
+.post-attributes-label {
+	vertical-align: baseline;
+	font-weight: 600;
+}
+
 #post-visibility-select {
 	line-height: 1.5em;
 	margin-top: 3px;
 }
 
+#linksubmitdiv .inside, /* Old Link Manager back-compat. */
 #poststuff #submitdiv .inside {
 	margin: 0;
 	padding: 0;
@@ -804,7 +803,7 @@ span.mn-media-buttons-icon:before {
 
 a.post-state-format:hover:before,
 a.post-format-icon:hover:before {
-	color: #cfcfcf;
+	color: #21b68e;
 }
 
 #post-formats-select {
@@ -1036,6 +1035,25 @@ span.description,
 	width: 260px;
 }
 
+.tagcloud-link.button-link {
+	color: #21b16e;
+	text-decoration: underline;
+}
+
+.tagcloud-link.button-link:hover {
+	color: #21b68e;
+}
+
+.tagcloud-link.button-link:focus {
+	color: #21b68e;
+	-webkit-box-shadow:
+		0 0 0 1px #21b68e,
+		0 0 2px 1px rgba(30, 140, 190, .8);
+	box-shadow:
+		0 0 0 1px #21b68e,
+		0 0 2px 1px rgba(30, 140, 190, .8);
+}
+
 #post-body-content .tagsdiv .the-tags {
 	margin: 0 5px;
 }
@@ -1061,6 +1079,7 @@ p.popular-tags a {
 	margin: 2px 0 12px;
 }
 
+/* Suggest.js autocomplete, no more used by core. */
 .ac_results {
 	display: none;
 	margin: -1px 0 0;
@@ -1068,7 +1087,7 @@ p.popular-tags a {
 	list-style: none;
 	position: absolute;
 	z-index: 10000;
-	border: 1px solid #5b9dd9;
+	border: 1px solid #21b68e;
 	background-color: #fff;
 }
 
@@ -1085,7 +1104,7 @@ p.popular-tags a {
 
 .ac_results .ac_over,
 .ac_over .ac_match {
-	background-color: #21b68e;
+	background-color: #21b16e;
 	color: #fff;
 	cursor: pointer;
 }
@@ -1199,12 +1218,12 @@ table.links-table {
 /* DFW 2
 -------------------------------------------------------------- */
 
-#mn-content-wrap .mce-mn-dfw,
+#main-wrap .mce-mn-dfw,
 #qt_content_dfw {
 	display: none;
 }
 
-.mn-editor-expand #mn-content-wrap .mce-mn-dfw,
+.mn-editor-expand #main-wrap .mce-mn-dfw,
 .mn-editor-expand #qt_content_dfw {
 	display: inline-block;
 }
@@ -1447,7 +1466,7 @@ table.links-table {
 		margin: 25px 10px;
 	}
 
-	.tagchecklist span {
+	.tagchecklist > span {
 		font-size: 16px;
 		line-height: 1.4;
 	}
@@ -1510,7 +1529,7 @@ table.links-table {
 		padding: 8px 12px;
 	}
 
-	#mn-content-media-buttons a {
+	#main-media-buttons a {
 		font-size: 14px;
 		padding: 6px 10px;
 	}

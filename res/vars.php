@@ -10,7 +10,7 @@
  * servers with known pretty permalink capability.
  *
  * Note: Though Nginx is detected, Mtaandao does not currently
- * generate rewrite rules for it. See https://mtaandao.co.ke/docs/Nginx
+ * generate rewrite rules for it. See https://mtaandao.github.io/Nginx
  *
  * @package Mtaandao
  */
@@ -21,7 +21,7 @@ global $pagenow,
 
 // On which page are we ?
 if ( is_admin() ) {
-	// mn-admin pages are checked more carefully
+	// admin pages are checked more carefully
 	if ( is_network_admin() )
 		preg_match('#/admin/network/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches);
 	elseif ( is_user_admin() )

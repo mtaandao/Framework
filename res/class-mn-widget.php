@@ -10,7 +10,7 @@
 /**
  * Core base class extended to register widgets.
  *
- * This class must be extended for each widget, and MN_Widget::widget() must be overriden.
+ * This class must be extended for each widget, and MN_Widget::widget() must be overridden.
  *
  * If adding widget options, MN_Widget::update() and MN_Widget::form() should also be overridden.
  *
@@ -36,6 +36,24 @@ class MN_Widget {
 	 * @var string
 	 */
 	public $name;
+
+	/**
+	 * Option name for this widget type.
+	 *
+	 * @since 2.8.0
+	 * @access public
+	 * @var string
+	 */
+	public $option_name;
+
+	/**
+	 * Alt option name for this widget type.
+	 *
+	 * @since 2.8.0
+	 * @access public
+	 * @var string
+	 */
+	public $alt_option_name;
 
 	/**
 	 * Option array passed to mn_register_sidebar_widget().
@@ -86,7 +104,7 @@ class MN_Widget {
 	public $updated = false;
 
 	//
-	// Member functions that must be overriden by subclasses.
+	// Member functions that must be overridden by subclasses.
 	//
 
 	/**

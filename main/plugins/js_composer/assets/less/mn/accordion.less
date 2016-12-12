@@ -1,0 +1,26 @@
+/* MN Accordion */
+.vc_mn-accordion {
+  margin: 0;
+  padding: 0;
+  .vc_mn-accordion-panel {
+    margin: 0;
+    padding: 0;
+  }
+  .vc_mn-accordion-panel-title {
+    margin: 0;
+  }
+  .vc_mn-accordion-panel-body {
+    box-sizing: content-box;
+    display: none;
+    overflow: hidden;
+    transition-property: color, padding;
+    transition-duration: .2s;
+    transition-timing-function: ease-in-out;
+  }
+  .vc_active,
+  .vc_animating {
+    .vc_mn-accordion-panel-body {
+      display: block;
+    }
+  }
+}

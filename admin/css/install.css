@@ -16,26 +16,26 @@ body {
 }
 
 a {
-	color: #21b68e;
+	color: #21b16e;
 }
 
 a:hover,
 a:active {
-	color: #cfcfcf;
+	color: #21b68e;
 }
 
 a:focus {
-	color: #124964;
+	color: #21b68e;
 	-webkit-box-shadow:
-		0 0 0 1px #5b9dd9,
+		0 0 0 1px #21b68e,
 		0 0 2px 1px rgba(30, 140, 190, .8);
 	box-shadow:
-		0 0 0 1px #5b9dd9,
+		0 0 0 1px #21b68e,
 		0 0 2px 1px rgba(30, 140, 190, .8);
 }
 
 .ie8 a:focus {
-	outline: #5b9dd9 solid 1px;
+	outline: #21b68e solid 1px;
 }
 
 h1, h2 {
@@ -443,7 +443,7 @@ body.language-chooser {
 	margin-right: 15px;
 }
 
-.button-secondary.hide-if-no-js,
+.button.hide-if-no-js,
 .hide-if-no-js {
 	display: none;
 }

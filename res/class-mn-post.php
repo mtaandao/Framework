@@ -210,9 +210,11 @@ final class MN_Post {
 	public static function get_instance( $post_id ) {
 		global $mndb;
 
-		$post_id = (int) $post_id;
-		if ( ! $post_id )
+		if ( ! is_numeric( $post_id ) || $post_id != floor( $post_id ) || ! $post_id ) {
 			return false;
+		}
+
+		$post_id = (int) $post_id;
 
 		$_post = mn_cache_get( $post_id, 'posts' );
 
@@ -252,7 +254,7 @@ final class MN_Post {
 			return true;
 
 		if ( 'page_template' == $key )
-			return ( 'page' == $this->post_type );
+			return true;
 
 		if ( 'post_category' == $key )
 		   return true;

@@ -7,17 +7,17 @@ Press This TinyMCE editor styles :)
 * Links
 */
 a {
-	color: #21b68e;
+	color: #21b16e;
 }
 
 a:visited {
-	color: #21b68e;
+	color: #21b16e;
 }
 
 a:hover,
 a:focus,
 a:active {
-	color: #cfcfcf;
+	color: #21b68e;
 }
 
 

@@ -527,7 +527,6 @@ function mn_kses( $string, $allowed_html, $allowed_protocols = array() ) {
 	if ( empty( $allowed_protocols ) )
 		$allowed_protocols = mn_allowed_protocols();
 	$string = mn_kses_no_null( $string, array( 'slash_zero' => 'keep' ) );
-	$string = mn_kses_js_entities($string);
 	$string = mn_kses_normalize_entities($string);
 	$string = mn_kses_hook($string, $allowed_html, $allowed_protocols); // MN changed the order of these funcs and added args to mn_kses_hook
 	return mn_kses_split($string, $allowed_html, $allowed_protocols);
@@ -550,7 +549,6 @@ function mn_kses_one_attr( $string, $element ) {
 	$allowed_html = mn_kses_allowed_html( 'post' );
 	$allowed_protocols = mn_allowed_protocols();
 	$string = mn_kses_no_null( $string, array( 'slash_zero' => 'keep' ) );
-	$string = mn_kses_js_entities( $string );
 	
 	// Preserve leading and trailing whitespace.
 	$matches = array();
@@ -781,7 +779,7 @@ function mn_kses_split2($string, $allowed_html, $allowed_protocols) {
 	}
 	// Allow HTML comments
 
-	if (!preg_match('%^<\s*(/\s*)?([a-zA-Z0-9]+)([^>]*)>?$%', $string, $matches))
+	if (!preg_match('%^<\s*(/\s*)?([a-zA-Z0-9-]+)([^>]*)>?$%', $string, $matches))
 		return '';
 	// It's seriously malformed
 
@@ -1296,18 +1294,6 @@ function mn_kses_array_lc($inarray) {
 }
 
 /**
- * Removes the HTML JavaScript entities found in early versions of Netscape 4.
- *
- * @since 1.0.0
- *
- * @param string $string
- * @return string
- */
-function mn_kses_js_entities($string) {
-	return preg_replace('%&\s*\{[^}]*(\}\s*;?|$)%', '', $string);
-}
-
-/**
  * Handles parsing errors in mn_kses_hair().
  *
  * The general plan is to remove everything to and including some whitespace,
@@ -1709,7 +1695,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 *
 	 * @since 2.8.1
 	 * @since 4.4.0 Added support for `min-height`, `max-height`, `min-width`, and `max-width`.
-	 * @since 16.10.0 Added support for `list-style-type`.
+	 * @since 4.6.0 Added support for `list-style-type`.
 	 *
 	 * @param array $attr List of allowed CSS attributes.
 	 */

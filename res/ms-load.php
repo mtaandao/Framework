@@ -26,7 +26,7 @@ function is_subdomain_install() {
  * Returns array of network plugin files to be included in global scope.
  *
  * The default directory is main/plugins. To change the default directory
- * manually, define `MN_PLUGIN_DIR` and `MN_PLUGIN_URL` in `configuration.php`.
+ * manually, define `PLUGIN_DIR` and `PLUGIN_URL` in `db.php`.
  *
  * @access private
  * @since 3.1.0
@@ -45,9 +45,9 @@ function mn_get_active_network_plugins() {
 	foreach ( $active_plugins as $plugin ) {
 		if ( ! validate_file( $plugin ) // $plugin must validate as file
 			&& '.php' == substr( $plugin, -4 ) // $plugin must end with '.php'
-			&& file_exists( MN_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist
+			&& file_exists( PLUGIN_DIR . '/' . $plugin ) // $plugin must exist
 			)
-		$plugins[] = MN_PLUGIN_DIR . '/' . $plugin;
+		$plugins[] = PLUGIN_DIR . '/' . $plugin;
 	}
 	return $plugins;
 }
@@ -84,20 +84,20 @@ function ms_site_check() {
 	if ( is_super_admin() )
 		return true;
 
-	$blog = get_blog_details();
+	$blog = get_site();
 
 	if ( '1' == $blog->deleted ) {
-		if ( file_exists( MAIN . '/blog-deleted.php' ) )
-			return MAIN . '/blog-deleted.php';
+		if ( file_exists( MAIN_DIR . '/blog-deleted.php' ) )
+			return MAIN_DIR . '/blog-deleted.php';
 		else
 			mn_die( __( 'This site is no longer available.' ), '', array( 'response' => 410 ) );
 	}
 
 	if ( '2' == $blog->deleted ) {
-		if ( file_exists( MAIN . '/blog-inactive.php' ) ) {
-			return MAIN . '/blog-inactive.php';
+		if ( file_exists( MAIN_DIR . '/blog-inactive.php' ) ) {
+			return MAIN_DIR . '/blog-inactive.php';
 		} else {
-			$admin_email = str_replace( '@', ' AT ', get_site_option( 'admin_email', 'support@' . get_current_site()->domain ) );
+			$admin_email = str_replace( '@', ' AT ', get_site_option( 'admin_email', 'support@' . get_network()->domain ) );
 			mn_die(
 				/* translators: %s: admin email link */
 				sprintf( __( 'This site has not been activated yet. If you are having problems activating your site, please contact %s.' ),
@@ -108,8 +108,8 @@ function ms_site_check() {
 	}
 
 	if ( $blog->archived == '1' || $blog->spam == '1' ) {
-		if ( file_exists( MAIN . '/blog-suspended.php' ) )
-			return MAIN . '/blog-suspended.php';
+		if ( file_exists( MAIN_DIR . '/blog-suspended.php' ) )
+			return MAIN_DIR . '/blog-suspended.php';
 		else
 			mn_die( __( 'This site has been archived or suspended.' ), '', array( 'response' => 410 ) );
 	}
@@ -134,35 +134,24 @@ function get_network_by_path( $domain, $path, $segments = null ) {
 }
 
 /**
- * Retrieve an object containing information about the requested network.
+ * Retrieves the closest matching site object by its domain and path.
+ * 
+ * This will not necessarily return an exact match for a domain and path. Instead, it
+ * breaks the domain and path into pieces that are then used to match the closest
+ * possibility from a query.
+ *
+ * The intent of this method is to match a site object during bootstrap for a
+ * requested site address
  *
  * @since 3.9.0
- *
- * @internal In 16.10.0, converted to use get_network()
- *
- * @param object|int $network The network's database row or ID.
- * @return MN_Network|false Object containing network information if found, false if not.
- */
-function mn_get_network( $network ) {
-	$network = get_network( $network );
-	if ( null === $network ) {
-		return false;
-	}
-
-	return $network;
-}
-
-/**
- * Retrieve a site object by its domain and path.
- *
- * @since 3.9.0
+ * @since 4.7.0 Updated to always return a `MN_Site` object.
  *
  * @global mndb $mndb Mtaandao database abstraction object.
  *
  * @param string   $domain   Domain to check.
  * @param string   $path     Path to check.
  * @param int|null $segments Path segments to use. Defaults to null, or the full path.
- * @return object|false Site object if successful. False when no site is found.
+ * @return MN_Site|false Site object if successful. False when no site is found.
  */
 function get_site_by_path( $domain, $path, $segments = null ) {
 	$path_segments = array_filter( explode( '/', trim( $path, '/' ) ) );
@@ -205,21 +194,24 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param null|bool|object $site     Site value to return by path.
-	 * @param string           $domain   The requested domain.
-	 * @param string           $path     The requested path, in full.
-	 * @param int|null         $segments The suggested number of paths to consult.
-	 *                                   Default null, meaning the entire path was to be consulted.
-	 * @param array            $paths    The paths to search for, based on $path and $segments.
+	 * @param null|bool|MN_Site $site     Site value to return by path.
+	 * @param string            $domain   The requested domain.
+	 * @param string            $path     The requested path, in full.
+	 * @param int|null          $segments The suggested number of paths to consult.
+	 *                                    Default null, meaning the entire path was to be consulted.
+	 * @param array             $paths    The paths to search for, based on $path and $segments.
 	 */
 	$pre = apply_filters( 'pre_get_site_by_path', null, $domain, $path, $segments, $paths );
 	if ( null !== $pre ) {
+		if ( false !== $pre && ! $pre instanceof MN_Site ) {
+			$pre = new MN_Site( $pre );
+		}
 		return $pre;
 	}
 
 	/*
 	 * @todo
-	 * get_blog_details(), caching, etc. Consider alternative optimization routes,
+	 * caching, etc. Consider alternative optimization routes,
 	 * perhaps as an opt-in for plugins, rather than using the pre_* filter.
 	 * For example: The segments filter can expand or ignore paths.
 	 * If persistent caching is enabled, we could query the DB for a path <> '/'
@@ -251,7 +243,6 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 	$site = array_shift( $result );
 
 	if ( $site ) {
-		// @todo get_blog_details()
 		return $site;
 	}
 
@@ -262,7 +253,7 @@ function get_site_by_path( $domain, $path, $segments = null ) {
  * Identifies the network and site of a requested domain and path and populates the
  * corresponding network and site global objects as part of the multisite bootstrap process.
  *
- * Prior to 16.10.0, this was a procedural block in `ms-settings.php`. It was wrapped into
+ * Prior to 4.6.0, this was a procedural block in `ms-settings.php`. It was wrapped into
  * a function to facilitate unit tests. It should not be used outside of core.
  *
  * Usually, it's easier to query the site first, which then declares its network.
@@ -274,7 +265,7 @@ function get_site_by_path( $domain, $path, $segments = null ) {
  * If neither a network or site is found, `false` or a URL string will be returned
  * so that either an error can be shown or a redirect can occur.
  *
- * @since 16.10.0
+ * @since 4.6.0
  * @access private
  *
  * @global mndb       $mndb         Mtaandao database abstraction object.
@@ -292,7 +283,7 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) {
 	global $mndb, $current_site, $current_blog;
 
-	// If the network is defined in configuration.php, we can simply use that.
+	// If the network is defined in db.php, we can simply use that.
 	if ( defined( 'DOMAIN_CURRENT_SITE' ) && defined( 'PATH_CURRENT_SITE' ) ) {
 		$current_site = new stdClass;
 		$current_site->id = defined( 'SITE_ID_CURRENT_SITE' ) ? SITE_ID_CURRENT_SITE : 1;
@@ -492,7 +483,7 @@ function ms_not_installed( $domain, $path ) {
 	$msg .= '<p><strong>' . __( 'What do I do now?' ) . '</strong> ';
 	/* translators: %s: Codex URL */
 	$msg .= sprintf( __( 'Read the <a href="%s" target="_blank">bug report</a> page. Some of the guidelines there may help you figure out what went wrong.' ),
-		__( 'https://mtaandao.co.ke/docs/Debugging_a_Mtaandao_Network' )
+		__( 'https://mtaandao.github.io/Debugging_a_Mtaandao_Network' )
 	);
 	$msg .= ' ' . __( 'If you&#8217;re still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
 	foreach ( $mndb->tables('global') as $t => $table ) {
@@ -541,4 +532,27 @@ function mnmu_current_site() {
 	global $current_site;
 	_deprecated_function( __FUNCTION__, '3.9.0' );
 	return $current_site;
+}
+
+/**
+ * Retrieve an object containing information about the requested network.
+ *
+ * @since 3.9.0
+ * @deprecated 4.7.0 Use `get_network()`
+ * @see get_network()
+ *
+ * @internal In 4.6.0, converted to use get_network()
+ *
+ * @param object|int $network The network's database row or ID.
+ * @return MN_Network|false Object containing network information if found, false if not.
+ */
+function mn_get_network( $network ) {
+	_deprecated_function( __FUNCTION__, '4.7.0', 'get_network()' );
+
+	$network = get_network( $network );
+	if ( null === $network ) {
+		return false;
+	}
+
+	return $network;
 }

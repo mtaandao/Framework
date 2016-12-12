@@ -18,17 +18,18 @@
  * Dashboard blog functionality was removed in Mtaandao 3.1, replaced by the user admin.
  *
  * @since MU
- * @deprecated 3.1.0 Use get_blog_details()
- * @see get_blog_details()
+ * @deprecated 3.1.0 Use get_site()
+ * @see get_site()
  *
- * @return int Current site ID.
+ * @return MN_Site Current site object.
  */
 function get_dashboard_blog() {
     _deprecated_function( __FUNCTION__, '3.1.0' );
-    if ( $blog = get_site_option( 'dashboard_blog' ) )
-        return get_blog_details( $blog );
+    if ( $blog = get_site_option( 'dashboard_blog' ) ) {
+	    return get_site( $blog );
+    }
 
-    return get_blog_details( $GLOBALS['current_site']->blog_id );
+    return get_site( get_network()->site_id );
 }
 
 /**
@@ -443,7 +444,7 @@ function get_admin_users_for_domain( $sitedomain = '', $path = '' ) {
  * Return an array of sites for a network or networks.
  *
  * @since 3.7.0
- * @deprecated 16.10.0
+ * @deprecated 4.6.0
  * @see get_sites()
  *
  * @global mndb $mndb Mtaandao database abstraction object.
@@ -469,7 +470,7 @@ function get_admin_users_for_domain( $sitedomain = '', $path = '' ) {
 function mn_get_sites( $args = array() ) {
 	global $mndb;
 
-	_deprecated_function( __FUNCTION__, '16.10.0', 'get_sites()' );
+	_deprecated_function( __FUNCTION__, '4.6.0', 'get_sites()' );
 
 	if ( mn_is_large_network() )
 		return array();

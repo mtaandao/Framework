@@ -77,9 +77,10 @@ $mn_file_descriptions = array(
 function get_file_description( $file ) {
 	global $mn_file_descriptions, $allowed_files;
 
-	$relative_pathinfo = pathinfo( $file );
+	$dirname = pathinfo( $file, PATHINFO_DIRNAME );
+
 	$file_path = $allowed_files[ $file ];
-	if ( isset( $mn_file_descriptions[ basename( $file ) ] ) && '.' === $relative_pathinfo['dirname'] ) {
+	if ( isset( $mn_file_descriptions[ basename( $file ) ] ) && '.' === $dirname ) {
 		return $mn_file_descriptions[ basename( $file ) ];
 	} elseif ( file_exists( $file_path ) && is_file( $file_path ) ) {
 		$template_data = implode( '', file( $file_path ) );
@@ -663,7 +664,7 @@ function _unzip_file_ziparchive($file, $to, $needed_dirs = array() ) {
 	 * Require we have enough space to unzip the file and copy its contents, with a 10% buffer.
 	 */
 	if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
-		$available_space = @disk_free_space( MAIN );
+		$available_space = @disk_free_space( MAIN_DIR );
 		if ( $available_space && ( $uncompressed_size * 2.1 ) > $available_space )
 			return new MN_Error( 'disk_full_unzip_file', __( 'Could not copy files. You may have run out of disk space.' ), compact( 'uncompressed_size', 'available_space' ) );
 	}
@@ -769,7 +770,7 @@ function _unzip_file_pclzip($file, $to, $needed_dirs = array()) {
 	 * Require we have enough space to unzip the file and copy its contents, with a 10% buffer.
 	 */
 	if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
-		$available_space = @disk_free_space( MAIN );
+		$available_space = @disk_free_space( MAIN_DIR );
 		if ( $available_space && ( $uncompressed_size * 2.1 ) > $available_space )
 			return new MN_Error( 'disk_full_unzip_file', __( 'Could not copy files. You may have run out of disk space.' ), compact( 'uncompressed_size', 'available_space' ) );
 	}
@@ -944,10 +945,10 @@ function MN_Filesystem( $args = false, $context = false, $allow_relaxed_file_own
  * (Via Sockets class, or `fsockopen()`). Valid values for these are: 'direct', 'ssh2',
  * 'ftpext' or 'ftpsockets'.
  *
- * The return value can be overridden by defining the `FS_METHOD` constant in `configuration.php`,
+ * The return value can be overridden by defining the `FS_METHOD` constant in `db.php`,
  * or filtering via {@see 'filesystem_method'}.
  *
- * @link https://mtaandao.co.ke/docs/Editing_configuration.php#Mtaandao_Upgrade_Constants
+ * @link https://mtaandao.github.io/Editing_db.php#Mtaandao_Upgrade_Constants
  *
  * Plugins may define a custom transport handler, See MN_Filesystem().
  *
@@ -966,7 +967,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
 	$method = defined('FS_METHOD') ? FS_METHOD : false; // Please ensure that this is either 'direct', 'ssh2', 'ftpext' or 'ftpsockets'
 
 	if ( ! $context ) {
-		$context = MAIN;
+		$context = MAIN_DIR;
 	}
 
 	// If the directory doesn't exist (main/languages) then use the parent directory as we'll create it.
@@ -1035,7 +1036,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
  * Plugins may override this form by returning true|false via the {@see 'request_filesystem_credentials'} filter.
  *
  * @since 2.5.0
- * @since 16.10.0 The `$context` parameter default changed from `false` to an empty string.
+ * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
  *
  * @global string $pagenow
  *
@@ -1061,7 +1062,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	 * output of the filesystem credentials form, returning that value instead.
 	 *
 	 * @since 2.5.0
-	 * @since 16.10.0 The `$context` parameter default changed from `false` to an empty string.
+	 * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
 	 *
 	 * @param mixed  $output                       Form output to return instead. Default empty.
 	 * @param string $form_post                    The URL to post the form to.
@@ -1160,7 +1161,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	 * Filters the connection types to output to the filesystem credentials form.
 	 *
 	 * @since 2.9.0
-	 * @since 16.10.0 The `$context` parameter default changed from `false` to an empty string.
+	 * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
 	 *
 	 * @param array  $types       Types of connections.
 	 * @param array  $credentials Credentials to connect with.
@@ -1260,7 +1261,7 @@ foreach ( (array) $extra_fields as $field ) {
 ?>
 	<p class="request-filesystem-credentials-action-buttons">
 		<button class="button cancel-button" data-js-action="close" type="button"><?php _e( 'Cancel' ); ?></button>
-		<?php submit_button( __( 'Proceed' ), 'button', 'upgrade', false ); ?>
+		<?php submit_button( __( 'Proceed' ), '', 'upgrade', false ); ?>
 	</p>
 </div>
 </form>

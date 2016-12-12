@@ -2,7 +2,7 @@
 /**
  * The template part for displaying the main navigation
  *
- * Learn more: http://mtaandao.co.ke/docs/Template_Hierarchy
+ * Learn more: http://codex.mtaandao.co.ke/Template_Hierarchy
  *
  * @package Ese
  */
@@ -19,6 +19,7 @@
       <?php get_search_form(); ?>
     </div>
 
+  
     <?php
 		$args = array(
 	        'theme_location' => 'primary',

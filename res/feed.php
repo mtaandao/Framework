@@ -538,6 +538,12 @@ function prep_atom_text_construct($data) {
 		return array('text', $data);
 	}
 
+	if ( ! function_exists( 'xml_parser_create' ) ) {
+		trigger_error( __( "PHP's XML extension is not available. Please contact your hosting provider to enable PHP's XML extension." ) );
+
+		return array( 'html', "<![CDATA[$data]]>" );
+	}
+
 	$parser = xml_parser_create();
 	xml_parse($parser, '<div>' . $data . '</div>', true);
 	$code = xml_get_error_code($parser);
@@ -663,7 +669,14 @@ function feed_content_type( $type = '' ) {
  * @return MN_Error|SimplePie MN_Error object on failure or SimplePie object on success
  */
 function fetch_feed( $url ) {
-	require_once( ABSPATH . RES . '/class-feed.php' );
+	if ( ! class_exists( 'SimplePie', false ) ) {
+		require_once( ABSPATH . RES . '/class-simplepie.php' );
+	}
+
+	require_once( ABSPATH . RES . '/class-mn-feed-cache.php' );
+	require_once( ABSPATH . RES . '/class-mn-feed-cache-transient.php' );
+	require_once( ABSPATH . RES . '/class-mn-simplepie-file.php' );
+	require_once( ABSPATH . RES . '/class-mn-simplepie-sanitize-kses.php' );
 
 	$feed = new SimplePie();
 
@@ -676,7 +689,7 @@ function fetch_feed( $url ) {
 	$feed->set_file_class( 'MN_SimplePie_File' );
 
 	$feed->set_feed_url( $url );
-	/** This filter is documented in res/class-feed.php */
+	/** This filter is documented in res/class-mn-feed-cache-transient.php */
 	$feed->set_cache_duration( apply_filters( 'mn_feed_cache_transient_lifetime', 12 * HOUR_IN_SECONDS, $url ) );
 	/**
 	 * Fires just before processing the SimplePie feed object.

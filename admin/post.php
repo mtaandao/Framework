@@ -280,7 +280,7 @@ default:
 	 *
 	 * The dynamic portion of the hook name, `$action`, refers to the custom post action.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param int $post_id Post ID sent with the request.
 	 */

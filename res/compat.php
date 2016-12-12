@@ -450,7 +450,7 @@ if ( ! function_exists( 'array_replace_recursive' ) ) :
 	 *
 	 * @since 4.5.3
 	 *
-	 * @see http://php.net/manual/en/function.array-replace-recursive.php#109390
+	 * @see https://secure.php.net/manual/en/function.array-replace-recursive.php#109390
 	 *
 	 * @param  array $base         Array with keys needing to be replaced.
 	 * @param  array $replacements Array with the replaced keys.
@@ -495,7 +495,7 @@ if ( ! function_exists( 'spl_autoload_register' ) ):
 	/**
 	 * Autoloader compatibility callback.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param string $classname Class to attempt autoloading.
 	 */
@@ -519,7 +519,7 @@ if ( ! function_exists( 'spl_autoload_register' ) ):
 	/**
 	 * Registers a function to be autoloaded.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param callable $autoload_function The function to register.
 	 * @param bool     $throw             Optional. Whether the function should throw an exception
@@ -550,7 +550,7 @@ if ( ! function_exists( 'spl_autoload_register' ) ):
 	/**
 	 * Unregisters an autoloader function.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param callable $function The function to unregister.
 	 * @return bool True if the function was unregistered, false if it could not be.
@@ -570,7 +570,7 @@ if ( ! function_exists( 'spl_autoload_register' ) ):
 	/**
 	 * Retrieves the registered autoloader functions.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @return array List of autoloader functions.
 	 */

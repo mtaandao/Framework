@@ -7,7 +7,7 @@
  */
 
 /**
- * Retrieves plugin installer pages from the mtaandao.co.ke Plugins API.
+ * Retrieves plugin installer pages from the Mtaandao.org Plugins API.
  *
  * It is possible for a plugin to override the Plugin API result with three
  * filters. Assume this is for plugins, which can extend on the Plugin Info to
@@ -18,7 +18,7 @@
  * as the second parameter. The hook for {@see 'plugins_api_args'} must ensure that
  * an object is returned.
  *
- * The second filter, {@see 'plugins_api'}, allows a plugin to override the mtaandao.co.ke
+ * The second filter, {@see 'plugins_api'}, allows a plugin to override the Mtaandao.org
  * Plugin Install API entirely. If `$action` is 'query_plugins' or 'plugin_information',
  * an object MUST be passed. If `$action` is 'hot_tags' or 'hot_categories', an array MUST
  * be passed.
@@ -109,11 +109,11 @@ function plugins_api( $action, $args = array() ) {
 	}
 
 	if ( ! isset( $args->locale ) ) {
-		$args->locale = get_locale();
+		$args->locale = get_user_locale();
 	}
 
 	/**
-	 * Filters the mtaandao.co.ke Plugin Install API arguments.
+	 * Filters the Mtaandao.org Plugin Install API arguments.
 	 *
 	 * Important: An object MUST be returned to this filter.
 	 *
@@ -125,9 +125,9 @@ function plugins_api( $action, $args = array() ) {
 	$args = apply_filters( 'plugins_api_args', $args, $action );
 
 	/**
-	 * Filters the response for the current mtaandao.co.ke Plugin Install API request.
+	 * Filters the response for the current Mtaandao.org Plugin Install API request.
 	 *
-	 * Passing a non-false value will effectively short-circuit the mtaandao.co.ke API request.
+	 * Passing a non-false value will effectively short-circuit the Mtaandao.org API request.
 	 *
 	 * If `$action` is 'query_plugins' or 'plugin_information', an object MUST be passed.
 	 * If `$action` is 'hot_tags' or 'hot_categories', an array should be passed.
@@ -155,16 +155,38 @@ function plugins_api( $action, $args = array() ) {
 		$request = mn_remote_post( $url, $http_args );
 
 		if ( $ssl && is_mn_error( $request ) ) {
-			trigger_error( __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ) . ' ' . __( '(Mtaandao could not establish a secure connection to mtaandao.co.ke. Please contact your server administrator.)' ), headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE );
+			trigger_error(
+				sprintf(
+					/* translators: %s: support forums URL */
+					__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+					__( 'https://mtaandao.co.ke/support/' )
+				) . ' ' . __( '(Mtaandao could not establish a secure connection to Mtaandao.org. Please contact your server administrator.)' ),
+				headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+			);
 			$request = mn_remote_post( $http_url, $http_args );
 		}
 
 		if ( is_mn_error($request) ) {
-			$res = new MN_Error('plugins_api_failed', __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ), $request->get_error_message() );
+			$res = new MN_Error( 'plugins_api_failed',
+				sprintf(
+					/* translators: %s: support forums URL */
+					__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+					__( 'https://mtaandao.co.ke/support/' )
+				),
+				$request->get_error_message()
+			);
 		} else {
 			$res = maybe_unserialize( mn_remote_retrieve_body( $request ) );
-			if ( ! is_object( $res ) && ! is_array( $res ) )
-				$res = new MN_Error('plugins_api_failed', __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ), mn_remote_retrieve_body( $request ) );
+			if ( ! is_object( $res ) && ! is_array( $res ) ) {
+				$res = new MN_Error( 'plugins_api_failed',
+					sprintf(
+						/* translators: %s: support forums URL */
+						__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+						__( 'https://mtaandao.co.ke/support/' )
+					),
+					mn_remote_retrieve_body( $request )
+				);
+			}
 		}
 	} elseif ( !is_mn_error($res) ) {
 		$res->external = true;
@@ -210,7 +232,7 @@ function install_popular_tags( $args = array() ) {
  */
 function install_dashboard() {
 	?>
-	<p><?php printf( __( 'Plugins extend and expand the functionality of Mtaandao. You may automatically install plugins from the <a href="%1$s">Mtaandao Plugin Directory</a> or upload a plugin in .zip format by clicking the button at the top of this page.' ), 'https://mtaandao.co.ke/plugins/' ); ?></p>
+	<p><?php printf( __( 'Plugins extend and expand the functionality of Mtaandao. You may automatically install plugins from the <a href="%1$s">Mtaandao Plugin Directory</a> or upload a plugin in .zip format by clicking the button at the top of this page.' ), __( 'https://mtaandao.co.ke/plugins/' ) ); ?></p>
 
 	<?php display_plugins_table(); ?>
 
@@ -247,7 +269,7 @@ function install_dashboard() {
  * Displays a search form for searching plugins.
  *
  * @since 2.7.0
- * @since 16.10.0 The `$type_selector` parameter was deprecated.
+ * @since 4.6.0 The `$type_selector` parameter was deprecated.
  *
  * @param bool $deprecated Not used.
  */
@@ -263,9 +285,9 @@ function install_search_form( $deprecated = true ) {
 			<option value="tag"<?php selected( 'tag', $type ); ?>><?php _ex( 'Tag', 'Plugin Installer' ); ?></option>
 		</select>
 		<label><span class="screen-reader-text"><?php _e( 'Search Plugins' ); ?></span>
-			<input type="search" name="s" value="<?php echo esc_attr( $term ) ?>" class="mn-filter-search" placeholder="<?php esc_attr_e( 'Search Plugins' ); ?>" />
+			<input type="search" name="s" value="<?php echo esc_attr( $term ) ?>" class="mn-filter-search" placeholder="<?php esc_attr_e( 'Search plugins...' ); ?>" />
 		</label>
-		<?php submit_button( __( 'Search Plugins' ), 'button hide-if-js', false, false, array( 'id' => 'search-submit' ) ); ?>
+		<?php submit_button( __( 'Search Plugins' ), 'hide-if-js', false, false, array( 'id' => 'search-submit' ) ); ?>
 	</form><?php
 }
 
@@ -281,7 +303,7 @@ function install_plugins_upload() {
 		<?php mn_nonce_field( 'plugin-upload' ); ?>
 		<label class="screen-reader-text" for="pluginzip"><?php _e( 'Plugin zip file' ); ?></label>
 		<input type="file" id="pluginzip" name="pluginzip" />
-		<?php submit_button( __( 'Install Now' ), 'button', 'install-plugin-submit', false ); ?>
+		<?php submit_button( __( 'Install Now' ), '', 'install-plugin-submit', false ); ?>
 	</form>
 </div>
 <?php
@@ -296,11 +318,11 @@ function install_plugins_favorites_form() {
 	$user   = get_user_option( 'mnorg_favorites' );
 	$action = 'save_mnorg_username_' . get_current_user_id();
 	?>
-	<p class="install-help"><?php _e( 'If you have marked plugins as favorites on mtaandao.co.ke, you can browse them here.' ); ?></p>
+	<p class="install-help"><?php _e( 'If you have marked plugins as favorites on Mtaandao.org, you can browse them here.' ); ?></p>
 	<form method="get">
 		<input type="hidden" name="tab" value="favorites" />
 		<p>
-			<label for="user"><?php _e( 'Your mtaandao.co.ke username:' ); ?></label>
+			<label for="user"><?php _e( 'Your Mtaandao.org username:' ); ?></label>
 			<input type="search" id="user" name="user" value="<?php echo esc_attr( $user ); ?>" />
 			<input type="submit" class="button" value="<?php esc_attr_e( 'Get Favorites' ); ?>" />
 			<input type="hidden" id="mnorg-username-nonce" name="_mnnonce" value="<?php echo esc_attr( mn_create_nonce( $action ) ); ?>" />
@@ -348,9 +370,16 @@ function display_plugins_table() {
  *
  * @since 3.0.0
  *
- * @param array|object $api
- * @param bool        $loop
- * @return type
+ * @param  array|object $api  Data about the plugin retrieved from the API.
+ * @param  bool         $loop Optional. Disable further loops. Default false.
+ * @return array {
+ *     Plugin installation status data.
+ *
+ *     @type string $status  Status of a plugin. Could be one of 'install', 'update_available', 'latest_installed' or 'newer_installed'.
+ *     @type string $url     Plugin installation URL.
+ *     @type string $version The most recent version of the plugin.
+ *     @type string $file    Plugin filename relative to the plugins directory.
+ * }
  */
 function install_plugin_install_status($api, $loop = false) {
 	// This function is called recursively, $loop prevents further loops.
@@ -381,7 +410,7 @@ function install_plugin_install_status($api, $loop = false) {
 	}
 
 	if ( 'install' == $status ) {
-		if ( is_dir( MN_PLUGIN_DIR . '/' . $api->slug ) ) {
+		if ( is_dir( PLUGIN_DIR . '/' . $api->slug ) ) {
 			$installed_plugin = get_plugins('/' . $api->slug);
 			if ( empty($installed_plugin) ) {
 				if ( current_user_can('install_plugins') )
@@ -423,7 +452,6 @@ function install_plugin_install_status($api, $loop = false) {
  * @since 2.7.0
  *
  * @global string $tab
- * @global string $mn_version
  */
 function install_plugin_information() {
 	global $tab;
@@ -557,16 +585,18 @@ function install_plugin_information() {
 				</li>
 			<?php } if ( ! empty( $api->tested ) ) { ?>
 				<li><strong><?php _e( 'Compatible up to:' ); ?></strong> <?php echo $api->tested; ?></li>
-			<?php } if ( ! empty( $api->active_installs ) ) { ?>
+			<?php } if ( isset( $api->active_installs ) ) { ?>
 				<li><strong><?php _e( 'Active Installs:' ); ?></strong> <?php
 					if ( $api->active_installs >= 1000000 ) {
 						_ex( '1+ Million', 'Active plugin installs' );
+					} elseif ( 0 == $api->active_installs ) {
+						_ex( 'Less Than 10', 'Active plugin installs' );
 					} else {
 						echo number_format_i18n( $api->active_installs ) . '+';
 					}
 					?></li>
 			<?php } if ( ! empty( $api->slug ) && empty( $api->external ) ) { ?>
-				<li><a target="_blank" href="https://mtaandao.co.ke/plugins/<?php echo $api->slug; ?>/"><?php _e( 'mtaandao.co.ke Plugin Page &#187;' ); ?></a></li>
+				<li><a target="_blank" href="<?php echo __( 'https://mtaandao.co.ke/plugins/' ) . $api->slug; ?>/"><?php _e( 'Mtaandao.org Plugin Page &#187;' ); ?></a></li>
 			<?php } if ( ! empty( $api->homepage ) ) { ?>
 				<li><a target="_blank" href="<?php echo esc_url( $api->homepage ); ?>"><?php _e( 'Plugin Homepage &#187;' ); ?></a></li>
 			<?php } if ( ! empty( $api->donate_link ) && empty( $api->contributors ) ) { ?>
@@ -581,7 +611,7 @@ function install_plugin_information() {
 
 		if ( ! empty( $api->ratings ) && array_sum( (array) $api->ratings ) > 0 ) { ?>
 			<h3><?php _e( 'Reviews' ); ?></h3>
-			<p class="fyi-description"><?php _e( 'Read all reviews on mtaandao.co.ke or write your own!' ); ?></p>
+			<p class="fyi-description"><?php _e( 'Read all reviews on Mtaandao.org or write your own!' ); ?></p>
 			<?php
 			foreach ( $api->ratings as $key => $ratecount ) {
 				// Avoid div-by-zero.
@@ -630,9 +660,11 @@ function install_plugin_information() {
 	</div>
 	<div id="section-holder" class="wrap">
 	<?php
-	if ( ! empty( $api->tested ) && version_compare( substr( $GLOBALS['mn_version'], 0, strlen( $api->tested ) ), $api->tested, '>' ) ) {
+	$mn_version = get_bloginfo( 'version' );
+
+	if ( ! empty( $api->tested ) && version_compare( substr( $mn_version, 0, strlen( $api->tested ) ), $api->tested, '>' ) ) {
 		echo '<div class="notice notice-warning notice-alt"><p>' . __( '<strong>Warning:</strong> This plugin has <strong>not been tested</strong> with your current version of Mtaandao.' ) . '</p></div>';
-	} elseif ( ! empty( $api->requires ) && version_compare( substr( $GLOBALS['mn_version'], 0, strlen( $api->requires ) ), $api->requires, '<' ) ) {
+	} elseif ( ! empty( $api->requires ) && version_compare( substr( $mn_version, 0, strlen( $api->requires ) ), $api->requires, '<' ) ) {
 		echo '<div class="notice notice-warning notice-alt"><p>' . __( '<strong>Warning:</strong> This plugin has <strong>not been marked as compatible</strong> with your version of Mtaandao.' ) . '</p></div>';
 	}
 

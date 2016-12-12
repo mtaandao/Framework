@@ -267,7 +267,7 @@ class MN_Users_List_Table extends MN_List_Table {
 			<?php mn_dropdown_roles(); ?>
 		</select>
 	<?php
-			submit_button( __( 'Change' ), 'button', 'changeit', false );
+			submit_button( __( 'Change' ), '', 'changeit', false );
 		endif;
 
 		/**
@@ -275,7 +275,7 @@ class MN_Users_List_Table extends MN_List_Table {
 		 * in the Users list table.
 		 *
 		 * @since 3.5.0
-		 * @since 16.10.0 The `$which` parameter was added.
+		 * @since 4.6.0 The `$which` parameter was added.
 		 *
 		 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
 		 */

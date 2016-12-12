@@ -19,11 +19,6 @@ if ( ! current_user_can( 'edit_posts' ) || ! current_user_can( get_post_type_obj
 	);
 }
 
-/**
- * @global MN_Press_This $mn_press_this
- */
-if ( empty( $GLOBALS['mn_press_this'] ) ) {
-	include( ABSPATH . 'admin/includes/class-mn-press-this.php' );
-}
-
-$GLOBALS['mn_press_this']->html();
+include( ABSPATH . 'admin/includes/class-mn-press-this.php' ); 
+$mn_press_this = new MN_Press_This();
+$mn_press_this->html();

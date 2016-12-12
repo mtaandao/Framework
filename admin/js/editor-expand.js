@@ -9,8 +9,8 @@
 	/* Autoresize editor. */
 	$( function() {
 		var $wrap = $( '#postdivrich' ),
-			$contentWrap = $( '#mn-content-wrap' ),
-			$tools = $( '#mn-content-editor-tools' ),
+			$contentWrap = $( '#main-wrap' ),
+			$tools = $( '#main-editor-tools' ),
 			$visualTop = $(),
 			$visualEditor = $(),
 			$textTop = $( '#ed_toolbar' ),
@@ -318,7 +318,7 @@
 				topHeight = heights.textTopHeight;
 			}
 
-			// TinyMCE still intializing.
+			// TinyMCE still initializing.
 			if ( ! visual && ! $top.length ) {
 				return;
 			}

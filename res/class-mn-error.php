@@ -202,17 +202,3 @@ class MN_Error {
 		unset( $this->error_data[ $code ] );
 	}
 }
-
-/**
- * Check whether variable is a Mtaandao Error.
- *
- * Returns true if $thing is an object of the MN_Error class.
- *
- * @since 2.1.0
- *
- * @param mixed $thing Check if unknown variable is a MN_Error object.
- * @return bool True, if MN_Error. False, if not MN_Error.
- */
-function is_mn_error( $thing ) {
-	return ( $thing instanceof MN_Error );
-}

@@ -12,7 +12,7 @@ require_once( dirname( __FILE__ ) . '/includes/credits.php' );
 
 $title = __( 'Credits' );
 
-list( $display_version ) = explode( '-', $mn_version );
+list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
 
 include( ABSPATH . 'admin/admin-header.php' );
 ?>
@@ -20,7 +20,7 @@ include( ABSPATH . 'admin/admin-header.php' );
 
 <h1><?php printf( __( 'Welcome to Mtaandao %s' ), $display_version ); ?></h1>
 
-<p class="about-text"><?php printf( __( 'Thank you for updating to the latest version. Mtaandao %s changes a lot behind the scenes to make your Mtaandao experience even better!' ), $display_version ); ?></p>
+<p class="about-text"><?php printf( __( 'Thank you for updating to the latest version! Mtaandao %s helps you get your site set up the way you want it.' ), $display_version ); ?></p>
 
 <div class="mn-badge"><?php printf( __( 'Version %s' ), $display_version ); ?></div>
 

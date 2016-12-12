@@ -2345,7 +2345,7 @@ class getid3_riff extends getid3_handler {
 			IV43	Ligos Indeo Interactive 4.3
 			IV44	Ligos Indeo Interactive 4.4
 			IV45	Ligos Indeo Interactive 4.5
-			IV46	Ligos Indeo Interactive 16.10
+			IV46	Ligos Indeo Interactive 4.6
 			IV47	Ligos Indeo Interactive 4.7
 			IV48	Ligos Indeo Interactive 4.8
 			IV49	Ligos Indeo Interactive 4.9

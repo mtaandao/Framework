@@ -10,8 +10,8 @@ if ( isset( $_REQUEST['action'] ) && 'upload-attachment' === $_REQUEST['action']
 	define( 'DOING_AJAX', true );
 }
 
-if ( ! defined( 'MN_ADMIN' ) ) {
-	define( 'MN_ADMIN', true );
+if ( ! defined( 'ADMIN' ) ) {
+	define( 'ADMIN', true );
 }
 
 if ( defined('ABSPATH') )

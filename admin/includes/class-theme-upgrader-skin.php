@@ -4,14 +4,14 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
  * Theme Upgrader Skin for Mtaandao Theme Upgrades.
  *
  * @since 2.8.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
  *
  * @see MN_Upgrader_Skin
  */

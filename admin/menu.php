@@ -19,27 +19,10 @@
  *
  * @global array $menu
  */
-require_once (ABSPATH . RES. '/admin-bar.php');
-$user_id      = get_current_user_id();
-	$current_user = mn_get_current_user();
 
-	if ( ! $user_id )
-		return;
+$menu[2] = array( __('Admin'), 'read', 'index.php', '', 'menu-top menu-top-first menu-icon-dashboard', 'menu-dashboard', 'dashicons-dashboard' );
 
-	if ( current_user_can( 'read' ) ) {
-		$profile_url = get_edit_profile_url( $user_id );
-	} elseif ( is_multisite() ) {
-		$profile_url = get_dashboard_url( $user_id, 'profile.php' );
-	} else {
-		$profile_url = false;
-	}
-
-$menu[1] = array(get_avatar( $user_id, 160 ), 'read', 'profile.php', '', 'menu-top menu-top-first menu-icon-dashboard', 'menu-dashboard' , 'dashicons-marker');
-
-$menu[2] = array( __('Admin'), 'read', 'index.php', '', 'menu-top menu-top menu-icon-dashboard', 'menu-dashboard', 'dashicons-dashboard' );
-
-
-/*$submenu[ 'index.php' ][0] = array( __('Home'), 'read', 'index.php' );
+$submenu[ 'index.php' ][0] = array( __('Home'), 'read', 'index.php' );
 
 if ( is_multisite() ) {
 	$submenu[ 'index.php' ][5] = array( __('My Sites'), 'read', 'my-sites.php' );
@@ -55,18 +38,18 @@ if ( ! is_multisite() ) {
 		$cap = 'update_plugins';
 	else
 		$cap = 'update_themes';
-	$submenu[ 'index.php' ][10] = array( sprintf( __('Updates %s'), "<span class='update-plugins count-{$update_data['counts']['total']}' title='{$update_data['title']}'><span class='update-count'>" . number_format_i18n($update_data['counts']['total']) . "</span></span>" ), $cap, 'update-core.php');
+	$submenu[ 'index.php' ][10] = array( sprintf( __('Updates %s'), "<span class='update-plugins count-{$update_data['counts']['total']}'><span class='update-count'>" . number_format_i18n($update_data['counts']['total']) . "</span></span>" ), $cap, 'update-core.php');
 	unset( $cap );
 }
-*/
+
 $menu[4] = array( '', 'read', 'separator1', '', 'mn-menu-separator' );
 
 // $menu[5] = Posts
 
-$menu[10] = array( __('Library'), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'dashicons-admin-media' );
-	$submenu['upload.php'][5] = array( __('Media'), 'upload_files', 'upload.php');
+$menu[10] = array( __('Media'), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'dashicons-admin-media' );
+	$submenu['upload.php'][5] = array( __('Library'), 'upload_files', 'upload.php');
 	/* translators: add new file */
-	$submenu['upload.php'][10] = array( _x('Upload', 'file'), 'upload_files', 'media-new.php');
+	$submenu['upload.php'][10] = array( _x('Add New', 'file'), 'upload_files', 'media-new.php');
 	$i = 15;
 	foreach ( get_taxonomies_for_attachments( 'objects' ) as $tax ) {
 		if ( ! $tax->show_ui || ! $tax->show_in_menu )
@@ -170,7 +153,7 @@ $menu[59] = array( '', 'read', 'separator2', '', 'mn-menu-separator' );
 
 $appearance_cap = current_user_can( 'switch_themes') ? 'switch_themes' : 'edit_theme_options';
 
-$menu[60] = array( __( 'Look & Feel' ), $appearance_cap, 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'dashicons-art' );
+$menu[60] = array( __( 'Design' ), $appearance_cap, 'themes.php', '', 'menu-top menu-icon-appearance', 'menu-appearance', 'dashicons-art' );
 	$submenu['themes.php'][5] = array( __( 'Themes' ), $appearance_cap, 'themes.php' );
 
 	$customize_url = add_query_arg( 'return', urlencode( mn_unslash( $_SERVER['REQUEST_URI'] ) ), 'customize.php' );
@@ -187,7 +170,7 @@ $menu[60] = array( __( 'Look & Feel' ), $appearance_cap, 'themes.php', '', 'menu
 
 	if ( current_theme_supports( 'custom-background' ) && current_user_can( 'customize') ) {
 		$customize_background_url = add_query_arg( array( 'autofocus' => array( 'control' => 'background_image' ) ), $customize_url );
-		$submenu['themes.php'][20] = array( __( 'Backdrop' ), $appearance_cap, esc_url( $customize_background_url ), '', 'hide-if-no-customize' );
+		$submenu['themes.php'][20] = array( __( 'Background' ), $appearance_cap, esc_url( $customize_background_url ), '', 'hide-if-no-customize' );
 	}
 
 	unset( $customize_url );
@@ -218,11 +201,11 @@ if ( ! is_multisite() && current_user_can( 'update_plugins' ) ) {
 
 $menu[65] = array( sprintf( __('Plugins %s'), $count ), 'activate_plugins', 'plugins.php', '', 'menu-top menu-icon-plugins', 'menu-plugins', 'dashicons-admin-plugins' );
 
-$submenu['plugins.php'][5]  = array( __('Installed Plugins'), 'activate_plugins', 'plugins.php' );
+$submenu['plugins.php'][5]  = array( __('All Plugins'), 'activate_plugins', 'plugins.php' );
 
 	if ( ! is_multisite() ) {
 		/* translators: add new plugin */
-		$submenu['plugins.php'][10] = array( _x('Add New', 'plugin'), 'install_plugins', 'plugin-install.php' );
+		$submenu['plugins.php'][10] = array( _x('Upload New', 'plugin'), 'install_plugins', 'plugin-install.php' );
 		$submenu['plugins.php'][15] = array( _x('Editor', 'plugin editor'), 'edit_plugins', 'plugin-editor.php' );
 	}
 
@@ -253,21 +236,23 @@ if ( current_user_can('list_users') ) {
 	}
 }
 
-$menu[75] = array( __('Content'), 'edit_posts', 'import.php', '', 'menu-top menu-icon-tools', 'menu-tools', 'dashicons-category' );
-	$submenu['import.php'][5] = array( __('Import'), 'import', 'import.php' );
-	$submenu['import.php'][10] = array( __('Export'), 'export', 'export.php' );
+$menu[75] = array( __('Content'), 'edit_posts', 'tools.php', '', 'menu-top menu-icon-tools', 'menu-tools', 'dashicons-portfolio' );
+	$submenu['tools.php'][5] = array( __('Tools'), 'edit_posts', 'tools.php' );
+	$submenu['tools.php'][10] = array( __('Import'), 'import', 'import.php' );
+	$submenu['tools.php'][15] = array( __('Export'), 'export', 'export.php' );
 	if ( is_multisite() && !is_main_site() )
 		$submenu['tools.php'][25] = array( __('Delete Site'), 'delete_site', 'ms-delete-site.php' );
 	if ( ! is_multisite() && defined('MN_ALLOW_MULTISITE') && MN_ALLOW_MULTISITE )
 		$submenu['tools.php'][50] = array(__('Network Setup'), 'manage_options', 'network.php');
 
 $menu[80] = array( __('Preferences'), 'manage_options', 'options-general.php', '', 'menu-top menu-icon-settings', 'menu-settings', 'dashicons-admin-settings' );
-	$submenu['options-general.php'][10] = array(_x('General Options', 'settings screen'), 'manage_options', 'options-general.php');
-	$submenu['options-general.php'][15] = array(__('Writing & Reading'), 'manage_options', 'options-writing.php');
-	$submenu['options-general.php'][20] = array(__('Discussion & Avatars'), 'manage_options', 'options-discussion.php');
-	$submenu['options-general.php'][25] = array(__('Media & Sharing'), 'manage_options', 'options-media.php');
-	$submenu['options-general.php'][30] = array(__('Database Options'), 'manage_options', 'options-database.php');
-	$submenu['options-general.php'][35] = array(__('Permalinks'), 'manage_options', 'options-permalink.php');
+	$submenu['options-general.php'][10] = array(_x('General', 'settings screen'), 'manage_options', 'options-general.php');
+	$submenu['options-general.php'][15] = array(__('Writing'), 'manage_options', 'options-writing.php');
+	$submenu['options-general.php'][20] = array(__('Reading'), 'manage_options', 'options-reading.php');
+	$submenu['options-general.php'][25] = array(__('Discussion'), 'manage_options', 'options-discussion.php');
+	$submenu['options-general.php'][30] = array(__('Media'), 'manage_options', 'options-media.php');
+	$submenu['options-general.php'][40] = array(__('Permalinks'), 'manage_options', 'options-permalink.php');
+	$submenu['options-general.php'][50] = array(__('Database'), 'manage_options', 'options-database.php');
 
 $_mn_last_utility_menu = 80; // The index of the last top-level menu in the utility menu group
 

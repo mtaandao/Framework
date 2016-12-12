@@ -105,7 +105,7 @@ function dropdown_link_categories( $default = 0 ) {
  *
  * @since 1.5.0
  * @deprecated 2.9.0
- * @uses MAIN Full filesystem path to the main directory.
+ * @uses MAIN_DIR Full filesystem path to the main directory.
  *
  * @param string $file Filesystem path relative to the main directory.
  * @return string Full filesystem path to edit.
@@ -113,7 +113,7 @@ function dropdown_link_categories( $default = 0 ) {
 function get_real_file_to_edit( $file ) {
 	_deprecated_function( __FUNCTION__, '2.9.0' );
 
-	return MAIN . $file;
+	return MAIN_DIR . $file;
 }
 
 /**
@@ -850,11 +850,11 @@ function screen_meta( $screen ) {
  * Favorite actions were deprecated in version 3.2. Use the admin bar instead.
  *
  * @since 2.7.0
- * @deprecated 3.2.0 Use MN_Admin_Bar
- * @see MN_Admin_Bar
+ * @deprecated 3.2.0 Use Admin_Bar
+ * @see Admin_Bar
  */
 function favorite_actions() {
-	_deprecated_function( __FUNCTION__, '3.2.0', 'MN_Admin_Bar' );
+	_deprecated_function( __FUNCTION__, '3.2.0', 'Admin_Bar' );
 }
 
 /**
@@ -1382,7 +1382,7 @@ function add_utility_page( $page_title, $menu_title, $capability, $menu_slug, $f
  * Replaced with mn_page_reload_on_back_button_js() that also fixes this problem.
  *
  * @since 4.0.0
- * $deprecated 16.10.0
+ * $deprecated 4.6.0
  *
  * @global bool $is_safari
  * @global bool $is_chrome
@@ -1390,7 +1390,7 @@ function add_utility_page( $page_title, $menu_title, $capability, $menu_slug, $f
 function post_form_autocomplete_off() {
 	global $is_safari, $is_chrome;
 
-	_deprecated_function( __FUNCTION__, '16.10.0' );
+	_deprecated_function( __FUNCTION__, '4.6.0' );
 
 	if ( $is_safari || $is_chrome ) {
 		echo ' autocomplete="off"';

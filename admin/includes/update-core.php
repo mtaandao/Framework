@@ -132,7 +132,7 @@ $_old_files = array(
 'res/js/tinymce/plugins/spellchecker/tinyspell.php',
 'res/js/tinymce/plugins/mtaandao/images',
 'res/js/tinymce/plugins/mtaandao/langs',
-'res/js/tinymce/plugins/mtaandao/Mtaandao.css',
+'res/js/tinymce/plugins/mtaandao/mtaandao.css',
 'res/js/tinymce/plugins/mnhelp',
 'res/js/tinymce/themes/advanced/css',
 'res/js/tinymce/themes/advanced/images',
@@ -187,7 +187,7 @@ $_old_files = array(
 'res/js/tinymce/plugins/autosave',
 'res/js/tinymce/plugins/paste/css',
 'res/js/tinymce/utils/mclayer.js',
-'res/js/tinymce/Mtaandao.css',
+'res/js/tinymce/mtaandao.css',
 // 2.8.5
 'admin/import/btt.php',
 'admin/import/jkw.php',
@@ -703,7 +703,7 @@ $_old_files = array(
 'res/js/tinymce/plugins/mnfullscreen',
 // 4.5
 'res/theme-compat/comments-popup.php',
-// 16.10
+// 4.6
 'admin/includes/class-mn-automatic-upgrader.php', // Wrong file name, see #37628.
 );
 
@@ -716,12 +716,13 @@ $_old_files = array(
  * introduced version present here being older than the current installed version.
  *
  * The content of this array should follow the following format:
- * Filename (relative to mn-content) => Introduced version
+ * Filename (relative to main) => Introduced version
  * Directories should be noted by suffixing it with a trailing slash (/)
  *
  * @since 3.2.0
- * @since 4.4.0 New themes are not automatically installed on upgrade.
- *              This can still be explicitly asked for by defining
+ * @since 4.7.0 New themes were not automatically installed for 4.4-4.6 on
+ *              upgrade. New themes are now installed again. To disable new
+ *              themes from being installed on upgrade, explicitly define
  *              CORE_UPGRADE_SKIP_NEW_BUNDLED as false.
  * @global array $_new_bundled_files
  * @var array
@@ -730,20 +731,16 @@ $_old_files = array(
 global $_new_bundled_files;
 
 $_new_bundled_files = array(
-	'plugins/akismet/'       => '2.0',
-	'themes/twentyten/'      => '3.0',
-	'themes/twentyeleven/'   => '3.2',
-	'themes/twentytwelve/'   => '3.5',
-	'themes/twentythirteen/' => '3.6',
-	'themes/twentyfourteen/' => '3.8',
-	'themes/twentyfifteen/'  => '4.1',
-	'themes/twentysixteen/'  => '4.4',
+	'plugins/akismet/'        => '2.0',
+	'themes/twentyten/'       => '3.0',
+	'themes/twentyeleven/'    => '3.2',
+	'themes/twentytwelve/'    => '3.5',
+	'themes/twentythirteen/'  => '3.6',
+	'themes/twentyfourteen/'  => '3.8',
+	'themes/twentyfifteen/'   => '4.1',
+	'themes/twentysixteen/'   => '4.4',
+	'themes/twentyseventeen/' => '4.7',
 );
-
-// If not explicitly defined as false, don't install new default themes.
-if ( ! defined( 'CORE_UPGRADE_SKIP_NEW_BUNDLED' ) || CORE_UPGRADE_SKIP_NEW_BUNDLED ) {
-	$_new_bundled_files = array( 'plugins/akismet/' => '2.0' );
-}
 
 /**
  * Upgrades the core of Mtaandao.
@@ -764,8 +761,8 @@ if ( ! defined( 'CORE_UPGRADE_SKIP_NEW_BUNDLED' ) || CORE_UPGRADE_SKIP_NEW_BUNDL
  *   2. Create the .maintenance file in current Mtaandao base.
  *   3. Copy new Mtaandao directory over old Mtaandao files.
  *   4. Upgrade Mtaandao to new version.
- *     4.1. Copy all files/folders other than mn-content
- *     4.2. Copy any language files to MN_LANG_DIR (which may differ from MAIN
+ *     4.1. Copy all files/folders other than main
+ *     4.2. Copy any language files to MN_LANG_DIR (which may differ from MAIN_DIR
  *     4.3. Copy any new bundled themes/plugins to their respective locations
  *   5. Delete new Mtaandao directory path.
  *   6. Delete .maintenance file.
@@ -855,7 +852,7 @@ function update_core($from, $to) {
 	}
 
 	$mn_filesystem->chmod( $versions_file, FS_CHMOD_FILE );
-	require( MAIN . '/upgrade/version-current.php' );
+	require( MAIN_DIR . '/upgrade/version-current.php' );
 	$mn_filesystem->delete( $versions_file );
 
 	$php_version    = phpversion();
@@ -863,7 +860,7 @@ function update_core($from, $to) {
 	$old_mn_version = $mn_version; // The version of Mtaandao we're updating from
 	$development_build = ( false !== strpos( $old_mn_version . $mn_version, '-' )  ); // a dash in the version indicates a Development release
 	$php_compat     = version_compare( $php_version, $required_php_version, '>=' );
-	if ( file_exists( MAIN . '/db.php' ) && empty( $mndb->is_mysql ) )
+	if ( file_exists( MAIN_DIR . '/db.php' ) && empty( $mndb->is_mysql ) )
 		$mysql_compat = true;
 	else
 		$mysql_compat = version_compare( $mysql_version, $required_mysql_version, '>=' );
@@ -881,7 +878,7 @@ function update_core($from, $to) {
 	/** This filter is documented in admin/includes/update-core.php */
 	apply_filters( 'update_feedback', __( 'Preparing to install the latest version&#8230;' ) );
 
-	// Don't copy mn-content, we'll deal with that below
+	// Don't copy main, we'll deal with that below
 	// We also copy version.php last so failed updates report their old version
 	$skip = array( 'main', 'res/version.php' );
 	$check_is_writable = array();
@@ -889,7 +886,7 @@ function update_core($from, $to) {
 	// Check to see which files don't really need updating - only available for 3.7 and higher
 	if ( function_exists( 'get_core_checksums' ) ) {
 		// Find the local version of the working directory
-		$working_dir_local = MAIN . '/upgrade/' . basename( $from ) . $distro;
+		$working_dir_local = MAIN_DIR . '/upgrade/' . basename( $from ) . $distro;
 
 		$checksums = get_core_checksums( $mn_version, isset( $mn_local_package ) ? $mn_local_package : 'en_US' );
 		if ( is_array( $checksums ) && isset( $checksums[ $mn_version ] ) )
@@ -901,6 +898,8 @@ function update_core($from, $to) {
 				if ( ! file_exists( ABSPATH . $file ) )
 					continue;
 				if ( ! file_exists( $working_dir_local . $file ) )
+					continue;
+				if ( '.' === dirname( $file ) && in_array( pathinfo( $file, PATHINFO_EXTENSION ), array( 'html', 'txt' ) ) )
 					continue;
 				if ( md5_file( ABSPATH . $file ) === $checksum )
 					$skip[] = $file;
@@ -954,7 +953,7 @@ function update_core($from, $to) {
 		$mn_filesystem->chmod( $to . 'res/version.php', FS_CHMOD_FILE );
 	}
 
-	// Check to make sure everything copied correctly, ignoring the contents of mn-content
+	// Check to make sure everything copied correctly, ignoring the contents of main
 	$skip = array( 'main' );
 	$failed = array();
 	if ( isset( $checksums ) && is_array( $checksums ) ) {
@@ -963,6 +962,10 @@ function update_core($from, $to) {
 				continue;
 			if ( ! file_exists( $working_dir_local . $file ) )
 				continue;
+			if ( '.' === dirname( $file ) && in_array( pathinfo( $file, PATHINFO_EXTENSION ), array( 'html', 'txt' ) ) ) {
+				$skip[] = $file;
+				continue;
+			}
 			if ( file_exists( ABSPATH . $file ) && md5_file( ABSPATH . $file ) == $checksum )
 				$skip[] = $file;
 			else
@@ -996,7 +999,7 @@ function update_core($from, $to) {
 		if ( MN_LANG_DIR != ABSPATH . RES . '/languages' || @is_dir(MN_LANG_DIR) )
 			$lang_dir = MN_LANG_DIR;
 		else
-			$lang_dir = MAIN . '/languages';
+			$lang_dir = MAIN_DIR . '/languages';
 
 		if ( !@is_dir($lang_dir) && 0 === strpos($lang_dir, ABSPATH) ) { // Check the language directory exists first
 			$mn_filesystem->mkdir($to . str_replace(ABSPATH, '', $lang_dir), FS_CHMOD_DIR); // If it's within the ABSPATH we can handle it here, otherwise they're out of luck.
@@ -1020,7 +1023,7 @@ function update_core($from, $to) {
 
 	// 3.5 -> 3.5+ - an empty twentytwelve directory was created upon upgrade to 3.5 for some users, preventing installation of Twenty Twelve.
 	if ( '3.5' == $old_mn_version ) {
-		if ( is_dir( MAIN . '/themes/twentytwelve' ) && ! file_exists( MAIN . '/themes/twentytwelve/style.css' )  ) {
+		if ( is_dir( MAIN_DIR . '/themes/twentytwelve' ) && ! file_exists( MAIN_DIR . '/themes/twentytwelve/style.css' )  ) {
 			$mn_filesystem->delete( $mn_filesystem->mn_themes_dir() . 'twentytwelve/' );
 		}
 	}
@@ -1201,7 +1204,7 @@ function _copy_dir($from, $to, $skip_list = array() ) {
  *
  * @param string $new_version
  */
-function _redirect_to_about_Mtaandao( $new_version ) {
+function _redirect_to_about_mtaandao( $new_version ) {
 	global $mn_version, $pagenow, $action;
 
 	if ( version_compare( $mn_version, '3.4-RC1', '>=' ) )
@@ -1256,7 +1259,7 @@ function _upgrade_422_remove_genericons() {
 	}
 
 	// Plugins
-	$affected_plugin_files = _upgrade_422_find_genericons_files_in_folder( MN_PLUGIN_DIR );
+	$affected_plugin_files = _upgrade_422_find_genericons_files_in_folder( PLUGIN_DIR );
 	$affected_files        = array_merge( $affected_files, $affected_plugin_files );
 
 	foreach ( $affected_files as $file ) {

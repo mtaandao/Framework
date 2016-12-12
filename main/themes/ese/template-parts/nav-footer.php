@@ -1,8 +1,8 @@
 <?php
 /**
- * The template part for displaying the footer navigation
+ * The template part for displaying the drawer navigation
  *
- * Learn more: http://mtaandao.co.ke/docs/Template_Hierarchy
+ * Learn more: http://codex.mtaandao.co.ke/Template_Hierarchy
  *
  * @package Ese
  */
@@ -17,7 +17,4 @@
 	if (has_nav_menu('footer')) {
 	    mn_nav_menu($args);
 	}
-?>
-	<center>Powered by <a href="<?php echo esc_url( __( 'https://mtaandao.co.ke/', 'ese' ) ); ?>"><?php printf( __( ' %s', 'ese' ), 'Mtaandao' ); ?></a></center>
-<?php
 ?>

@@ -220,7 +220,7 @@ class MN_Http_Cookie {
 	/**
 	 * Retrieves cookie attributes.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 *
 	 * @return array {

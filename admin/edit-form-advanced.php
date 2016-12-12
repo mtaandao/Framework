@@ -259,8 +259,9 @@ foreach ( get_object_taxonomies( $post ) as $tax_name ) {
 	add_meta_box( $tax_meta_box_id, $label, $taxonomy->meta_box_cb, null, 'side', 'core', array( 'taxonomy' => $tax_name ) );
 }
 
-if ( post_type_supports($post_type, 'page-attributes') )
-	add_meta_box('pageparentdiv', 'page' == $post_type ? __('Page Attributes') : __('Attributes'), 'page_attributes_meta_box', null, 'side', 'core');
+if ( post_type_supports( $post_type, 'page-attributes' ) || count( get_page_templates( $post ) ) > 0 ) {
+	add_meta_box( 'pageparentdiv', $post_type_object->labels->attributes, 'page_attributes_meta_box', null, 'side', 'core' );
+}
 
 if ( $thumbnail_support && current_user_can( 'upload_files' ) )
 	add_meta_box('postimagediv', esc_html( $post_type_object->labels->featured_image ), 'post_thumbnail_meta_box', null, 'side', 'low');
@@ -331,7 +332,7 @@ do_action( 'add_meta_boxes', $post_type, $post );
  *
  * @param MN_Post $post Post object.
  */
-do_action( 'add_meta_boxes_' . $post_type, $post );
+do_action( "add_meta_boxes_{$post_type}", $post );
 
 /**
  * Fires after meta boxes have been added.
@@ -378,8 +379,8 @@ if ( 'post' == $post_type ) {
 	get_current_screen()->set_help_sidebar(
 			'<p>' . sprintf(__('You can also create posts with the <a href="%s">Press This bookmarklet</a>.'), 'tools.php') . '</p>' .
 			'<p><strong>' . __('For more information:') . '</strong></p>' .
-			'<p>' . __('<a href="https://mtaandao.co.ke/docs/Posts_Add_New_Screen" target="_blank">Documentation on Writing and Editing Posts</a>') . '</p>' .
-			'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+			'<p>' . __('<a href="https://mtaandao.github.io/Posts_Add_New_Screen">Documentation on Writing and Editing Posts</a>') . '</p>' .
+			'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 	);
 } elseif ( 'page' == $post_type ) {
 	$about_pages = '<p>' . __('Pages are similar to posts in that they have a title, body text, and associated metadata, but they are different in that they are not part of the chronological blog stream, kind of like permanent posts. Pages are not categorized or tagged, but can have a hierarchy. You can nest pages under other pages by making one the &#8220;Parent&#8221; of the other, creating a group of pages.') . '</p>' .
@@ -393,9 +394,9 @@ if ( 'post' == $post_type ) {
 
 	get_current_screen()->set_help_sidebar(
 			'<p><strong>' . __('For more information:') . '</strong></p>' .
-			'<p>' . __('<a href="https://mtaandao.co.ke/docs/Pages_Add_New_Screen" target="_blank">Documentation on Adding New Pages</a>') . '</p>' .
-			'<p>' . __('<a href="https://mtaandao.co.ke/docs/Pages_Screen#Editing_Individual_Pages" target="_blank">Documentation on Editing Pages</a>') . '</p>' .
-			'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+			'<p>' . __('<a href="https://mtaandao.github.io/Pages_Add_New_Screen">Documentation on Adding New Pages</a>') . '</p>' .
+			'<p>' . __('<a href="https://mtaandao.github.io/Pages_Screen#Editing_Individual_Pages">Documentation on Editing Pages</a>') . '</p>' .
+			'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 	);
 } elseif ( 'attachment' == $post_type ) {
 	get_current_screen()->add_help_tab( array(
@@ -410,14 +411,14 @@ if ( 'post' == $post_type ) {
 
 	get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Media_Add_New_Screen#Edit_Media" target="_blank">Documentation on Edit Media</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Media_Add_New_Screen#Edit_Media">Documentation on Edit Media</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 	);
 }
 
 if ( 'post' == $post_type || 'page' == $post_type ) {
 	$inserting_media = '<p>' . __( 'You can upload and insert media (images, audio, documents, etc.) by clicking the Add Media button. You can select from the images and files already uploaded to the Media Library, or upload new media to add to your page or post. To create an image gallery, select the images to add and click the &#8220;Create a new gallery&#8221; button.' ) . '</p>';
-	$inserting_media .= '<p>' . __( 'You can also embed media from many popular websites including Twitter, YouTube, Flickr and others by pasting the media URL on its own line into the content of your post/page. Please refer to the Codex to <a href="https://mtaandao.co.ke/docs/Embeds">learn more about embeds</a>.' ) . '</p>';
+	$inserting_media .= '<p>' . __( 'You can also embed media from many popular websites including Twitter, YouTube, Flickr and others by pasting the media URL on its own line into the content of your post/page. Please refer to the Codex to <a href="https://mtaandao.github.io/Embeds">learn more about embeds</a>.' ) . '</p>';
 
 	get_current_screen()->add_help_tab( array(
 		'id'		=> 'inserting-media',
@@ -433,7 +434,7 @@ if ( 'post' == $post_type ) {
 	'</li>';
 
 	if ( current_theme_supports( 'post-formats' ) && post_type_supports( 'post', 'post-formats' ) ) {
-		$publish_box .= '<li>' . __( '<strong>Format</strong> &mdash; Post Formats designate how your theme will display a specific post. For example, you could have a <em>standard</em> blog post with a title and paragraphs, or a short <em>aside</em> that omits the title and contains a short text blurb. Please refer to the Codex for <a href="https://mtaandao.co.ke/docs/Post_Formats#Supported_Formats">descriptions of each post format</a>. Your theme could enable all or some of 10 possible formats.' ) . '</li>';
+		$publish_box .= '<li>' . __( '<strong>Format</strong> &mdash; Post Formats designate how your theme will display a specific post. For example, you could have a <em>standard</em> blog post with a title and paragraphs, or a short <em>aside</em> that omits the title and contains a short text blurb. Please refer to the Codex for <a href="https://mtaandao.github.io/Post_Formats#Supported_Formats">descriptions of each post format</a>. Your theme could enable all or some of 10 possible formats.' ) . '</li>';
 	}
 
 	if ( current_theme_supports( 'post-thumbnails' ) && post_type_supports( 'post', 'thumbnail' ) ) {
@@ -473,11 +474,18 @@ require_once( ABSPATH . 'admin/admin-header.php' );
 ?>
 
 <div class="wrap">
-<h1><?php
+<h1 class="mn-heading-inline"><?php
 echo esc_html( $title );
-if ( isset( $post_new_file ) && current_user_can( $post_type_object->cap->create_posts ) )
-	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new ) . '</a>';
 ?></h1>
+
+<?php
+if ( isset( $post_new_file ) && current_user_can( $post_type_object->cap->create_posts ) ) {
+	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new ) . '</a>';
+}
+?>
+
+<hr class="mn-header-end">
+
 <?php if ( $notice ) : ?>
 <div id="notice" class="notice notice-warning"><p id="has-newer-autosave"><?php echo $notice ?></p></div>
 <?php endif; ?>
@@ -631,8 +639,10 @@ if ( post_type_supports($post_type, 'editor') ) {
 	if ( 'auto-draft' != $post->post_status ) {
 		echo '<span id="last-edit">';
 		if ( $last_user = get_userdata( get_post_meta( $post_ID, '_edit_last', true ) ) ) {
+			/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time */
 			printf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
 		} else {
+			/* translators: 1: Post edited date, 2: Post edited time */
 			printf( __( 'Last edited on %1$s at %2$s' ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
 		}
 		echo '</span>';

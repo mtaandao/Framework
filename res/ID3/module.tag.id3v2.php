@@ -864,7 +864,7 @@ class getid3_id3v2 extends getid3_handler
 
 
 		} elseif ((($id3v2_majorversion >= 3) && ($parsedFrame['frame_name'] == 'ETCO')) || // 4.5   ETCO Event timing codes
-				(($id3v2_majorversion == 2) && ($parsedFrame['frame_name'] == 'ETC'))) {     // 16.10   ETC  Event timing codes
+				(($id3v2_majorversion == 2) && ($parsedFrame['frame_name'] == 'ETC'))) {     // 4.6   ETC  Event timing codes
 			//   There may only be one 'ETCO' frame in each tag
 			// <Header for 'Event timing codes', ID: 'ETCO'>
 			// Time stamp format    $xx
@@ -889,7 +889,7 @@ class getid3_id3v2 extends getid3_handler
 			unset($parsedFrame['data']);
 
 
-		} elseif ((($id3v2_majorversion >= 3) && ($parsedFrame['frame_name'] == 'MLLT')) || // 16.10   MLLT MPEG location lookup table
+		} elseif ((($id3v2_majorversion >= 3) && ($parsedFrame['frame_name'] == 'MLLT')) || // 4.6   MLLT MPEG location lookup table
 				(($id3v2_majorversion == 2) && ($parsedFrame['frame_name'] == 'MLL'))) {     // 4.7   MLL MPEG location lookup table
 			//   There may only be one 'MLLT' frame in each tag
 			// <Header for 'Location lookup table', ID: 'MLLT'>

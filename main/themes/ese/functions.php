@@ -33,14 +33,10 @@ function ese_setup() {
 	 */
 	add_theme_support( 'title-tag' );
 
-	/**
-	*Add Custom Logo
-	*/
-
 	/*
 	 * Enable support for Post Thumbnails on posts and pages.
 	 *
-	 * @link http://mtaandao.co.ke/docs/Function_Reference/add_theme_support#Post_Thumbnails
+	 * @link http://codex.mtaandao.co.ke/Function_Reference/add_theme_support#Post_Thumbnails
 	 */
 	add_theme_support( 'post-thumbnails' );
 
@@ -65,7 +61,7 @@ function ese_setup() {
 
 	/*
 	 * Enable support for Post Formats.
-	 * See http://mtaandao.co.ke/docs/Post_Formats
+	 * See http://codex.mtaandao.co.ke/Post_Formats
 	 */
 	// add_theme_support( 'post-formats', array(
 	// 	'aside',
@@ -99,7 +95,7 @@ add_action( 'after_setup_theme', 'ese_content_width', 0 );
 /**
  * Register widget area.
  *
- * @link http://mtaandao.co.ke/docs/Function_Reference/register_sidebar
+ * @link http://codex.mtaandao.co.ke/Function_Reference/register_sidebar
  */
 function ese_widgets_init() {
 	register_sidebar( array(

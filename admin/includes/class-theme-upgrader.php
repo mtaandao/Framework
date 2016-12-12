@@ -4,7 +4,7 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
@@ -14,7 +14,7 @@
  * or uploaded zip file.
  *
  * @since 2.8.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader.php.
  *
  * @see MN_Upgrader
  */
@@ -201,8 +201,10 @@ class Theme_Upgrader extends MN_Upgrader {
 
 		add_filter('upgrader_source_selection', array($this, 'check_package') );
 		add_filter('upgrader_post_install', array($this, 'check_parent_theme_filter'), 10, 3);
-		// Clear cache so mn_update_themes() knows about the new theme.
-		add_action( 'upgrader_process_complete', 'mn_clean_themes_cache', 9, 0 );
+		if ( $parsed_args['clear_update_cache'] ) {
+			// Clear cache so mn_update_themes() knows about the new theme.
+			add_action( 'upgrader_process_complete', 'mn_clean_themes_cache', 9, 0 );
+		}
 
 		$this->run( array(
 			'package' => $package,
@@ -269,8 +271,10 @@ class Theme_Upgrader extends MN_Upgrader {
 		add_filter('upgrader_pre_install', array($this, 'current_before'), 10, 2);
 		add_filter('upgrader_post_install', array($this, 'current_after'), 10, 2);
 		add_filter('upgrader_clear_destination', array($this, 'delete_old_theme'), 10, 4);
-		// Clear cache so mn_update_themes() knows about the new theme.
-		add_action( 'upgrader_process_complete', 'mn_clean_themes_cache', 9, 0 );
+		if ( $parsed_args['clear_update_cache'] ) {
+			// Clear cache so mn_update_themes() knows about the new theme.
+			add_action( 'upgrader_process_complete', 'mn_clean_themes_cache', 9, 0 );
+		}
 
 		$this->run( array(
 			'package' => $r['package'],
@@ -329,13 +333,11 @@ class Theme_Upgrader extends MN_Upgrader {
 		add_filter('upgrader_pre_install', array($this, 'current_before'), 10, 2);
 		add_filter('upgrader_post_install', array($this, 'current_after'), 10, 2);
 		add_filter('upgrader_clear_destination', array($this, 'delete_old_theme'), 10, 4);
-		// Clear cache so mn_update_themes() knows about the new theme.
-		add_action( 'upgrader_process_complete', 'mn_clean_themes_cache', 9, 0 );
 
 		$this->skin->header();
 
 		// Connect to the Filesystem first.
-		$res = $this->fs_connect( array(MAIN) );
+		$res = $this->fs_connect( array(MAIN_DIR) );
 		if ( ! $res ) {
 			$this->skin->footer();
 			return false;
@@ -394,6 +396,9 @@ class Theme_Upgrader extends MN_Upgrader {
 
 		$this->maintenance_mode(false);
 
+		// Refresh the Theme Update information
+		mn_clean_themes_cache( $parsed_args['clear_update_cache'] );
+
 		/** This action is documented in admin/includes/class-mn-upgrader.php */
 		do_action( 'upgrader_process_complete', $this, array(
 			'action' => 'update',
@@ -407,13 +412,9 @@ class Theme_Upgrader extends MN_Upgrader {
 		$this->skin->footer();
 
 		// Cleanup our hooks, in case something else does a upgrade on this connection.
-		remove_action( 'upgrader_process_complete', 'mn_clean_themes_cache', 9 );
 		remove_filter('upgrader_pre_install', array($this, 'current_before'));
 		remove_filter('upgrader_post_install', array($this, 'current_after'));
 		remove_filter('upgrader_clear_destination', array($this, 'delete_old_theme'));
-
-		// Refresh the Theme Update information
-		mn_clean_themes_cache( $parsed_args['clear_update_cache'] );
 
 		return $results;
 	}
@@ -440,7 +441,7 @@ class Theme_Upgrader extends MN_Upgrader {
 			return $source;
 
 		// Check the folder contains a valid theme
-		$working_directory = str_replace( $mn_filesystem->mn_content_dir(), trailingslashit(MAIN), $source);
+		$working_directory = str_replace( $mn_filesystem->mn_content_dir(), trailingslashit(MAIN_DIR), $source);
 		if ( ! is_dir($working_directory) ) // Sanity check, if the above fails, let's not prevent installation.
 			return $source;
 

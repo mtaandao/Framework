@@ -101,8 +101,6 @@ class MN_Http {
 	 * @access public
 	 * @since 2.7.0
 	 *
-	 * @global string $mn_version
-	 *
 	 * @param string       $url  The request URL.
 	 * @param string|array $args {
 	 *     Optional. Array or string of HTTP request arguments.
@@ -116,7 +114,7 @@ class MN_Http {
 	 *     @type string       $httpversion         Version of the HTTP protocol to use. Accepts '1.0' and '1.1'.
 	 *                                             Default '1.0'.
 	 *     @type string       $user-agent          User-agent value sent.
-	 *                                             Default Mtaandao/' . $mn_version . '; ' . get_bloginfo( 'url' ).
+	 *                                             Default Mtaandao/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ).
 	 *     @type bool         $reject_unsafe_urls  Whether to pass URLs through mn_http_validate_url().
 	 *                                             Default false.
 	 *     @type bool         $blocking            Whether the calling code requires the result of the request.
@@ -148,8 +146,6 @@ class MN_Http {
 	 *                        A MN_Error instance upon error.
 	 */
 	public function request( $url, $args = array() ) {
-		global $mn_version;
-
 		$defaults = array(
 			'method' => 'GET',
 			/**
@@ -185,7 +181,7 @@ class MN_Http {
 			 *
 			 * @param string $user_agent Mtaandao user agent string.
 			 */
-			'user-agent' => apply_filters( 'http_headers_useragent', 'Mtaandao/' . $mn_version . '; ' . get_bloginfo( 'url' ) ),
+			'user-agent' => apply_filters( 'http_headers_useragent', 'Mtaandao/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) ),
 			/**
 			 * Filters whether to pass URLs through mn_http_validate_url() in an HTTP request.
 			 *
@@ -304,7 +300,7 @@ class MN_Http {
 			'timeout' => $r['timeout'],
 			'useragent' => $r['user-agent'],
 			'blocking' => $r['blocking'],
-			'hooks' => new Requests_Hooks(),
+			'hooks' => new MN_HTTP_Requests_Hooks( $url, $r ),
 		);
 
 		// Ensure redirects follow browser behaviour.
@@ -332,6 +328,7 @@ class MN_Http {
 		// SSL certificate handling
 		if ( ! $r['sslverify'] ) {
 			$options['verify'] = false;
+			$options['verifyname'] = false;
 		} else {
 			$options['verify'] = $r['sslcertificates'];
 		}
@@ -362,8 +359,8 @@ class MN_Http {
 			}
 		}
 
-		// Work around a bug in Requests when the path starts with // See https://github.com/rmccue/Requests/issues/231
-		$url = preg_replace( '!^(\w+://[^/]+)//(.*)$!i', '$1/$2', $url );
+		// Avoid issues where mbstring.func_overload is enabled
+		mbstring_binary_safe_encoding();
 
 		try {
 			$requests_response = Requests::request( $url, $headers, $data, $type, $options );
@@ -378,6 +375,8 @@ class MN_Http {
 		catch ( Requests_Exception $e ) {
 			$response = new MN_Error( 'http_request_failed', $e->getMessage() );
 		}
+
+		reset_mbstring_encoding();
 
 		/**
 		 * Fires after an HTTP API response is received and before the response is returned.
@@ -423,7 +422,7 @@ class MN_Http {
 	/**
 	 * Normalizes cookies for using in Requests.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 * @static
 	 *
@@ -451,7 +450,7 @@ class MN_Http {
 	 * RFC 7231, user agents can deviate from the strict reading of the
 	 * specification for compatibility purposes.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @access public
 	 * @static
 	 *
@@ -741,7 +740,7 @@ class MN_Http {
 	 *
 	 * Based off the HTTP http_encoding_dechunk function.
 	 *
-	 * @link https://tools.ietf.org/html/rfc2616#section-19.16.10 Process for chunked decoding.
+	 * @link https://tools.ietf.org/html/rfc2616#section-19.4.6 Process for chunked decoding.
 	 *
 	 * @access public
 	 * @since 2.7.0
@@ -786,7 +785,7 @@ class MN_Http {
 	 * Those who are behind a proxy and want to prevent access to certain hosts may do so. This will
 	 * prevent plugins from working and core functionality, if you don't include api.mtaandao.co.ke.
 	 *
-	 * You block external URL requests by defining MN_HTTP_BLOCK_EXTERNAL as true in your configuration.php
+	 * You block external URL requests by defining MN_HTTP_BLOCK_EXTERNAL as true in your db.php
 	 * file and this will only allow localhost and your site to make requests. The constant
 	 * MN_ACCESSIBLE_HOSTS will allow additional hosts to go through for requests. The format of the
 	 * MN_ACCESSIBLE_HOSTS constant is a comma separated list of hostnames to allow, wildcard domains

@@ -56,7 +56,7 @@ var mnAjax = jQuery.extend( {
 		selector = jQuery( selector );
 		return !mnAjax.invalidateForm( selector.find('.form-required').filter( function() { return jQuery('input:visible', this).val() === ''; } ) ).length;
 	}
-}, mnAjax || { noPerm: 'You do not have permission to do that.', broken: 'An unidentified error has occurred.' } );
+}, mnAjax || { noPerm: 'Sorry, you are not allowed to do that.', broken: 'An unidentified error has occurred.' } );
 
 // Basic form validation
 jQuery(document).ready( function($){

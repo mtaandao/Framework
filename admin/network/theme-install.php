@@ -13,7 +13,4 @@ if ( isset( $_GET['tab'] ) && ( 'theme-information' == $_GET['tab'] ) )
 /** Load Mtaandao Administration Bootstrap */
 require_once( dirname( __FILE__ ) . '/admin.php' );
 
-if ( ! is_multisite() )
-	mn_die( __( 'Multisite support is not enabled.' ) );
-
 require( ABSPATH . 'admin/theme-install.php' );

@@ -157,7 +157,7 @@ class MN_Upgrader {
 		$this->strings['fs_unavailable'] = __('Could not access filesystem.');
 		$this->strings['fs_error'] = __('Filesystem error.');
 		$this->strings['fs_no_root_dir'] = __('Unable to locate Mtaandao root directory.');
-		$this->strings['fs_no_content_dir'] = __('Unable to locate Mtaandao content directory (mn-content).');
+		$this->strings['fs_no_content_dir'] = __('Unable to locate Mtaandao content directory (main).');
 		$this->strings['fs_no_plugins_dir'] = __('Unable to locate Mtaandao plugin directory.');
 		$this->strings['fs_no_themes_dir'] = __('Unable to locate Mtaandao theme directory.');
 		/* translators: %s: directory name */
@@ -218,11 +218,11 @@ class MN_Upgrader {
 					if ( ! $mn_filesystem->abspath() )
 						return new MN_Error('fs_no_root_dir', $this->strings['fs_no_root_dir']);
 					break;
-				case MAIN:
+				case MAIN_DIR:
 					if ( ! $mn_filesystem->mn_content_dir() )
 						return new MN_Error('fs_no_content_dir', $this->strings['fs_no_content_dir']);
 					break;
-				case MN_PLUGIN_DIR:
+				case PLUGIN_DIR:
 					if ( ! $mn_filesystem->mn_plugins_dir() )
 						return new MN_Error('fs_no_plugins_dir', $this->strings['fs_no_plugins_dir']);
 					break;
@@ -510,11 +510,11 @@ class MN_Upgrader {
 		/*
 		 * Protection against deleting files in any important base directories.
 		 * Theme_Upgrader & Plugin_Upgrader also trigger this, as they pass the
-		 * destination directory (MN_PLUGIN_DIR / main/themes) intending
+		 * destination directory (PLUGIN_DIR / main/themes) intending
 		 * to copy the directory into the directory, whilst they pass the source
 		 * as the actual files to copy.
 		 */
-		$protected_directories = array( ABSPATH, MAIN, MN_PLUGIN_DIR, MAIN . '/themes' );
+		$protected_directories = array( ABSPATH, MAIN_DIR, PLUGIN_DIR, MAIN_DIR . '/themes' );
 
 		if ( is_array( $mn_theme_directories ) ) {
 			$protected_directories = array_merge( $protected_directories, $mn_theme_directories );
@@ -688,7 +688,7 @@ class MN_Upgrader {
 		}
 
 		// Connect to the Filesystem first.
-		$res = $this->fs_connect( array( MAIN, $options['destination'] ) );
+		$res = $this->fs_connect( array( MAIN_DIR, $options['destination'] ) );
 		// Mainly for non-connected filesystem.
 		if ( ! $res ) {
 			if ( ! $options['is_multi'] ) {
@@ -765,7 +765,7 @@ class MN_Upgrader {
 			 *
 			 * @since 3.6.0
 			 * @since 3.7.0 Added to MN_Upgrader::run().
-			 * @since 16.10.0 `$translations` was added as a possible argument to `$hook_extra`.
+			 * @since 4.6.0 `$translations` was added as a possible argument to `$hook_extra`.
 			 *
 			 * @param MN_Upgrader $this MN_Upgrader instance. In other contexts, $this, might be a
 			 *                          Theme_Upgrader, Plugin_Upgrader, Core_Upgrade, or Language_Pack_Upgrader instance.
@@ -833,7 +833,7 @@ class MN_Upgrader {
  	 * @param string $lock_name       The name of this unique lock.
  	 * @param int    $release_timeout Optional. The duration in seconds to respect an existing lock.
 	 *                                Default: 1 hour.
- 	 * @return bool False if a lock couldn't be created or if the lock is no longer valid. True otherwise.
+ 	 * @return bool False if a lock couldn't be created or if the lock is still valid. True otherwise.
  	 */
 	public static function create_lock( $lock_name, $release_timeout = null ) {
 		global $mndb;
@@ -853,7 +853,7 @@ class MN_Upgrader {
 				return false;
 			}
 
-			// Check to see if the lock is still valid. If not, bail.
+			// Check to see if the lock is still valid. If it is, bail.
 			if ( $lock_result > ( time() - $release_timeout ) ) {
 				return false;
 			}

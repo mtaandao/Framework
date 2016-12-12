@@ -51,8 +51,8 @@ get_current_screen()->add_help_tab( array(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Tools_Export_Screen" target="_blank">Documentation on Export</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Tools_Export_Screen">Documentation on Export</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 // If the 'download' URL parameter is set, a WXR export file is baked and returned.
@@ -152,10 +152,7 @@ function export_date_options( $post_type = 'post' ) {
 ?>
 
 <div class="wrap">
-<h2 class="nav-tab-wrapper mn-clearfix">
-			<a href="import.php" class="nav-tab "><?php _e( 'Import' ); ?></a>
-			<a href="export.php" class="nav-tab nav-tab-active"><?php _e( 'Export' ); ?></a>
-		</h2>
+<h1><?php echo esc_html( $title ); ?></h1>
 
 <p><?php _e('When you click the button below Mtaandao will create an XML file for you to save to your computer.'); ?></p>
 <p><?php _e('This format, which we call Mtaandao eXtended RSS or WXR, will contain your posts, pages, comments, custom fields, categories, and tags.'); ?></p>

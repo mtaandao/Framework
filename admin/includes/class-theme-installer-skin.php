@@ -4,14 +4,14 @@
  *
  * @package Mtaandao
  * @subpackage Upgrader
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
  * Theme Installer Skin for the Mtaandao Theme Installer.
  *
  * @since 2.8.0
- * @since 16.10.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
+ * @since 4.6.0 Moved to its own file from admin/includes/class-mn-upgrader-skins.php.
  *
  * @see MN_Upgrader_Skin
  */
@@ -87,7 +87,7 @@ class Theme_Installer_Skin extends MN_Upgrader_Skin {
 		 * @since 2.8.0
 		 *
 		 * @param array    $install_actions Array of theme action links.
-		 * @param object   $api             Object containing mtaandao.co.ke API theme data.
+		 * @param object   $api             Object containing Mtaandao.org API theme data.
 		 * @param string   $stylesheet      Theme directory name.
 		 * @param MN_Theme $theme_info      Theme object.
 		 */

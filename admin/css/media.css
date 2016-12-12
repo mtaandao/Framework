@@ -177,7 +177,7 @@
 	margin-top: -22px;
 	-webkit-border-radius: 22px;
 	border-radius: 22px;
-	background-color: #21b68e;
+	background-color: #21b16e;
 	-webkit-box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
 	box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
 }
@@ -315,16 +315,16 @@
 
 #find-posts-close:hover,
 #find-posts-close:focus {
-	color: #cfcfcf;
+	color: #21b68e;
 }
 
 #find-posts-close:focus {
 	outline: none;
 	-webkit-box-shadow:
-		0 0 0 1px #5b9dd9,
+		0 0 0 1px #21b68e,
 		0 0 2px 1px rgba(30, 140, 190, .8);
 	box-shadow:
-		0 0 0 1px #5b9dd9,
+		0 0 0 1px #21b68e,
 		0 0 2px 1px rgba(30, 140, 190, .8);
 }
 
@@ -541,10 +541,10 @@ border color while dragging a file over the uploader drop area */
 .media-frame.mode-grid .attachment.details:focus {
 	-webkit-box-shadow:
 		inset 0 0 2px 3px #f1f1f1,
-		inset 0 0 0 7px #5b9dd9;
+		inset 0 0 0 7px #21b68e;
 	box-shadow:
 		inset 0 0 2px 3px #f1f1f1,
-		inset 0 0 0 7px #5b9dd9;
+		inset 0 0 0 7px #21b68e;
 	outline: none;
 }
 
@@ -769,11 +769,15 @@ border color while dragging a file over the uploader drop area */
 
 .edit-attachment-frame .attachment-media-view .details-image {
 	display: block;
-	margin-bottom: 16px;
+	margin: 0 auto 16px;
 	max-width: 100%;
 	max-height: 90%;
 	max-height: -webkit-calc( 100% - 42px );
 	max-height: calc( 100% - 42px ); /* leave space for actions underneath */
+}
+
+.edit-attachment-frame .attachment-media-view .attachment-actions {
+	text-align: center;
 }
 
 .edit-attachment-frame .mn-media-wrapper {
@@ -1098,7 +1102,7 @@ border color while dragging a file over the uploader drop area */
 
 .image-editor .imgedit-settings .imgedit-help-toggle:focus {
 	color: #21b68e;
-	border-color: #5b9dd9;
+	border-color: #21b68e;
 	outline: none;
 	-webkit-box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
 	box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
@@ -1144,7 +1148,7 @@ span.imgedit-scale-warn {
 .imgedit-settings .imgedit-crop-sel input[type="text"] {
 	width: 50px;
 	font-size: 14px;
-	padding: 3px 5px;
+	padding: 5px 8px;
 }
 
 .imgedit-separator {

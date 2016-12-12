@@ -116,7 +116,7 @@ function mn_import_handle_upload() {
 }
 
 /**
- * Returns a list from mtaandao.co.ke of popular importer plugins.
+ * Returns a list from Mtaandao.org of popular importer plugins.
  *
  * @since 3.5.0
  *
@@ -125,13 +125,13 @@ function mn_import_handle_upload() {
 function mn_get_popular_importers() {
 	include( ABSPATH . RES . '/version.php' ); // include an unmodified $mn_version
 
-	$locale = get_locale();
+	$locale = get_user_locale();
 	$cache_key = 'popular_importers_' . md5( $locale . $mn_version );
 	$popular_importers = get_site_transient( $cache_key );
 
 	if ( ! $popular_importers ) {
 		$url = add_query_arg( array(
-			'locale'  => get_locale(),
+			'locale'  => get_user_locale(),
 			'version' => $mn_version,
 		), 'http://api.mtaandao.co.ke/core/importers/1.1/' );
 		$options = array( 'user-agent' => 'Mtaandao/' . $mn_version . '; ' . home_url() );
@@ -202,11 +202,11 @@ function mn_get_popular_importers() {
 			'plugin-slug' => 'tumblr-importer',
 			'importer-id' => 'tumblr',
 		),
-		'Mtaandao' => array(
+		'mtaandao' => array(
 			'name' => 'Mtaandao',
 			'description' => __( 'Import posts, pages, comments, custom fields, categories, and tags from a Mtaandao export file.' ),
 			'plugin-slug' => 'mtaandao-importer',
-			'importer-id' => 'Mtaandao',
+			'importer-id' => 'mtaandao',
 		),
 	);
 }

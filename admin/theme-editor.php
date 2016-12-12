@@ -30,17 +30,17 @@ get_current_screen()->add_help_tab( array(
 	<p id="newcontent-description">' . __( 'In the editing area the Tab key enters a tab character. To move below this area by pressing Tab, press the Esc key followed by the Tab key. In some cases the Esc key will need to be pressed twice before the Tab key will allow you to continue.' ) . '</p>
 	<p>' . __('After typing in your edits, click Update File.') . '</p>
 	<p>' . __('<strong>Advice:</strong> think very carefully about your site crashing if you are live-editing the theme currently in use.') . '</p>
-	<p>' . sprintf( __('Upgrading to a newer version of the same theme will override changes made here. To avoid this, consider creating a <a href="%s" target="_blank">child theme</a> instead.'), __('https://mtaandao.co.ke/docs/Child_Themes') ) . '</p>' .
+	<p>' . sprintf( __('Upgrading to a newer version of the same theme will override changes made here. To avoid this, consider creating a <a href="%s">child theme</a> instead.'), __('https://mtaandao.github.io/Child_Themes') ) . '</p>' .
 	( is_network_admin() ? '<p>' . __('Any edits to files from this screen will be reflected on all sites in the network.') . '</p>' : '' )
 ) );
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Theme_Development" target="_blank">Documentation on Theme Development</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Using_Themes" target="_blank">Documentation on Using Themes</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Editing_Files" target="_blank">Documentation on Editing Files</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/docs/Template_Tags" target="_blank">Documentation on Template Tags</a>') . '</p>' .
-	'<p>' . __('<a href="https://mtaandao.co.ke/support/" target="_blank">Support Forums</a>') . '</p>'
+	'<p>' . __('<a href="https://mtaandao.github.io/Theme_Development">Documentation on Theme Development</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.github.io/Using_Themes">Documentation on Using Themes</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.github.io/Editing_Files">Documentation on Editing Files</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.github.io/Template_Tags">Documentation on Template Tags</a>') . '</p>' .
+	'<p>' . __('<a href="https://mtaandao.co.ke/support/">Support Forums</a>') . '</p>'
 );
 
 mn_reset_vars( array( 'action', 'error', 'file', 'theme' ) );
@@ -182,7 +182,7 @@ foreach ( mn_get_themes( array( 'errors' => null ) ) as $a_stylesheet => $a_them
 }
 ?>
 		</select>
-		<?php submit_button( __( 'Select' ), 'button', 'Submit', false ); ?>
+		<?php submit_button( __( 'Select' ), '', 'Submit', false ); ?>
 	</form>
 </div>
 <br class="clear" />
@@ -263,7 +263,7 @@ else : ?>
 		<div id="documentation" class="hide-if-no-js">
 		<label for="docs-list"><?php _e('Documentation:') ?></label>
 		<?php echo $docs_select; ?>
-		<input type="button" class="button" value=" <?php esc_attr_e( 'Look Up' ); ?> " onclick="if ( '' != jQuery('#docs-list').val() ) { window.open( 'https://api.mtaandao.co.ke/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_locale() ) ?>&amp;version=<?php echo urlencode( $mn_version ) ?>&amp;redirect=true'); }" />
+		<input type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?>" onclick="if ( '' != jQuery('#docs-list').val() ) { window.open( 'https://api.mtaandao.co.ke/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_user_locale() ) ?>&amp;version=<?php echo urlencode( get_bloginfo( 'version' ) ) ?>&amp;redirect=true'); }" />
 		</div>
 	<?php endif; ?>
 
@@ -276,7 +276,7 @@ else : ?>
 	if ( is_writeable( $file ) ) :
 		submit_button( __( 'Update File' ), 'primary', 'submit', true );
 	else : ?>
-<p><em><?php _e('You need to make this file writable before you can save your changes. See <a href="https://mtaandao.co.ke/docs/Changing_File_Permissions">the Codex</a> for more information.'); ?></em></p>
+<p><em><?php _e('You need to make this file writable before you can save your changes. See <a href="https://mtaandao.github.io/Changing_File_Permissions">the Codex</a> for more information.'); ?></em></p>
 <?php endif; ?>
 		</div>
 	</form>

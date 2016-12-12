@@ -3,7 +3,7 @@
  * Used to set up and fix common variables and include
  * the Multisite procedural and class library.
  *
- * Allows for some configuration in configuration.php (see ms-default-constants.php)
+ * Allows for some configuration in db.php (see ms-default-constants.php)
  *
  * @package Mtaandao
  * @subpackage Multisite
@@ -35,7 +35,7 @@ require_once( ABSPATH . RES . '/ms-load.php' );
 require_once( ABSPATH . RES . '/ms-default-constants.php' );
 
 if ( defined( 'SUNRISE' ) ) {
-	include_once( MAIN . '/sunrise.php' );
+	include_once( MAIN_DIR . '/sunrise.php' );
 }
 
 /** Check for and define SUBDOMAIN_INSTALL and the deprecated VHOST constant. */
@@ -109,6 +109,6 @@ ms_upload_constants();
  * Fires after the current site and network have been detected and loaded
  * in multisite's bootstrap.
  *
- * @since 16.10.0
+ * @since 4.6.0
  */
 do_action( 'ms_loaded' );

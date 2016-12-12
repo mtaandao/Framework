@@ -6,7 +6,7 @@ buttons in the following files are updated.
 * jquery-ui-dialog.css
 * editor.css
 
-mtaandao-style Buttons
+Mtaandao-style Buttons
 =======================
 Create a button by adding the `.button` class to an element. For backward
 compatibility, we support several other classes (such as `.button-secondary`),
@@ -151,7 +151,7 @@ TABLE OF CONTENTS:
 .mn-core-ui .button:focus,
 .mn-core-ui .button-secondary:focus,
 .mn-core-ui .button-link:focus {
-	border-color: #5b9dd9;
+	border-color: #21b68e;
 	-webkit-box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
 	box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
 }
@@ -170,7 +170,7 @@ TABLE OF CONTENTS:
 }
 
 .mn-core-ui .button.active:focus {
-	border-color: #5b9dd9;
+	border-color: #21b68e;
 	-webkit-box-shadow:
 		inset 0 2px 5px -3px rgba( 0, 0, 0, 0.5 ),
 		0 0 3px rgba( 0, 115, 170, .8 );
@@ -213,7 +213,7 @@ TABLE OF CONTENTS:
 }
 
 .mn-core-ui .button-link:focus {
-	outline: #5b9dd9 solid 1px;
+	outline: #21b68e solid 1px;
 }
 
 /* ----------------------------------------------------------------------------
@@ -222,7 +222,7 @@ TABLE OF CONTENTS:
 
 .mn-core-ui .button-primary {
 	background: #21b68e;
-	border-color: #21b68e #cfcfcf #cfcfcf;
+	border-color: #21b16e #cfcfcf #cfcfcf;
 	-webkit-box-shadow: 0 1px 0 #cfcfcf;
 	box-shadow: 0 1px 0 #cfcfcf;
 	color: #fff;
@@ -237,16 +237,16 @@ TABLE OF CONTENTS:
 .mn-core-ui .button-primary:hover,
 .mn-core-ui .button-primary.focus,
 .mn-core-ui .button-primary:focus {
-	background: #333333;
+	background: #008ec2;
 	border-color: #cfcfcf;
 	color: #fff;
 }
 
 .mn-core-ui .button-primary.focus,
 .mn-core-ui .button-primary:focus {
-	-webkit-box-shadow: 0 1px 0 #21b68e,
+	-webkit-box-shadow: 0 1px 0 #21b16e,
 		0 0 2px 1px #33b3db;
-	box-shadow: 0 1px 0 #21b68e,
+	box-shadow: 0 1px 0 #21b16e,
 		0 0 2px 1px #33b3db;
 }
 
@@ -254,7 +254,7 @@ TABLE OF CONTENTS:
 .mn-core-ui .button-primary.active:hover,
 .mn-core-ui .button-primary.active:focus,
 .mn-core-ui .button-primary:active {
-	background: #21b68e;
+	background: #21b16e;
 	border-color: #cfcfcf;
 	-webkit-box-shadow: inset 0 2px 0 #cfcfcf;
 	box-shadow: inset 0 2px 0 #cfcfcf;
@@ -265,9 +265,9 @@ TABLE OF CONTENTS:
 .mn-core-ui .button-primary:disabled,
 .mn-core-ui .button-primary-disabled,
 .mn-core-ui .button-primary.disabled {
-	color: #cfcfcf !important;
-	background: #333333 !important;
-	border-color: #333333 !important;
+	color: #66c6e4 !important;
+	background: #008ec2 !important;
+	border-color: #007cb2 !important;
 	-webkit-box-shadow: none !important;
 	box-shadow: none !important;
 	text-shadow: 0 -1px 0 rgba( 0, 0, 0, 0.1 ) !important;

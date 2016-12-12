@@ -253,7 +253,7 @@ window.autosave = function() {
 				post_id = $('#post_ID').val() || 0;
 
 				// Check if the local post data is different than the loaded post data.
-				if ( $( '#mn-content-wrap' ).hasClass( 'tmce-active' ) ) {
+				if ( $( '#main-wrap' ).hasClass( 'tmce-active' ) ) {
 					// If TinyMCE loads first, check the post 1.5 sec. after it is ready.
 					// By this time the content has been loaded in the editor and 'saved' to the textarea.
 					// This prevents false positives.
@@ -315,7 +315,8 @@ window.autosave = function() {
 				var content, post_title, excerpt, $notice,
 					postData = getSavedPostData(),
 					cookie = mnCookies.get( 'mn-saving-post' ),
-					$newerAutosaveNotice = $( '#has-newer-autosave' ).parent( '.notice' );
+					$newerAutosaveNotice = $( '#has-newer-autosave' ).parent( '.notice' ),
+					$headerEnd = $( '.mn-header-end' );
 
 				if ( cookie === post_id + '-saved' ) {
 					mnCookies.remove( 'mn-saving-post' );
@@ -338,8 +339,16 @@ window.autosave = function() {
 					return;
 				}
 
+				/*
+				 * If '.mn-header-end' is found, append the notices after it otherwise
+				 * after the first h1 or h2 heading found within the main content.
+				 */
+				if ( ! $headerEnd.length ) {
+					$headerEnd = $( '.wrap h1, .wrap h2' ).first();
+				}
+
 				$notice = $( '#local-storage-notice' )
-					.insertAfter( $( '.wrap h1, .wrap h2' ).first() )
+					.insertAfter( $headerEnd )
 					.addClass( 'notice-warning' );
 
 				if ( $newerAutosaveNotice.length ) {

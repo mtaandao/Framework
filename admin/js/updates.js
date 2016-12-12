@@ -21,10 +21,12 @@
  * @param {Array}   settings.plugins.inactive           Base names of inactive plugins.
  * @param {Array}   settings.plugins.upgrade            Base names of plugins with updates available.
  * @param {Array}   settings.plugins.recently_activated Base names of recently activated plugins.
- * @param {object=} settings.totals                     Plugin/theme status information or null.
- * @param {number}  settings.totals.all                 Amount of all plugins or themes.
- * @param {number}  settings.totals.upgrade             Amount of plugins or themes with updates available.
- * @param {number}  settings.totals.disabled            Amount of disabled themes.
+ * @param {object=} settings.themes                     Plugin/theme status information or null.
+ * @param {number}  settings.themes.all                 Amount of all themes.
+ * @param {number}  settings.themes.upgrade             Amount of themes with updates available.
+ * @param {number}  settings.themes.disabled            Amount of disabled themes.
+ * @param {object=} settings.totals                     Combined information for available update counts.
+ * @param {number}  settings.totals.count               Holds the amount of available updates.
  */
 (function( $, mn, settings ) {
 	var $document = $( document );
@@ -61,7 +63,7 @@
 	/**
 	 * Current search term.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @type {string}
 	 */
@@ -80,7 +82,7 @@
 	 * Filesystem credentials to be packaged along with the request.
 	 *
 	 * @since 4.2.0
-	 * @since 16.10.0 Added `available` property to indicate whether credentials have been provided.
+	 * @since 4.6.0 Added `available` property to indicate whether credentials have been provided.
 	 *
 	 * @type {object} filesystemCredentials                    Holds filesystem credentials.
 	 * @type {object} filesystemCredentials.ftp                Holds FTP credentials.
@@ -113,7 +115,7 @@
 	 * Whether we're waiting for an Ajax request to complete.
 	 *
 	 * @since 4.2.0
-	 * @since 16.10.0 More accurately named `ajaxLocked`.
+	 * @since 4.6.0 More accurately named `ajaxLocked`.
 	 *
 	 * @type {bool}
 	 */
@@ -122,7 +124,7 @@
 	/**
 	 * Admin notice template.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @type {function} A function that lazily-compiles the template requested.
 	 */
@@ -135,7 +137,7 @@
 	 * already happening, it can be placed in this queue to perform later.
 	 *
 	 * @since 4.2.0
-	 * @since 16.10.0 More accurately named `queue`.
+	 * @since 4.6.0 More accurately named `queue`.
 	 *
 	 * @type {Array.object}
 	 */
@@ -153,7 +155,7 @@
 	/**
 	 * Adds or updates an admin notice.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param {object}  data
 	 * @param {*=}      data.selector      Optional. Selector of an element to be replaced with the admin notice.
@@ -188,7 +190,7 @@
 	/**
 	 * Handles Ajax requests to Mtaandao.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param {string} action The type of Ajax request ('update-plugin', 'install-theme', etc).
 	 * @param {object} data   Data that needs to be passed to the ajax callback.
@@ -237,7 +239,7 @@
 	/**
 	 * Actions performed after every Ajax request.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param {object}  response
 	 * @param {array=}  response.debug     Optional. Debug information.
@@ -257,6 +259,70 @@
 	};
 
 	/**
+	 * Refreshes update counts everywhere on the screen.
+	 *
+	 * @since 4.7.0
+	 */
+	mn.updates.refreshCount = function() {
+		var $adminBarUpdates              = $( '#admin-bar-updates' ),
+			$dashboardNavMenuUpdateCount  = $( 'a[href="update-core.php"] .update-plugins' ),
+			$pluginsNavMenuUpdateCount    = $( 'a[href="plugins.php"] .update-plugins' ),
+			$appearanceNavMenuUpdateCount = $( 'a[href="themes.php"] .update-plugins' ),
+			itemCount;
+
+		$adminBarUpdates.find( '.ab-item' ).removeAttr( 'title' );
+		$adminBarUpdates.find( '.ab-label' ).text( settings.totals.counts.total );
+
+		// Remove the update count from the toolbar if it's zero.
+		if ( 0 === settings.totals.counts.total ) {
+			$adminBarUpdates.find( '.ab-label' ).parents( 'li' ).remove();
+		}
+
+		// Update the "Updates" menu item.
+		$dashboardNavMenuUpdateCount.each( function( index, element ) {
+			element.className = element.className.replace( /count-\d+/, 'count-' + settings.totals.counts.total );
+		} );
+		if ( settings.totals.counts.total > 0 ) {
+			$dashboardNavMenuUpdateCount.find( '.update-count' ).text( settings.totals.counts.total );
+		} else {
+			$dashboardNavMenuUpdateCount.remove();
+		}
+
+		// Update the "Plugins" menu item.
+		$pluginsNavMenuUpdateCount.each( function( index, element ) {
+			element.className = element.className.replace( /count-\d+/, 'count-' + settings.totals.counts.plugins );
+		} );
+		if ( settings.totals.counts.total > 0 ) {
+			$pluginsNavMenuUpdateCount.find( '.plugin-count' ).text( settings.totals.counts.plugins );
+		} else {
+			$pluginsNavMenuUpdateCount.remove();
+		}
+
+		// Update the "Appearance" menu item.
+		$appearanceNavMenuUpdateCount.each( function( index, element ) {
+			element.className = element.className.replace( /count-\d+/, 'count-' + settings.totals.counts.themes );
+		} );
+		if ( settings.totals.counts.total > 0 ) {
+			$appearanceNavMenuUpdateCount.find( '.theme-count' ).text( settings.totals.counts.themes );
+		} else {
+			$appearanceNavMenuUpdateCount.remove();
+		}
+
+		// Update list table filter navigation.
+		if ( 'plugins' === pagenow || 'plugins-network' === pagenow ) {
+			itemCount = settings.totals.counts.plugins;
+		} else if ( 'themes' === pagenow || 'themes-network' === pagenow ) {
+			itemCount = settings.totals.counts.themes;
+		}
+
+		if ( itemCount > 0 ) {
+			$( '.subsubsub .upgrade .count' ).text( '(' + itemCount + ')' );
+		} else {
+			$( '.subsubsub .upgrade' ).remove();
+		}
+	};
+
+	/**
 	 * Decrements the update counts throughout the various menus.
 	 *
 	 * This includes the toolbar, the "Updates" menu item and the menu items
@@ -268,69 +334,22 @@
 	 *                      Can be 'plugin', 'theme'.
 	 */
 	mn.updates.decrementCount = function( type ) {
-		var $adminBarUpdates             = $( '#mn-admin-bar-updates' ),
-			$dashboardNavMenuUpdateCount = $( 'a[href="update-core.php"] .update-plugins' ),
-			count                        = $adminBarUpdates.find( '.ab-label' ).text(),
-			$menuItem, $itemCount, itemCount;
-
-		count = parseInt( count, 10 ) - 1;
-
-		if ( count < 0 || isNaN( count ) ) {
-			return;
-		}
-
-		$adminBarUpdates.find( '.ab-item' ).removeAttr( 'title' );
-		$adminBarUpdates.find( '.ab-label' ).text( count );
-
-		// Remove the update count from the toolbar if it's zero.
-		if ( ! count ) {
-			$adminBarUpdates.find( '.ab-label' ).parents( 'li' ).remove();
-		}
-
-		// Update the "Updates" menu item.
-		$dashboardNavMenuUpdateCount.each( function( index, element ) {
-			element.className = element.className.replace( /count-\d+/, 'count-' + count );
-		} );
-
-		$dashboardNavMenuUpdateCount.removeAttr( 'title' );
-		$dashboardNavMenuUpdateCount.find( '.update-count' ).text( count );
+		settings.totals.counts.total = Math.max( --settings.totals.counts.total, 0 );
 
 		if ( 'plugin' === type ) {
-			$menuItem  = $( '#menu-plugins' );
-			$itemCount = $menuItem.find( '.plugin-count' );
+			settings.totals.counts.plugins = Math.max( --settings.totals.counts.plugins, 0 );
 		} else if ( 'theme' === type ) {
-			$menuItem  = $( '#menu-appearance' );
-			$itemCount = $menuItem.find( '.theme-count' );
+			settings.totals.counts.themes = Math.max( --settings.totals.counts.themes, 0 );
 		}
 
-		// Decrement the counter of the other menu items.
-		if ( $itemCount ) {
-			itemCount = $itemCount.eq( 0 ).text();
-			itemCount = parseInt( itemCount, 10 ) - 1;
-		}
-
-		if ( itemCount < 0 || isNaN( itemCount ) ) {
-			return;
-		}
-
-		if ( itemCount > 0 ) {
-			$( '.subsubsub .upgrade .count' ).text( '(' + itemCount + ')' );
-
-			$itemCount.text( itemCount );
-			$menuItem.find( '.update-plugins' ).each( function( index, element ) {
-				element.className = element.className.replace( /count-\d+/, 'count-' + itemCount );
-			} );
-		} else {
-			$( '.subsubsub .upgrade' ).remove();
-			$menuItem.find( '.update-plugins' ).remove();
-		}
+		mn.updates.refreshCount( type );
 	};
 
 	/**
 	 * Sends an Ajax request to the server to update a plugin.
 	 *
 	 * @since 4.2.0
-	 * @since 16.10.0 More accurately named `updatePlugin`.
+	 * @since 4.6.0 More accurately named `updatePlugin`.
 	 *
 	 * @param {object}               args         Arguments.
 	 * @param {string}               args.plugin  Plugin basename.
@@ -378,7 +397,7 @@
 	 * Updates the UI appropriately after a successful plugin update.
 	 *
 	 * @since 4.2.0
-	 * @since 16.10.0 More accurately named `updatePluginSuccess`.
+	 * @since 4.6.0 More accurately named `updatePluginSuccess`.
 	 *
 	 * @typedef {object} updatePluginSuccess
 	 * @param {object} response            Response from the server.
@@ -423,7 +442,7 @@
 	 * Updates the UI appropriately after a failed plugin update.
 	 *
 	 * @since 4.2.0
-	 * @since 16.10.0 More accurately named `updatePluginError`.
+	 * @since 4.6.0 More accurately named `updatePluginError`.
 	 *
 	 * @typedef {object} updatePluginError
 	 * @param {object}  response              Response from the server.
@@ -501,10 +520,10 @@
 	/**
 	 * Sends an Ajax request to the server to install a plugin.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param {object}                args         Arguments.
-	 * @param {string}                args.slug    Plugin identifier in the mtaandao.co.ke Plugin repository.
+	 * @param {string}                args.slug    Plugin identifier in the Mtaandao.org Plugin repository.
 	 * @param {installPluginSuccess=} args.success Optional. Success callback. Default: mn.updates.installPluginSuccess
 	 * @param {installPluginError=}   args.error   Optional. Error callback. Default: mn.updates.installPluginError
 	 * @return {$.promise} A jQuery promise that represents the request,
@@ -545,7 +564,7 @@
 	/**
 	 * Updates the UI appropriately after a successful plugin install.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} installPluginSuccess
 	 * @param {object} response             Response from the server.
@@ -581,7 +600,7 @@
 	/**
 	 * Updates the UI appropriately after a failed plugin install.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} installPluginError
 	 * @param {object}  response              Response from the server.
@@ -632,7 +651,7 @@
 	/**
 	 * Updates the UI appropriately after a successful importer install.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} installImporterSuccess
 	 * @param {object} response             Response from the server.
@@ -664,7 +683,7 @@
 	/**
 	 * Updates the UI appropriately after a failed importer install.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} installImporterError
 	 * @param {object}  response              Response from the server.
@@ -705,7 +724,7 @@
 	/**
 	 * Sends an Ajax request to the server to delete a plugin.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param {object}               args         Arguments.
 	 * @param {string}               args.plugin  Basename of the plugin to be deleted.
@@ -739,7 +758,7 @@
 	/**
 	 * Updates the UI appropriately after a successful plugin deletion.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} deletePluginSuccess
 	 * @param {object} response            Response from the server.
@@ -829,7 +848,7 @@
 	/**
 	 * Updates the UI appropriately after a failed plugin deletion.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} deletePluginError
 	 * @param {object}  response              Response from the server.
@@ -887,7 +906,7 @@
 	/**
 	 * Sends an Ajax request to the server to update a theme.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param {object}              args         Arguments.
 	 * @param {string}              args.slug    Theme stylesheet.
@@ -931,7 +950,7 @@
 	/**
 	 * Updates the UI appropriately after a successful theme update.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} updateThemeSuccess
 	 * @param {object} response
@@ -982,7 +1001,7 @@
 	/**
 	 * Updates the UI appropriately after a failed theme update.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} updateThemeError
 	 * @param {object} response              Response from the server.
@@ -1025,7 +1044,7 @@
 	/**
 	 * Sends an Ajax request to the server to install a theme.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param {object}               args
 	 * @param {string}               args.slug    Theme stylesheet.
@@ -1064,7 +1083,7 @@
 	/**
 	 * Updates the UI appropriately after a successful theme install.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} installThemeSuccess
 	 * @param {object} response              Response from the server.
@@ -1105,7 +1124,7 @@
 				$message.siblings( '.preview' ).replaceWith( function () {
 					return $( '<a>' )
 						.attr( 'href', response.customizeUrl )
-						.addClass( 'button button-secondary load-customize' )
+						.addClass( 'button load-customize' )
 						.text( mn.updates.l10n.livePreview );
 				} );
 			}
@@ -1115,7 +1134,7 @@
 	/**
 	 * Updates the UI appropriately after a failed theme install.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} installThemeError
 	 * @param {object} response              Response from the server.
@@ -1160,7 +1179,7 @@
 	/**
 	 * Sends an Ajax request to the server to install a theme.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param {object}              args
 	 * @param {string}              args.slug    Theme stylesheet.
@@ -1202,7 +1221,7 @@
 	/**
 	 * Updates the UI appropriately after a successful theme deletion.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} deleteThemeSuccess
 	 * @param {object} response      Response from the server.
@@ -1217,7 +1236,7 @@
 			$themeRows.css( { backgroundColor: '#faafaa' } ).fadeOut( 350, function() {
 				var $views     = $( '.subsubsub' ),
 					$themeRow  = $( this ),
-					totals     = settings.totals,
+					totals     = settings.themes,
 					deletedRow = mn.template( 'item-deleted-row' );
 
 				if ( ! $themeRow.hasClass( 'plugin-update-tr' ) ) {
@@ -1261,7 +1280,7 @@
 	/**
 	 * Updates the UI appropriately after a failed theme deletion.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} deleteThemeError
 	 * @param {object} response              Response from the server.
@@ -1312,7 +1331,7 @@
 	/**
 	 * Adds the appropriate callback based on the type of action and the current page.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 * @private
 	 *
 	 * @param {object} data   AJAX payload.
@@ -1332,7 +1351,7 @@
 	 * Pulls available jobs from the queue and runs them.
 	 *
 	 * @since 4.2.0
-	 * @since 16.10.0 Can handle multiple job types.
+	 * @since 4.6.0 Can handle multiple job types.
 	 */
 	mn.updates.queueChecker = function() {
 		var job;
@@ -1399,7 +1418,7 @@
 	/**
 	 * Requests the users filesystem credentials if needed and there is no lock.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param {Event=} event Optional. Event interface.
 	 */
@@ -1469,7 +1488,7 @@
 	 * Takes care of the steps that need to happen when the modal is canceled out.
 	 *
 	 * @since 4.2.0
-	 * @since 16.10.0 Triggers an event for callbacks to listen to and add their actions.
+	 * @since 4.6.0 Triggers an event for callbacks to listen to and add their actions.
 	 */
 	mn.updates.requestForCredentialsModalCancel = function() {
 
@@ -1535,7 +1554,7 @@
 	/**
 	 * Handles credentials errors if it could not connect to the filesystem.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @typedef {object} maybeHandleCredentialError
 	 * @param {object} response              Response from the server.
@@ -1655,6 +1674,12 @@
 			$pluginSearch        = $( '.plugins-php .mn-filter-search' ),
 			$pluginInstallSearch = $( '.plugin-install-php .mn-filter-search' );
 
+		settings = _.extend( settings, window._mnUpdatesItemCounts || {} );
+
+		if ( settings.totals ) {
+			mn.updates.refreshCount();
+		}
+
 		/*
 		 * Whether a user needs to submit filesystem credentials.
 		 *
@@ -1707,7 +1732,7 @@
 		/**
 		 * Handles events after the credential modal was closed.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param {Event}  event Event interface.
 		 * @param {string} job   The install/update.delete request.
@@ -1812,7 +1837,7 @@
 		/**
 		 * Click handler for plugin installs in plugin install view.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param {Event} event Event interface.
 		 */
@@ -1846,7 +1871,7 @@
 		/**
 		 * Click handler for importer plugins installs in the Import screen.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param {Event} event Event interface.
 		 */
@@ -1876,6 +1901,7 @@
 
 			mn.updates.installPlugin( {
 				slug:    $button.data( 'slug' ),
+				pagenow: pagenow,
 				success: mn.updates.installImporterSuccess,
 				error:   mn.updates.installImporterError
 			} );
@@ -1884,7 +1910,7 @@
 		/**
 		 * Click handler for plugin deletions.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param {Event} event Event interface.
 		 */
@@ -1909,7 +1935,7 @@
 		/**
 		 * Click handler for theme updates.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param {Event} event Event interface.
 		 */
@@ -1935,7 +1961,7 @@
 		/**
 		 * Click handler for theme deletions.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param {Event} event Event interface.
 		 */
@@ -1960,7 +1986,7 @@
 		 *
 		 * Handles both deletions and updates.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param {Event} event Event interface.
 		 */
@@ -2108,7 +2134,7 @@
 		 * Handles changes to the plugin search box on the new-plugin page,
 		 * searching the repository dynamically.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 */
 		$pluginInstallSearch.on( 'keyup input', _.debounce( function( event, eventtype ) {
 			var $searchTab = $( '.plugin-install-search' ), data, searchLocation;
@@ -2181,14 +2207,16 @@
 		 * Handles changes to the plugin search box on the Installed Plugins screen,
 		 * searching the plugin list dynamically.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 */
 		$pluginSearch.on( 'keyup input', _.debounce( function( event ) {
 			var data = {
-				_ajax_nonce: mn.updates.ajaxNonce,
-				s:           event.target.value,
-				pagenow:     pagenow
-			};
+				_ajax_nonce:   mn.updates.ajaxNonce,
+				s:             event.target.value,
+				pagenow:       pagenow,
+				plugin_status: 'all'
+			},
+			queryArgs;
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
@@ -2201,8 +2229,14 @@
 				mn.updates.searchTerm = data.s;
 			}
 
+			queryArgs = _.object( _.compact( _.map( location.search.slice( 1 ).split( '&' ), function( item ) {
+				if ( item ) return item.split( '=' );
+			} ) ) );
+
+			data.plugin_status = queryArgs.plugin_status || 'all';
+
 			if ( window.history && window.history.replaceState ) {
-				window.history.replaceState( null, '', location.href.split( '?' )[ 0 ] + '?s=' + data.s );
+				window.history.replaceState( null, '', location.href.split( '?' )[ 0 ] + '?s=' + data.s + '&plugin_status=' + data.plugin_status );
 			}
 
 			if ( 'undefined' !== typeof mn.updates.searchRequest ) {
@@ -2211,6 +2245,7 @@
 
 			$bulkActionForm.empty();
 			$( 'body' ).addClass( 'loading-content' );
+			$( '.subsubsub .current' ).removeClass( 'current' );
 
 			mn.updates.searchRequest = mn.ajax.post( 'search-plugins', data ).done( function( response ) {
 
@@ -2220,6 +2255,7 @@
 
 				if ( ! data.s.length ) {
 					$oldSubTitle.remove();
+					$( '.subsubsub .' + data.plugin_status + ' a' ).addClass( 'current' );
 				} else if ( $oldSubTitle.length ) {
 					$oldSubTitle.replaceWith( $subTitle );
 				} else {
@@ -2241,7 +2277,7 @@
 		/**
 		 * Trigger a search event when the search form gets submitted.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 */
 		$document.on( 'submit', '.search-plugins', function( event ) {
 			event.preventDefault();
@@ -2252,7 +2288,7 @@
 		/**
 		 * Trigger a search event when the search type gets changed.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 */
 		$( '#typeselector' ).on( 'change', function() {
 			var $search = $( 'input[name="s"]' );
@@ -2295,7 +2331,7 @@
 		/**
 		 * Click handler for installing a plugin from the details modal on `plugin-install.php`.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param {Event} event Event interface.
 		 */
@@ -2325,7 +2361,7 @@
 		 * Handles postMessage events.
 		 *
 		 * @since 4.2.0
-		 * @since 16.10.0 Switched `update-plugin` action to use the queue.
+		 * @since 4.6.0 Switched `update-plugin` action to use the queue.
 		 *
 		 * @param {Event} event Event interface.
 		 */
@@ -2377,4 +2413,4 @@
 		 */
 		$( window ).on( 'beforeunload', mn.updates.beforeunload );
 	} );
-})( jQuery, window.mn, _.extend( window._mnUpdatesSettings, window._mnUpdatesItemCounts || {} ) );
+})( jQuery, window.mn, window._mnUpdatesSettings );

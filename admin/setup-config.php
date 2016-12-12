@@ -1,11 +1,9 @@
 <?php
 /**
- * Retrieves and creates the configuration.php file.
+ * Retrieves and creates the db.php file.
  *
  * The permissions for the base directory must allow for writing files in order
- * for the configuration.php to be created using this page.
- *
- * @internal This file must be parsable by PHP4.
+ * for the db.php to be created using this page.
  *
  * @package Mtaandao
  * @subpackage Administration
@@ -42,28 +40,28 @@ require_once( ABSPATH . 'admin/includes/translation-install.php' );
 
 nocache_headers();
 
-// Support config-sample.php one level up, for the develop repo.
-if ( file_exists( ABSPATH . 'config-sample.php' ) )
-	$config_file = file( ABSPATH . 'config-sample.php' );
-elseif ( file_exists( dirname( ABSPATH ) . '/config-sample.php' ) )
-	$config_file = file( dirname( ABSPATH ) . '/config-sample.php' );
+// Support sample.php one level up, for the develop repo.
+if ( file_exists( ABSPATH . 'admin/config/sample.php' ) )
+	$config_file = file( ABSPATH . 'admin/config/sample.php' );
+elseif ( file_exists( dirname( ABSPATH ) . 'admin/config/sample.php' ) )
+	$config_file = file( dirname( ABSPATH ) . 'admin/config/sample.php' );
 else
-	mn_die( __( 'Sorry, I need a config-sample.php file to work from. Please re-upload this file to your Mtaandao installation.' ) );
+	mn_die( __( 'Sorry, I need a sample.php file to work from. Please re-upload this file to your Mtaandao installation.' ) );
 
-// Check if configuration.php has been created
-if ( file_exists( ABSPATH . 'configuration.php' ) )
+// Check if db.php has been created
+if ( file_exists( ABSPATH . 'admin/config/db.php' ) )
 	mn_die( '<p>' . sprintf(
 			/* translators: %s: install.php */
-			__( "The file 'configuration.php' already exists. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href='%s'>installing now</a>." ),
+			__( "The file 'db.php' already exists. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href='%s'>installing now</a>." ),
 			'install.php'
 		) . '</p>'
 	);
 
-// Check if configuration.php exists above the root directory but is not part of another install
-if ( @file_exists( ABSPATH . '../configuration.php' ) && ! @file_exists( ABSPATH . '../settings.php' ) ) {
+// Check if db.php exists above the root directory but is not part of another install
+if ( @file_exists( ABSPATH . '../db.php' ) && ! @file_exists( ABSPATH . '../settings.php' ) ) {
 	mn_die( '<p>' . sprintf(
 			/* translators: %s: install.php */
-			__( "The file 'configuration.php' already exists one level above your Mtaandao installation. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href='%s'>installing now</a>." ),
+			__( "The file 'db.php' already exists one level above your Mtaandao installation. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href='%s'>installing now</a>." ),
 			'install.php'
 		) . '</p>'
 	);
@@ -72,7 +70,7 @@ if ( @file_exists( ABSPATH . '../configuration.php' ) && ! @file_exists( ABSPATH
 $step = isset( $_GET['step'] ) ? (int) $_GET['step'] : -1;
 
 /**
- * Display setup configuration.php file header.
+ * Display setup db.php file header.
  *
  * @ignore
  * @since 2.3.0
@@ -98,10 +96,10 @@ function setup_config_display_header( $body_classes = array() ) {
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="robots" content="noindex,nofollow" />
 	<title><?php _e( 'Mtaandao &rsaquo; Setup Configuration File' ); ?></title>
-	<?php mn_admin_css( 'install', true ); ?>
+	<?php admin_css( 'install', true ); ?>
 </head>
 <body class="<?php echo implode( ' ', $body_classes ); ?>">
-<p id="logo"><a href="<?php esc_attr_e( 'https://mtaandao.co.ke/' ); ?>" tabindex="-1"><?php _e( 'Mtaandao' ); ?></a></p>
+<p id="logo"><a href="<?php echo esc_url( __( 'https://mtaandao.co.ke/' ) ); ?>" tabindex="-1"><?php _e( 'Mtaandao' ); ?></a></p>
 <?php
 } // end function setup_config_display_header();
 
@@ -153,22 +151,22 @@ switch($step) {
 	<li><?php _e( 'Table prefix (if you want to run more than one Mtaandao in a single database)' ); ?></li>
 </ol>
 <p><?php
-	/* translators: %s: configuration.php */
+	/* translators: %s: db.php */
 	printf( __( 'We&#8217;re going to use this information to create a %s file.' ),
-		'<code>configuration.php</code>'
+		'<code>db.php</code>'
 	);
 	?>
 	<strong><?php
-		/* translators: 1: config-sample.php, 2: configuration.php */
+		/* translators: 1: sample.php, 2: db.php */
 		printf( __( 'If for any reason this automatic file creation doesn&#8217;t work, don&#8217;t worry. All this does is fill in the database information to a configuration file. You may also simply open %1$s in a text editor, fill in your information, and save it as %2$s.' ),
-			'<code>config-sample.php</code>',
-			'<code>configuration.php</code>'
+			'<code>sample.php</code>',
+			'<code>db.php</code>'
 		);
 	?></strong>
 	<?php
 	/* translators: %s: Codex URL */
 	printf( __( 'Need more help? <a href="%s">We got it</a>.' ),
-		__( 'https://mtaandao.co.ke/docs/Editing_configuration.php' )
+		__( 'https://mtaandao.github.io/Editing_db.php' )
 	);
 ?></p>
 <p><?php _e( 'In all likelihood, these items were supplied to you by your Web Host. If you don&#8217;t have this information, then you will need to contact them before you can continue. If you&#8217;re all ready&hellip;' ); ?></p>
@@ -189,7 +187,7 @@ switch($step) {
 	<table class="form-table">
 		<tr>
 			<th scope="row"><label for="dbname"><?php _e( 'Database Name' ); ?></label></th>
-			<td><input name="dbname" id="dbname" type="text" size="25" value="Mtaandao" /></td>
+			<td><input name="dbname" id="dbname" type="text" size="25" value="mtaandao" /></td>
 			<td><?php _e( 'The name of the database you want to use with Mtaandao.' ); ?></td>
 		</tr>
 		<tr>
@@ -316,7 +314,6 @@ switch($step) {
 	}
 
 	$key = 0;
-	// Not a PHP5-style by-reference foreach, as this file must be parseable by PHP4.
 	foreach ( $config_file as $line_num => $line ) {
 		if ( '$table_prefix  =' == substr( $line, 0, 16 ) ) {
 			$config_file[ $line_num ] = '$table_prefix  = \'' . addcslashes( $prefix, "\\'" ) . "';\r\n";
@@ -359,12 +356,12 @@ switch($step) {
 		setup_config_display_header();
 ?>
 <p><?php
-	/* translators: %s: configuration.php */
-	printf( __( 'Sorry, but I can&#8217;t write the %s file.' ), '<code>configuration.php</code>' );
+	/* translators: %s: db.php */
+	printf( __( 'Sorry, but I can&#8217;t write the %s file.' ), '<code>db.php</code>' );
 ?></p>
 <p><?php
-	/* translators: %s: configuration.php */
-	printf( __( 'You can create the %s manually and paste the following text into it.' ), '<code>configuration.php</code>' );
+	/* translators: %s: db.php */
+	printf( __( 'You can create the %s manually and paste the following text into it.' ), '<code>db.php</code>' );
 ?></p>
 <textarea id="mn-config" cols="98" rows="15" class="code" readonly="readonly"><?php
 		foreach ( $config_file as $line ) {
@@ -385,13 +382,13 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 <?php
 	else :
 		/*
-		 * If this file doesn't exist, then we are using the config-sample.php
+		 * If this file doesn't exist, then we are using the sample.php
 		 * file one level up, which is for the develop repo.
 		 */
-		if ( file_exists( ABSPATH . 'config-sample.php' ) )
-			$path_to_mn_config = ABSPATH . 'configuration.php';
+		if ( file_exists( ABSPATH . 'admin/config/sample.php' ) )
+			$path_to_mn_config = ABSPATH . 'admin/config/db.php';
 		else
-			$path_to_mn_config = dirname( ABSPATH ) . '/configuration.php';
+			$path_to_mn_config = dirname( ABSPATH ) . '/install' . '/config' . '/db.php';
 
 		$handle = fopen( $path_to_mn_config, 'w' );
 		foreach ( $config_file as $line ) {

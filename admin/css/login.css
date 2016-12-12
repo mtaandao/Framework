@@ -18,7 +18,7 @@ body {
 }
 
 a {
-	color: #21b68e;
+	color: #21b16e;
 	-webkit-transition-property: border, background, color;
 	transition-property: border, background, color;
 	-webkit-transition-duration: .05s;
@@ -33,21 +33,21 @@ a {
 
 a:hover,
 a:active {
-	color: #cfcfcf;
+	color: #21b68e;
 }
 
 a:focus {
-	color: #124964;
+	color: #21b68e;
 	-webkit-box-shadow:
-		0 0 0 1px #5b9dd9,
+		0 0 0 1px #21b68e,
 		0 0 2px 1px rgba(30, 140, 190, .8);
 	box-shadow:
-		0 0 0 1px #5b9dd9,
+		0 0 0 1px #21b68e,
 		0 0 2px 1px rgba(30, 140, 190, .8);
 }
 
 .ie8 a:focus {
-	outline: #5b9dd9 solid 1px;
+	outline: #21b68e solid 1px;
 }
 
 p {
@@ -56,7 +56,7 @@ p {
 
 .login .message,
 .login #login_error {
-	border-left: 4px solid #cfcfcf;
+	border-left: 4px solid #21b68e;
 	padding: 12px;
 	margin-left: 0;
 	background-color: #fff;
@@ -174,13 +174,13 @@ p {
 .login #nav a:hover,
 .login #backtoblog a:hover,
 .login h1 a:hover {
-	color: #cfcfcf;
+	color: #21b68e;
 }
 
 .login #nav a:focus,
 .login #backtoblog a:focus,
 .login h1 a:focus {
-	color: #124964;
+	color: #21b68e;
 }
 
 .login form .input,
@@ -194,7 +194,7 @@ p {
 .login form .input,
 .login input[type="text"],
 .login form input[type="checkbox"] {
-	background: #fbfbfb;
+	background: #cfcfcf;
 }
 
 .ie7 .login form .input,
@@ -214,19 +214,6 @@ p {
 	padding: 6px 5px;
 	text-align: center;
 	width: 100%;
-}
-
-.mobile #login {
-	padding: 20px 0;
-}
-
-.mobile #login form {
-	margin-left: 0;
-}
-
-.mobile #login #nav,
-.mobile #login #backtoblog {
-	margin-left: 8px;
 }
 
 body.interim-login {
@@ -253,6 +240,12 @@ body.interim-login {
 
 @-ms-viewport {
 	width: device-width;
+}
+
+@media screen and ( max-height: 550px ) {
+	#login {
+		padding: 20px 0;
+	}
 }
 
 @media screen and ( max-width: 782px ) {

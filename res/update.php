@@ -18,7 +18,7 @@
  * @global mndb   $mndb
  * @global string $mn_local_package
  *
- * @param array $extra_stats Extra statistics to report to the mtaandao.co.ke API.
+ * @param array $extra_stats Extra statistics to report to the Mtaandao.org API.
  * @param bool  $force_check Whether to bypass the transient cache and force a fresh update check. Defaults to false, true if $extra_stats is set.
  */
 function mn_version_check( $extra_stats = array(), $force_check = false ) {
@@ -120,7 +120,14 @@ function mn_version_check( $extra_stats = array(), $force_check = false ) {
 
 	$response = mn_remote_post( $url, $options );
 	if ( $ssl && is_mn_error( $response ) ) {
-		trigger_error( __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ) . ' ' . __( '(Mtaandao could not establish a secure connection to mtaandao.co.ke. Please contact your server administrator.)' ), headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE );
+		trigger_error(
+			sprintf(
+				/* translators: %s: support forums URL */
+				__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+				__( 'https://mtaandao.co.ke/support/' )
+			) . ' ' . __( '(Mtaandao could not establish a secure connection to Mtaandao.org. Please contact your server administrator.)' ),
+			headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+		);
 		$response = mn_remote_post( $http_url, $options );
 	}
 
@@ -176,7 +183,7 @@ function mn_version_check( $extra_stats = array(), $force_check = false ) {
 }
 
 /**
- * Check plugin versions against the latest versions hosted on mtaandao.co.ke.
+ * Check plugin versions against the latest versions hosted on Mtaandao.org.
  *
  * The Mtaandao version, PHP version, and Locale is sent along with a list of
  * all plugins installed. Checks against the Mtaandao server at
@@ -185,7 +192,7 @@ function mn_version_check( $extra_stats = array(), $force_check = false ) {
  * @since 2.3.0
  * @global string $mn_version Used to notify the Mtaandao version.
  *
- * @param array $extra_stats Extra statistics to report to the mtaandao.co.ke API.
+ * @param array $extra_stats Extra statistics to report to the Mtaandao.org API.
  */
 function mn_update_plugins( $extra_stats = array() ) {
 	if ( mn_installing() ) {
@@ -303,7 +310,14 @@ function mn_update_plugins( $extra_stats = array() ) {
 
 	$raw_response = mn_remote_post( $url, $options );
 	if ( $ssl && is_mn_error( $raw_response ) ) {
-		trigger_error( __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ) . ' ' . __( '(Mtaandao could not establish a secure connection to mtaandao.co.ke. Please contact your server administrator.)' ), headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE );
+		trigger_error(
+			sprintf(
+				/* translators: %s: support forums URL */
+				__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+				__( 'https://mtaandao.co.ke/support/' )
+			) . ' ' . __( '(Mtaandao could not establish a secure connection to Mtaandao.org. Please contact your server administrator.)' ),
+			headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+		);
 		$raw_response = mn_remote_post( $http_url, $options );
 	}
 
@@ -342,7 +356,7 @@ function mn_update_plugins( $extra_stats = array() ) {
 }
 
 /**
- * Check theme versions against the latest versions hosted on mtaandao.co.ke.
+ * Check theme versions against the latest versions hosted on Mtaandao.org.
  *
  * A list of all themes installed in sent to MN. Checks against the
  * Mtaandao server at api.mtaandao.co.ke. Will only check if Mtaandao isn't
@@ -350,7 +364,7 @@ function mn_update_plugins( $extra_stats = array() ) {
  *
  * @since 2.7.0
  *
- * @param array $extra_stats Extra statistics to report to the mtaandao.co.ke API.
+ * @param array $extra_stats Extra statistics to report to the Mtaandao.org API.
  */
 function mn_update_themes( $extra_stats = array() ) {
 	if ( mn_installing() ) {
@@ -470,13 +484,20 @@ function mn_update_themes( $extra_stats = array() ) {
 		$options['body']['update_stats'] = mn_json_encode( $extra_stats );
 	}
 
-	$url = $http_url = 'http://api.mtaandao.co.ke/themes/update-check/1.1/';
+	$url = $http_url = 'http://api.themes.mtaandao.co.ke/update-check/1.1/';
 	if ( $ssl = mn_http_supports( array( 'ssl' ) ) )
 		$url = set_url_scheme( $url, 'https' );
 
 	$raw_response = mn_remote_post( $url, $options );
 	if ( $ssl && is_mn_error( $raw_response ) ) {
-		trigger_error( __( 'An unexpected error occurred. Something may be wrong with mtaandao.co.ke or this server&#8217;s configuration. If you continue to have problems, please try the <a href="https://mtaandao.co.ke/support/">support forums</a>.' ) . ' ' . __( '(Mtaandao could not establish a secure connection to mtaandao.co.ke. Please contact your server administrator.)' ), headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE );
+		trigger_error(
+			sprintf(
+				/* translators: %s: support forums URL */
+				__( 'An unexpected error occurred. Something may be wrong with Mtaandao.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+				__( 'https://mtaandao.co.ke/support/' )
+			) . ' ' . __( '(Mtaandao could not establish a secure connection to Mtaandao.org. Please contact your server administrator.)' ),
+			headers_sent() || MN_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+		);
 		$raw_response = mn_remote_post( $http_url, $options );
 	}
 
@@ -541,7 +562,7 @@ function mn_get_translation_updates() {
  * @return array
  */
 function mn_get_update_data() {
-	$counts = array( 'plugins' => 0, 'themes' => 0, 'Mtaandao' => 0, 'translations' => 0 );
+	$counts = array( 'plugins' => 0, 'themes' => 0, 'mtaandao' => 0, 'translations' => 0 );
 
 	if ( $plugins = current_user_can( 'update_plugins' ) ) {
 		$update_plugins = get_site_transient( 'update_plugins' );
@@ -556,24 +577,31 @@ function mn_get_update_data() {
 	}
 
 	if ( ( $core = current_user_can( 'update_core' ) ) && function_exists( 'get_core_updates' ) ) {
-		$update_Mtaandao = get_core_updates( array('dismissed' => false) );
-		if ( ! empty( $update_Mtaandao ) && ! in_array( $update_Mtaandao[0]->response, array('development', 'latest') ) && current_user_can('update_core') )
-			$counts['Mtaandao'] = 1;
+		$update_mtaandao = get_core_updates( array('dismissed' => false) );
+		if ( ! empty( $update_mtaandao ) && ! in_array( $update_mtaandao[0]->response, array('development', 'latest') ) && current_user_can('update_core') )
+			$counts['mtaandao'] = 1;
 	}
 
 	if ( ( $core || $plugins || $themes ) && mn_get_translation_updates() )
 		$counts['translations'] = 1;
 
-	$counts['total'] = $counts['plugins'] + $counts['themes'] + $counts['Mtaandao'] + $counts['translations'];
+	$counts['total'] = $counts['plugins'] + $counts['themes'] + $counts['mtaandao'] + $counts['translations'];
 	$titles = array();
-	if ( $counts['Mtaandao'] )
-		$titles['Mtaandao'] = sprintf( __( '%d Mtaandao Update'), $counts['Mtaandao'] );
-	if ( $counts['plugins'] )
+	if ( $counts['mtaandao'] ) {
+		/* translators: 1: Number of updates available to Mtaandao */
+		$titles['mtaandao'] = sprintf( __( '%d Mtaandao Update'), $counts['mtaandao'] );
+	}
+	if ( $counts['plugins'] ) {
+		/* translators: 1: Number of updates available to plugins */
 		$titles['plugins'] = sprintf( _n( '%d Plugin Update', '%d Plugin Updates', $counts['plugins'] ), $counts['plugins'] );
-	if ( $counts['themes'] )
+	}
+	if ( $counts['themes'] ) {
+		/* translators: 1: Number of updates available to themes */
 		$titles['themes'] = sprintf( _n( '%d Theme Update', '%d Theme Updates', $counts['themes'] ), $counts['themes'] );
-	if ( $counts['translations'] )
+	}
+	if ( $counts['translations'] ) {
 		$titles['translations'] = __( 'Translation Updates' );
+	}
 
 	$update_title = $titles ? esc_attr( implode( ', ', $titles ) ) : '';
 
@@ -618,7 +646,7 @@ function _maybe_update_core() {
  * Check the last time plugins were run before checking plugin versions.
  *
  * This might have been backported to Mtaandao 2.6.1 for performance reasons.
- * This is used for the mn-admin to check only so often instead of every page
+ * This is used for the admin to check only so often instead of every page
  * load.
  *
  * @since 2.7.0
@@ -678,7 +706,7 @@ function mn_clean_update_cache() {
 	delete_site_transient( 'update_core' );
 }
 
-if ( ( ! is_main_site() && ! is_network_admin() ) || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+if ( ( ! is_main_site() && ! is_network_admin() ) || mn_doing_ajax() ) {
 	return;
 }
 

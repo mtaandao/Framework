@@ -26,7 +26,7 @@ class MN {
 	 * @access public
 	 * @var array
 	 */
-	public $private_query_vars = array( 'offset', 'posts_per_page', 'posts_per_archive_page', 'shomnosts', 'nopaging', 'post_type', 'post_status', 'category__in', 'category__not_in', 'category__and', 'tag__in', 'tag__not_in', 'tag__and', 'tag_slug__in', 'tag_slug__and', 'tag_id', 'post_mime_type', 'perm', 'comments_per_page', 'post__in', 'post__not_in', 'post_parent', 'post_parent__in', 'post_parent__not_in', 'title' );
+	public $private_query_vars = array( 'offset', 'posts_per_page', 'posts_per_archive_page', 'shomnosts', 'nopaging', 'post_type', 'post_status', 'category__in', 'category__not_in', 'category__and', 'tag__in', 'tag__not_in', 'tag__and', 'tag_slug__in', 'tag_slug__and', 'tag_id', 'post_mime_type', 'perm', 'comments_per_page', 'post__in', 'post__not_in', 'post_parent', 'post_parent__in', 'post_parent__not_in', 'title', 'fields' );
 
 	/**
 	 * Extra query variables set by the user.
@@ -422,22 +422,30 @@ class MN {
 			}
 			$headers['Content-Type'] = feed_content_type( $type ) . '; charset=' . get_option( 'blog_charset' );
 
-			// We're showing a feed, so MN is indeed the only thing that last changed
-			if ( !empty($this->query_vars['withcomments'])
-				|| false !== strpos( $this->query_vars['feed'], 'comments-' )
-				|| ( empty($this->query_vars['withoutcomments'])
-					&& ( !empty($this->query_vars['p'])
-						|| !empty($this->query_vars['name'])
-						|| !empty($this->query_vars['page_id'])
-						|| !empty($this->query_vars['pagename'])
-						|| !empty($this->query_vars['attachment'])
-						|| !empty($this->query_vars['attachment_id'])
-					)
-				)
-			)
-				$mn_last_modified = mysql2date('D, d M Y H:i:s', get_lastcommentmodified('GMT'), 0).' GMT';
-			else
-				$mn_last_modified = mysql2date('D, d M Y H:i:s', get_lastpostmodified('GMT'), 0).' GMT';
+			// We're showing a feed, so MN is indeed the only thing that last changed.
+			if ( ! empty( $this->query_vars['withcomments'] )
+			     || false !== strpos( $this->query_vars['feed'], 'comments-' )
+			     || ( empty( $this->query_vars['withoutcomments'] )
+			          && ( ! empty( $this->query_vars['p'] )
+			               || ! empty( $this->query_vars['name'] )
+			               || ! empty( $this->query_vars['page_id'] )
+			               || ! empty( $this->query_vars['pagename'] )
+			               || ! empty( $this->query_vars['attachment'] )
+			               || ! empty( $this->query_vars['attachment_id'] )
+			          )
+			     )
+			) {
+				$mn_last_modified = mysql2date( 'D, d M Y H:i:s', get_lastcommentmodified( 'GMT' ), false );
+			} else {
+				$mn_last_modified = mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), false );
+			}
+
+			if ( ! $mn_last_modified ) {
+				$mn_last_modified = date( 'D, d M Y H:i:s' );
+			}
+
+			$mn_last_modified .= ' GMT';
+
 			$mn_etag = '"' . md5($mn_last_modified) . '"';
 			$headers['Last-Modified'] = $mn_last_modified;
 			$headers['ETag'] = $mn_etag;
@@ -662,7 +670,7 @@ class MN {
 
 				// Only set X-Pingback for single posts that allow pings.
 				if ( $p && pings_open( $p ) ) {
-					@header( 'X-Pingback: ' . get_bloginfo( 'pingback_url' ) );
+					@header( 'X-Pingback: ' . get_bloginfo( 'pingback_url', 'display' ) );
 				}
 
 				// check for paged content that exceeds the max number of pages
@@ -736,95 +744,5 @@ class MN {
 		 * @param MN &$this Current Mtaandao environment instance (passed by reference).
 		 */
 		do_action_ref_array( 'mn', array( &$this ) );
-	}
-}
-
-/**
- * Helper class to remove the need to use eval to replace $matches[] in query strings.
- *
- * @since 2.9.0
- */
-class MN_MatchesMapRegex {
-	/**
-	 * store for matches
-	 *
-	 * @access private
-	 * @var array
-	 */
-	private $_matches;
-
-	/**
-	 * store for mapping result
-	 *
-	 * @access public
-	 * @var string
-	 */
-	public $output;
-
-	/**
-	 * subject to perform mapping on (query string containing $matches[] references
-	 *
-	 * @access private
-	 * @var string
-	 */
-	private $_subject;
-
-	/**
-	 * regexp pattern to match $matches[] references
-	 *
-	 * @var string
-	 */
-	public $_pattern = '(\$matches\[[1-9]+[0-9]*\])'; // magic number
-
-	/**
-	 * constructor
-	 *
-	 * @param string $subject subject if regex
-	 * @param array  $matches data to use in map
-	 */
-	public function __construct($subject, $matches) {
-		$this->_subject = $subject;
-		$this->_matches = $matches;
-		$this->output = $this->_map();
-	}
-
-	/**
-	 * Substitute substring matches in subject.
-	 *
-	 * static helper function to ease use
-	 *
-	 * @static
-	 * @access public
-	 *
-	 * @param string $subject subject
-	 * @param array  $matches data used for substitution
-	 * @return string
-	 */
-	public static function apply($subject, $matches) {
-		$oSelf = new MN_MatchesMapRegex($subject, $matches);
-		return $oSelf->output;
-	}
-
-	/**
-	 * do the actual mapping
-	 *
-	 * @access private
-	 * @return string
-	 */
-	private function _map() {
-		$callback = array($this, 'callback');
-		return preg_replace_callback($this->_pattern, $callback, $this->_subject);
-	}
-
-	/**
-	 * preg_replace_callback hook
-	 *
-	 * @access public
-	 * @param  array $matches preg_replace regexp matches
-	 * @return string
-	 */
-	public function callback($matches) {
-		$index = intval(substr($matches[0], 9, -1));
-		return ( isset( $this->_matches[$index] ) ? urlencode($this->_matches[$index]) : '' );
 	}
 }

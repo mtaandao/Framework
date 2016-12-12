@@ -4,14 +4,14 @@
  *
  * @package Mtaandao
  * @subpackage i18n
- * @since 16.10.0
+ * @since 4.6.0
  */
 
 /**
  * Core class used to store translated data for a locale.
  *
  * @since 2.1.0
- * @since 16.10.0 Moved to its own file from res/locale.php.
+ * @since 4.6.0 Moved to its own file from res/locale.php.
  */
 class MN_Locale {
 	/**
@@ -58,6 +58,14 @@ class MN_Locale {
 	 * @var array
 	 */
 	public $month;
+
+	/**
+	 * Stores the translated strings for the month names in genitive case, if the locale specifies.
+	 *
+	 * @since 4.4.0
+	 * @var array
+	 */
+	public $month_genitive;
 
 	/**
 	 * Stores the translated strings for the abbreviated month names.
@@ -117,7 +125,6 @@ class MN_Locale {
 	 * @access private
 	 *
 	 * @global string $text_direction
-	 * @global string $mn_version
 	 */
 	public function init() {
 		// The Weekdays
@@ -223,7 +230,7 @@ class MN_Locale {
 		elseif ( 'rtl' == _x( 'ltr', 'text direction' ) )
 			$this->text_direction = 'rtl';
 
-		if ( 'rtl' === $this->text_direction && strpos( $GLOBALS['mn_version'], '-src' ) ) {
+		if ( 'rtl' === $this->text_direction && strpos( get_bloginfo( 'version' ), '-src' ) ) {
 			$this->text_direction = 'ltr';
 			add_action( 'all_admin_notices', array( $this, 'rtl_src_admin_notice' ) );
 		}

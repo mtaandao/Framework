@@ -73,7 +73,7 @@
 }
 
 .mn-color-result:focus {
-	border-color: #5b9dd9;
+	border-color: #21b68e;
 	-webkit-box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
 	box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
 }
@@ -123,4 +123,14 @@
 	background-color: #ffebe8;
 	border-color: #c00;
 	color: #000;
+}
+
+.iris-picker .ui-square-handle:focus,
+.iris-picker .iris-strip .ui-slider-handle:focus {
+	-webkit-box-shadow:
+		0 0 0 1px #21b68e,
+		0 0 2px 1px rgba(30, 140, 190, .8);
+	box-shadow:
+		0 0 0 1px #21b68e,
+		0 0 2px 1px rgba(30, 140, 190, .8);
 }

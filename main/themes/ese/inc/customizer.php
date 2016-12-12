@@ -28,14 +28,14 @@ function ese_customize_register( $mn_customize ) {
 	 * Uses a custom radio-image control to configure the Blog Layout setting.
 	 * 
 	 * @uses $mn_customize->add_setting() https://developer.mtaandao.co.ke/reference/classes/mn_customize_manager/add_setting/
-	 * @link $mn_customize->add_setting() https://mtaandao.co.ke/docs/Class_Reference/MN_Customize_Manager/add_setting
+	 * @link $mn_customize->add_setting() https://codex.mtaandao.co.ke/Class_Reference/MN_Customize_Manager/add_setting
 	 */
 	$mn_customize->add_setting(
 		// $id
 		'primary_color',
 		// $args
 		array(
-			'indigo'			=> '#cfcfcf',
+			'indigo'			=> '#3F51B5',
 			'default'			=> 'indigo',
 		)
 	);
@@ -49,7 +49,7 @@ function ese_customize_register( $mn_customize ) {
 	 * Uses a custom radio-image control to configure the Blog Layout setting.
 	 * 
 	 * @uses $mn_customize->add_setting() https://developer.mtaandao.co.ke/reference/classes/mn_customize_manager/add_setting/
-	 * @link $mn_customize->add_setting() https://mtaandao.co.ke/docs/Class_Reference/MN_Customize_Manager/add_setting
+	 * @link $mn_customize->add_setting() https://codex.mtaandao.co.ke/Class_Reference/MN_Customize_Manager/add_setting
 	 */
 	$mn_customize->add_setting(
 		// $id
@@ -127,7 +127,7 @@ function ese_customize_register( $mn_customize ) {
 	 * the Blog Posts Index Layout setting.
 	 * 
 	 * @uses $mn_customize->add_control() https://developer.mtaandao.co.ke/reference/classes/mn_customize_manager/add_control/
-	 * @link $mn_customize->add_control() https://mtaandao.co.ke/docs/Class_Reference/MN_Customize_Manager/add_control
+	 * @link $mn_customize->add_control() https://codex.mtaandao.co.ke/Class_Reference/MN_Customize_Manager/add_control
 	 */
 	$mn_customize->add_control(
 		new Ese_Custom_Radio_Image_Control( 
@@ -147,7 +147,7 @@ function ese_customize_register( $mn_customize ) {
 					'pink' 			=> '#E91E63',
 					'purple' 		=> '#9C27B0',
 					'deep_purple' 	=> '#673AB7',
-					'indigo' 		=> '#cfcfcf',
+					'indigo' 		=> '#3F51B5',
 					'blue' 			=> '#2196F3',
 					'light_blue' 	=> '#03A9F4',
 					'cyan' 			=> '#00BCD4',
@@ -178,7 +178,7 @@ function ese_customize_register( $mn_customize ) {
 	 * the Blog Posts Index Layout setting.
 	 * 
 	 * @uses $mn_customize->add_control() https://developer.mtaandao.co.ke/reference/classes/mn_customize_manager/add_control/
-	 * @link $mn_customize->add_control() https://mtaandao.co.ke/docs/Class_Reference/MN_Customize_Manager/add_control
+	 * @link $mn_customize->add_control() https://codex.mtaandao.co.ke/Class_Reference/MN_Customize_Manager/add_control
 	 */
 	$mn_customize->add_control(
 		new Ese_Custom_Radio_Image_Control( 
@@ -198,7 +198,7 @@ function ese_customize_register( $mn_customize ) {
 					'pink' 			=> '#E91E63',
 					'purple' 		=> '#9C27B0',
 					'deep_purple' 	=> '#673AB7',
-					'indigo' 		=> '#cfcfcf',
+					'indigo' 		=> '#3F51B5',
 					'blue' 			=> '#2196F3',
 					'light_blue' 	=> '#03A9F4',
 					'cyan' 			=> '#00BCD4',
@@ -368,7 +368,7 @@ function ese_sanitize_dropdown_pages( $page_id, $setting ) {
  * as a valid email address.
  * 
  * @see sanitize_email() https://developer.mtaandao.co.ke/reference/functions/sanitize_key/
- * @link sanitize_email() https://mtaandao.co.ke/docs/Function_Reference/sanitize_email
+ * @link sanitize_email() https://codex.mtaandao.co.ke/Function_Reference/sanitize_email
  *
  * @param string               $email   Email address to sanitize.
  * @param MN_Customize_Setting $setting Setting instance.

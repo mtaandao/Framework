@@ -48,7 +48,7 @@ $step = (int) $step;
 $php_version    = phpversion();
 $mysql_version  = $mndb->db_version();
 $php_compat     = version_compare( $php_version, $required_php_version, '>=' );
-if ( file_exists( MAIN . '/db.php' ) && empty( $mndb->is_mysql ) )
+if ( file_exists( MAIN_DIR . '/db.php' ) && empty( $mndb->is_mysql ) )
 	$mysql_compat = true;
 else
 	$mysql_compat = version_compare( $mysql_version, $required_mysql_version, '>=' );
@@ -63,8 +63,8 @@ else
 	<meta name="robots" content="noindex,nofollow" />
 	<title><?php _e( 'Mtaandao &rsaquo; Update' ); ?></title>
 	<?php
-	mn_admin_css( 'install', true );
-	mn_admin_css( 'ie', true );
+	admin_css( 'install', true );
+	admin_css( 'ie', true );
 	?>
 </head>
 <body class="mn-core-ui">
@@ -78,11 +78,11 @@ else
 
 <?php elseif ( !$php_compat || !$mysql_compat ) :
 	if ( !$mysql_compat && !$php_compat )
-		printf( __('You cannot update because <a href="https://mtaandao.co.ke/docs/Version_%1$s">Mtaandao %1$s</a> requires PHP version %2$s or higher and MySQL version %3$s or higher. You are running PHP version %4$s and MySQL version %5$s.'), $mn_version, $required_php_version, $required_mysql_version, $php_version, $mysql_version );
+		printf( __('You cannot update because <a href="https://mtaandao.github.io/Version_%1$s">Mtaandao %1$s</a> requires PHP version %2$s or higher and MySQL version %3$s or higher. You are running PHP version %4$s and MySQL version %5$s.'), $mn_version, $required_php_version, $required_mysql_version, $php_version, $mysql_version );
 	elseif ( !$php_compat )
-		printf( __('You cannot update because <a href="https://mtaandao.co.ke/docs/Version_%1$s">Mtaandao %1$s</a> requires PHP version %2$s or higher. You are running version %3$s.'), $mn_version, $required_php_version, $php_version );
+		printf( __('You cannot update because <a href="https://mtaandao.github.io/Version_%1$s">Mtaandao %1$s</a> requires PHP version %2$s or higher. You are running version %3$s.'), $mn_version, $required_php_version, $php_version );
 	elseif ( !$mysql_compat )
-		printf( __('You cannot update because <a href="https://mtaandao.co.ke/docs/Version_%1$s">Mtaandao %1$s</a> requires MySQL version %2$s or higher. You are running version %3$s.'), $mn_version, $required_mysql_version, $mysql_version );
+		printf( __('You cannot update because <a href="https://mtaandao.github.io/Version_%1$s">Mtaandao %1$s</a> requires MySQL version %2$s or higher. You are running version %3$s.'), $mn_version, $required_mysql_version, $mysql_version );
 ?>
 <?php else :
 switch ( $step ) :

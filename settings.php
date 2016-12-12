@@ -3,9 +3,7 @@
  * Used to set up and fix common variables and include
  * the Mtaandao procedural and class library.
  *
- * Allows for some configuration in configuration.php (see default-constants.php)
- *
- * @internal This file must be parsable by PHP4.
+ * Allows for some configuration in db.php (see default-constants.php)
  *
  * @package Mtaandao
  */
@@ -20,7 +18,7 @@ define( 'RES', 'res' );
 // Include files required for initialization.
 require( ABSPATH . RES . '/load.php' );
 require( ABSPATH . RES . '/default-constants.php' );
-require( ABSPATH . RES . '/plugin.php' );
+require_once( ABSPATH . RES . '/plugin.php' );
 
 /*
  * These can't be directly globalized in version.php. When updating,
@@ -39,7 +37,7 @@ require( ABSPATH . RES . '/version.php' );
  */
 global $blog_id;
 
-// Set initial default constants including MN_MEMORY_LIMIT, MN_MAX_MEMORY_LIMIT, MN_DEBUG, SCRIPT_DEBUG, MAIN and MN_CACHE.
+// Set initial default constants including MN_MEMORY_LIMIT, MN_MAX_MEMORY_LIMIT, MN_DEBUG, SCRIPT_DEBUG, MAIN_DIR and MN_CACHE.
 mn_initial_constants();
 
 // Check for the required PHP version and for the MySQL extension or a database drop-in.
@@ -76,14 +74,19 @@ mn_debug_mode();
  * This filter runs before it can be used by plugins. It is designed for non-web
  * run-times. If false is returned, advanced-cache.php will never be loaded.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @param bool $enable_advanced_cache Whether to enable loading advanced-cache.php (if present).
  *                                    Default true.
  */
 if ( MN_CACHE && apply_filters( 'enable_loading_advanced_cache_dropin', true ) ) {
-// For an advanced caching plugin to use. Uses a static drop-in because you would only want one.
-	MN_DEBUG ? include( MAIN . '/advanced-cache.php' ) : @include( MAIN . '/advanced-cache.php' );
+	// For an advanced caching plugin to use. Uses a static drop-in because you would only want one.
+	MN_DEBUG ? include( MAIN_DIR . '/advanced-cache.php' ) : @include( MAIN_DIR . '/advanced-cache.php' );
+
+	// Re-initialize any hooks added manually by advanced-cache.php
+	if ( $mn_filter ) {
+		$mn_filter = MN_Hook::build_preinitialized_hooks( $mn_filter );
+	}
 }
 
 // Define MN_LANG_DIR if not set.
@@ -91,10 +94,13 @@ mn_set_lang_dir();
 
 // Load early Mtaandao files.
 require( ABSPATH . RES . '/compat.php' );
+require( ABSPATH . RES . '/class-mn-list-util.php' );
 require( ABSPATH . RES . '/functions.php' );
+require( ABSPATH . RES . '/class-mn-matchesmapregex.php' );
 require( ABSPATH . RES . '/class-mn.php' );
 require( ABSPATH . RES . '/class-mn-error.php' );
 require( ABSPATH . RES . '/pomo/mo.php' );
+require( ABSPATH . RES . '/class-phpass.php' );
 
 // Include the mndb class and, if present, a db.php database drop-in.
 global $mndb;
@@ -128,6 +134,8 @@ if ( SHORTINIT )
 
 // Load the L10n library.
 require_once( ABSPATH . RES . '/l10n.php' );
+require_once( ABSPATH . RES . '/class-mn-locale.php' );
+require_once( ABSPATH . RES . '/class-mn-locale-switcher.php' );
 
 // Run the installer if Mtaandao is not installed.
 mn_not_installed();
@@ -140,6 +148,7 @@ require( ABSPATH . RES . '/capabilities.php' );
 require( ABSPATH . RES . '/class-mn-roles.php' );
 require( ABSPATH . RES . '/class-mn-role.php' );
 require( ABSPATH . RES . '/class-mn-user.php' );
+require( ABSPATH . RES . '/class-mn-query.php' );
 require( ABSPATH . RES . '/query.php' );
 require( ABSPATH . RES . '/date.php' );
 require( ABSPATH . RES . '/theme.php' );
@@ -147,7 +156,8 @@ require( ABSPATH . RES . '/class-mn-theme.php' );
 require( ABSPATH . RES . '/template.php' );
 require( ABSPATH . RES . '/user.php' );
 require( ABSPATH . RES . '/class-mn-user-query.php' );
-require( ABSPATH . RES . '/session.php' );
+require( ABSPATH . RES . '/class-mn-session-tokens.php' );
+require( ABSPATH . RES . '/class-mn-user-meta-session-tokens.php' );
 require( ABSPATH . RES . '/meta.php' );
 require( ABSPATH . RES . '/class-mn-meta-query.php' );
 require( ABSPATH . RES . '/class-mn-metadata-lazyloader.php' );
@@ -182,6 +192,7 @@ require( ABSPATH . RES . '/cron.php' );
 require( ABSPATH . RES . '/deprecated.php' );
 require( ABSPATH . RES . '/script-loader.php' );
 require( ABSPATH . RES . '/taxonomy.php' );
+require( ABSPATH . RES . '/class-mn-taxonomy.php' );
 require( ABSPATH . RES . '/class-mn-term.php' );
 require( ABSPATH . RES . '/class-mn-term-query.php' );
 require( ABSPATH . RES . '/class-mn-tax-query.php' );
@@ -190,6 +201,7 @@ require( ABSPATH . RES . '/canonical.php' );
 require( ABSPATH . RES . '/shortcodes.php' );
 require( ABSPATH . RES . '/embed.php' );
 require( ABSPATH . RES . '/class-mn-embed.php' );
+require( ABSPATH . RES . '/class-oembed.php' );
 require( ABSPATH . RES . '/class-mn-oembed-controller.php' );
 require( ABSPATH . RES . '/media.php' );
 require( ABSPATH . RES . '/http.php' );
@@ -201,6 +213,7 @@ require( ABSPATH . RES . '/class-mn-http-cookie.php' );
 require( ABSPATH . RES . '/class-mn-http-encoding.php' );
 require( ABSPATH . RES . '/class-mn-http-response.php' );
 require( ABSPATH . RES . '/class-mn-http-requests-response.php' );
+require( ABSPATH . RES . '/class-mn-http-requests-hooks.php' );
 require( ABSPATH . RES . '/widgets.php' );
 require( ABSPATH . RES . '/class-mn-widget.php' );
 require( ABSPATH . RES . '/class-mn-widget-factory.php' );
@@ -211,6 +224,24 @@ require( ABSPATH . RES . '/rest-api.php' );
 require( ABSPATH . RES . '/rest-api/class-mn-rest-server.php' );
 require( ABSPATH . RES . '/rest-api/class-mn-rest-response.php' );
 require( ABSPATH . RES . '/rest-api/class-mn-rest-request.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-controller.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-posts-controller.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-attachments-controller.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-post-types-controller.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-post-statuses-controller.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-revisions-controller.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-taxonomies-controller.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-terms-controller.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-users-controller.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-comments-controller.php' );
+require( ABSPATH . RES . '/rest-api/endpoints/class-mn-rest-settings-controller.php' );
+require( ABSPATH . RES . '/rest-api/fields/class-mn-rest-meta-fields.php' );
+require( ABSPATH . RES . '/rest-api/fields/class-mn-rest-comment-meta-fields.php' );
+require( ABSPATH . RES . '/rest-api/fields/class-mn-rest-post-meta-fields.php' );
+require( ABSPATH . RES . '/rest-api/fields/class-mn-rest-term-meta-fields.php' );
+require( ABSPATH . RES . '/rest-api/fields/class-mn-rest-user-meta-fields.php' );
+
+$GLOBALS['mn_embed'] = new MN_Embed();
 
 // Load multisite-specific files.
 if ( is_multisite() ) {
@@ -369,15 +400,22 @@ if ( ( 0 === validate_file( $locale ) ) && is_readable( $locale_file ) )
 	require( $locale_file );
 unset( $locale_file );
 
-// Pull in locale data after loading text domain.
-require_once( ABSPATH . RES . '/locale.php' );
-
 /**
  * Mtaandao Locale object for loading locale domain date and various strings.
  * @global MN_Locale $mn_locale
  * @since 2.1.0
  */
 $GLOBALS['mn_locale'] = new MN_Locale();
+
+/**
+ *  Mtaandao Locale Switcher object for switching locales.
+ *
+ * @since 4.7.0
+ *
+ * @global MN_Locale_Switcher $mn_locale_switcher Mtaandao locale switcher object.
+ */
+$GLOBALS['mn_locale_switcher'] = new MN_Locale_Switcher();
+$GLOBALS['mn_locale_switcher']->init();
 
 // Load the functions for the active theme, for both parent and child theme if applicable.
 if ( ! mn_installing() || 'activate.php' === $pagenow ) {
@@ -425,7 +463,7 @@ if ( is_multisite() ) {
  * Ajax requests should use admin/admin-ajax.php. admin-ajax.php can handle requests for
  * users not logged in.
  *
- * @link https://mtaandao.co.ke/docs/AJAX_in_Plugins
+ * @link https://mtaandao.github.io/AJAX_in_Plugins
  *
  * @since 3.0.0
  */

@@ -11,8 +11,8 @@
  *
  * @since 2.3.2
  */
-if ( ! defined( 'MN_ADMIN' ) ) {
-	define( 'MN_ADMIN', true );
+if ( ! defined( 'ADMIN' ) ) {
+	define( 'ADMIN', true );
 }
 
 if ( ! defined('MN_NETWORK_ADMIN') )
@@ -209,7 +209,7 @@ if ( isset($plugin_page) ) {
 		 *
 		 * @since 2.1.0
 		 */
-		do_action( 'load-' . $page_hook );
+		do_action( "load-{$page_hook}" );
 		if (! isset($_GET['noheader']))
 			require_once(ABSPATH . 'admin/admin-header.php');
 
@@ -224,7 +224,7 @@ if ( isset($plugin_page) ) {
 		if ( validate_file($plugin_page) )
 			mn_die(__('Invalid plugin page'));
 
-		if ( !( file_exists(MN_PLUGIN_DIR . "/$plugin_page") && is_file(MN_PLUGIN_DIR . "/$plugin_page") ) && !( file_exists(MNMU_PLUGIN_DIR . "/$plugin_page") && is_file(MNMU_PLUGIN_DIR . "/$plugin_page") ) )
+		if ( !( file_exists(PLUGIN_DIR . "/$plugin_page") && is_file(PLUGIN_DIR . "/$plugin_page") ) && !( file_exists(MNMU_PLUGIN_DIR . "/$plugin_page") && is_file(MNMU_PLUGIN_DIR . "/$plugin_page") ) )
 			mn_die(sprintf(__('Cannot load %s.'), htmlentities($plugin_page)));
 
 		/**
@@ -239,7 +239,7 @@ if ( isset($plugin_page) ) {
 		 *
 		 * @since 1.5.0
 		 */
-		do_action( 'load-' . $plugin_page );
+		do_action( "load-{$plugin_page}" );
 
 		if ( !isset($_GET['noheader']))
 			require_once(ABSPATH . 'admin/admin-header.php');
@@ -247,7 +247,7 @@ if ( isset($plugin_page) ) {
 		if ( file_exists(MNMU_PLUGIN_DIR . "/$plugin_page") )
 			include(MNMU_PLUGIN_DIR . "/$plugin_page");
 		else
-			include(MN_PLUGIN_DIR . "/$plugin_page");
+			include(PLUGIN_DIR . "/$plugin_page");
 	}
 
 	include(ABSPATH . 'admin/admin-footer.php');
@@ -278,7 +278,7 @@ if ( isset($plugin_page) ) {
 	 *
 	 * @since 3.5.0
 	 */
-	do_action( 'load-importer-' . $importer );
+	do_action( "load-importer-{$importer}" );
 
 	$parent_file = 'tools.php';
 	$submenu_file = 'import.php';
@@ -326,7 +326,7 @@ if ( isset($plugin_page) ) {
 	 *
 	 * @since 2.1.0
 	 */
-	do_action( 'load-' . $pagenow );
+	do_action( "load-{$pagenow}" );
 
 	/*
 	 * The following hooks are fired to ensure backward compatibility.

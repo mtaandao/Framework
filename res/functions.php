@@ -91,13 +91,7 @@ function date_i18n( $dateformatstring, $unixtimestamp = false, $gmt = false ) {
 	$i = $unixtimestamp;
 
 	if ( false === $i ) {
-		if ( ! $gmt )
-			$i = current_time( 'timestamp' );
-		else
-			$i = time();
-		// we should not let date() interfere with our
-		// specially computed timestamp
-		$gmt = true;
+		$i = current_time( 'timestamp', $gmt );
 	}
 
 	/*
@@ -106,15 +100,13 @@ function date_i18n( $dateformatstring, $unixtimestamp = false, $gmt = false ) {
 	 */
 	$req_format = $dateformatstring;
 
-	$datefunc = $gmt? 'gmdate' : 'date';
-
 	if ( ( !empty( $mn_locale->month ) ) && ( !empty( $mn_locale->weekday ) ) ) {
-		$datemonth = $mn_locale->get_month( $datefunc( 'm', $i ) );
+		$datemonth = $mn_locale->get_month( date( 'm', $i ) );
 		$datemonth_abbrev = $mn_locale->get_month_abbrev( $datemonth );
-		$dateweekday = $mn_locale->get_weekday( $datefunc( 'w', $i ) );
+		$dateweekday = $mn_locale->get_weekday( date( 'w', $i ) );
 		$dateweekday_abbrev = $mn_locale->get_weekday_abbrev( $dateweekday );
-		$datemeridiem = $mn_locale->get_meridiem( $datefunc( 'a', $i ) );
-		$datemeridiem_capital = $mn_locale->get_meridiem( $datefunc( 'A', $i ) );
+		$datemeridiem = $mn_locale->get_meridiem( date( 'a', $i ) );
+		$datemeridiem_capital = $mn_locale->get_meridiem( date( 'A', $i ) );
 		$dateformatstring = ' '.$dateformatstring;
 		$dateformatstring = preg_replace( "/([^\\\])D/", "\\1" . backslashit( $dateweekday_abbrev ), $dateformatstring );
 		$dateformatstring = preg_replace( "/([^\\\])F/", "\\1" . backslashit( $datemonth ), $dateformatstring );
@@ -142,7 +134,7 @@ function date_i18n( $dateformatstring, $unixtimestamp = false, $gmt = false ) {
 			}
 		}
 	}
-	$j = @$datefunc( $dateformatstring, $i );
+	$j = @date( $dateformatstring, $i );
 
 	/**
 	 * Filters the date formatted based on the locale.
@@ -1221,6 +1213,18 @@ function bool_from_yn( $yn ) {
 function do_feed() {
 	global $mn_query;
 
+	// Determine if we are looking at the main comment feed
+	$is_main_comments_feed = ( $mn_query->is_comment_feed() && ! $mn_query->is_singular() );
+
+	/*
+	 * Check the queried object for the existence of posts if it is not a feed for an archive,
+	 * search result, or main comments. By checking for the absense of posts we can prevent rendering the feed
+	 * templates at invalid endpoints. e.g.) /main/plugins/feed/
+	 */
+	if ( ! $mn_query->have_posts() && ! ( $mn_query->is_archive() || $mn_query->is_search() || $is_main_comments_feed ) ) {
+		mn_die( __( 'ERROR: This is not a valid feed.' ), '', array( 'response' => 404 ) );
+	}
+
 	$feed = get_query_var( 'feed' );
 
 	// Remove the pad, if present.
@@ -1411,7 +1415,12 @@ function is_blog_installed() {
 		mn_load_translations_early();
 
 		// Die with a DB error.
-		$mndb->error = sprintf( __( 'One or more database tables are unavailable. The database may need to be <a href="%s">repaired</a>.' ), 'maint/repair.php?referrer=is_blog_installed' );
+		$mndb->error = sprintf(
+			/* translators: %s: database repair URL */
+			__( 'One or more database tables are unavailable. The database may need to be <a href="%s">repaired</a>.' ),
+			'maint/repair.php?referrer=is_blog_installed'
+		);
+
 		dead_db();
 	}
 
@@ -1719,11 +1728,11 @@ function mn_normalize_path( $path ) {
  * Determine a writable directory for temporary files.
  *
  * Function's preference is the return value of sys_get_temp_dir(),
- * followed by your PHP temporary upload directory, followed by MAIN,
+ * followed by your PHP temporary upload directory, followed by MAIN_DIR,
  * before finally defaulting to /tmp/
  *
  * In the event that this function does not find a writable location,
- * It may be overridden by the MN_TEMP_DIR constant in your configuration.php file.
+ * It may be overridden by the MN_TEMP_DIR constant in your db.php file.
  *
  * @since 2.5.0
  *
@@ -1749,7 +1758,7 @@ function get_temp_dir() {
 	if ( @is_dir( $temp ) && mn_is_writable( $temp ) )
 		return trailingslashit( $temp );
 
-	$temp = MAIN . '/';
+	$temp = MAIN_DIR . '/';
 	if ( is_dir( $temp ) && mn_is_writable( $temp ) )
 		return $temp;
 
@@ -1832,11 +1841,11 @@ function mn_get_upload_dir() {
  *
  * Checks the 'upload_path' option, which should be from the web root folder,
  * and if it isn't empty it will be used. If it is empty, then the path will be
- * 'MAIN/uploads'. If the 'UPLOADS' constant is defined, then it will
- * override the 'upload_path' option and 'MAIN/uploads' path.
+ * 'MAIN_DIR/uploads'. If the 'UPLOADS' constant is defined, then it will
+ * override the 'upload_path' option and 'MAIN_DIR/uploads' path.
  *
  * The upload URL path is set either by the 'upload_url_path' option or by using
- * the 'MN_CONTENT_URL' constant and appending '/uploads' to the path.
+ * the 'MAIN_URL' constant and appending '/uploads' to the path.
  *
  * If the 'uploads_use_yearmonth_folders' is set to true (checkbox if checked in
  * the administration settings panel), then the time will be used. The format
@@ -1895,7 +1904,11 @@ function mn_upload_dir( $time = null, $create_dir = true, $refresh_cache = false
 					$error_path = basename( $uploads['basedir'] ) . $uploads['subdir'];
 				}
 
-				$uploads['error'] = sprintf( __( 'Unable to create directory %s. Is its parent directory writable by the server?' ), esc_html( $error_path ) );
+				$uploads['error'] = sprintf(
+					/* translators: %s: directory path */
+					__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+					esc_html( $error_path )
+				);
 			}
 
 			$tested_paths[ $path ] = $uploads['error'];
@@ -1918,7 +1931,7 @@ function _mn_upload_dir( $time = null ) {
 	$upload_path = trim( get_option( 'upload_path' ) );
 
 	if ( empty( $upload_path ) || 'main/uploads' == $upload_path ) {
-		$dir = MAIN . '/uploads';
+		$dir = MAIN_DIR . '/uploads';
 	} elseif ( 0 !== strpos( $upload_path, ABSPATH ) ) {
 		// $dir is absolute, $upload_path is (maybe) relative to ABSPATH
 		$dir = path_join( ABSPATH, $upload_path );
@@ -1928,7 +1941,7 @@ function _mn_upload_dir( $time = null ) {
 
 	if ( !$url = get_option( 'upload_url_path' ) ) {
 		if ( empty($upload_path) || ( 'main/uploads' == $upload_path ) || ( $upload_path == $dir ) )
-			$url = MN_CONTENT_URL . '/uploads';
+			$url = MAIN_URL . '/uploads';
 		else
 			$url = trailingslashit( $siteurl ) . $upload_path;
 	}
@@ -2034,13 +2047,16 @@ function mn_unique_filename( $dir, $filename, $unique_filename_callback = null )
 	$filename = sanitize_file_name($filename);
 
 	// Separate the filename into a name and extension.
-	$info = pathinfo($filename);
-	$ext = !empty($info['extension']) ? '.' . $info['extension'] : '';
-	$name = basename($filename, $ext);
+	$ext = pathinfo( $filename, PATHINFO_EXTENSION );
+	$name = pathinfo( $filename, PATHINFO_BASENAME );
+	if ( $ext ) {
+		$ext = '.' . $ext;
+	}
 
 	// Edge case: if file is named '.ext', treat as an empty name.
-	if ( $name === $ext )
+	if ( $name === $ext ) {
 		$name = '';
+	}
 
 	/*
 	 * Increment the file number until we have a unique file to save in $dir.
@@ -2154,7 +2170,11 @@ function mn_upload_bits( $name, $deprecated, $bits, $time = null ) {
 		else
 			$error_path = basename( $upload['basedir'] ) . $upload['subdir'];
 
-		$message = sprintf( __( 'Unable to create directory %s. Is its parent directory writable by the server?' ), $error_path );
+		$message = sprintf(
+			/* translators: %s: directory path */
+			__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+			$error_path
+		);
 		return array( 'error' => $message );
 	}
 
@@ -2440,7 +2460,7 @@ function mn_get_mime_types() {
 /**
  * Retrieves the list of common file extensions and their types.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @return array Array of file extensions types keyed by the type of file.
  */
@@ -2513,13 +2533,27 @@ function get_allowed_mime_types( $user = null ) {
  */
 function mn_nonce_ays( $action ) {
 	if ( 'log-out' == $action ) {
-		$html = sprintf( __( 'You are attempting to log out of %s' ), get_bloginfo( 'name' ) ) . '</p><p>';
+		$html = sprintf(
+			/* translators: %s: site name */
+			__( 'You are attempting to log out of %s' ),
+			get_bloginfo( 'name' )
+		);
+		$html .= '</p><p>';
 		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
-		$html .= sprintf( __( "Do you really want to <a href='%s'>log out</a>?"), mn_logout_url( $redirect_to ) );
+		$html .= sprintf(
+			/* translators: %s: logout URL */
+			__( 'Do you really want to <a href="%s">log out</a>?' ),
+			mn_logout_url( $redirect_to )
+		);
 	} else {
 		$html = __( 'Are you sure you want to do this?' );
-		if ( mn_get_referer() )
-			$html .= "</p><p><a href='" . esc_url( remove_query_arg( 'updated', mn_get_referer() ) ) . "'>" . __( 'Please try again.' ) . "</a>";
+		if ( mn_get_referer() ) {
+			$html .= '</p><p>';
+			$html .= sprintf( '<a href="%s">%s</a>',
+				esc_url( remove_query_arg( 'updated', mn_get_referer() ) ),
+				__( 'Please try again.' )
+			);
+		}
 	}
 
 	mn_die( $html, __( 'Mtaandao Failure Notice' ), 403 );
@@ -2542,7 +2576,8 @@ function mn_nonce_ays( $action ) {
  *              an integer to be used as the response code.
  *
  * @param string|MN_Error  $message Optional. Error message. If this is a MN_Error object,
- *                                  the error's messages are used. Default empty.
+ *                                  and not an Ajax or XML-RPC request, the error's messages are used.
+ *                                  Default empty.
  * @param string|int       $title   Optional. Error title. If `$message` is a `MN_Error` object,
  *                                  error data with the key 'title' may be used to specify the title.
  *                                  If `$title` is an integer, then it is treated as the response
@@ -2551,7 +2586,7 @@ function mn_nonce_ays( $action ) {
  *     Optional. Arguments to control behavior. If `$args` is an integer, then it is treated
  *     as the response code. Default empty array.
  *
- *     @type int    $response       The HTTP response code. Default 500.
+ *     @type int    $response       The HTTP response code. Default 200 for Ajax requests, 500 otherwise.
  *     @type bool   $back_link      Whether to include a link to go back. Default false.
  *     @type string $text_direction The text direction. This is only useful internally, when Mtaandao
  *                                  is still loading and the site's locale is not set up yet. Accepts 'rtl'.
@@ -2567,7 +2602,7 @@ function mn_die( $message = '', $title = '', $args = array() ) {
 		$title = '';
 	}
 
-	if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+	if ( mn_doing_ajax() ) {
 		/**
 		 * Filters the callback for killing Mtaandao execution for Ajax requests.
 		 *
@@ -2608,9 +2643,9 @@ function mn_die( $message = '', $title = '', $args = array() ) {
  * @since 3.0.0
  * @access private
  *
- * @param string       $message Error message.
- * @param string       $title   Optional. Error title. Default empty.
- * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ * @param string|MN_Error $message Error message or MN_Error object.
+ * @param string          $title   Optional. Error title. Default empty.
+ * @param string|array    $args    Optional. Arguments to control behavior. Default empty array.
  */
 function _default_mn_die_handler( $message, $title = '', $args = array() ) {
 	$defaults = array( 'response' => 500 );
@@ -2713,19 +2748,19 @@ function _default_mn_die_handler( $message, $title = '', $args = array() ) {
 			font-size: 14px ;
 		}
 		a {
-			color: #21b68e;
+			color: #21b16e;
 		}
 		a:hover,
 		a:active {
-			color: #cfcfcf;
+			color: #21b68e;
 		}
 		a:focus {
-			color: #124964;
+			color: #21b68e;
 		    -webkit-box-shadow:
-		    	0 0 0 1px #5b9dd9,
+		    	0 0 0 1px #21b68e,
 				0 0 2px 1px rgba(30, 140, 190, .8);
 		    box-shadow:
-		    	0 0 0 1px #5b9dd9,
+		    	0 0 0 1px #21b68e,
 				0 0 2px 1px rgba(30, 140, 190, .8);
 			outline: none;
 		}
@@ -2768,7 +2803,7 @@ function _default_mn_die_handler( $message, $title = '', $args = array() ) {
 		}
 
 		.button:focus  {
-			border-color: #5b9dd9;
+			border-color: #21b68e;
 			-webkit-box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
 			box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
 			outline: none;
@@ -2835,9 +2870,20 @@ function _xmlrpc_mn_die_handler( $message, $title = '', $args = array() ) {
  * @since 3.4.0
  * @access private
  *
- * @param string $message Optional. Response to print. Default empty.
+ * @param string       $message Error message.
+ * @param string       $title   Optional. Error title (unused). Default empty.
+ * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
  */
-function _ajax_mn_die_handler( $message = '' ) {
+function _ajax_mn_die_handler( $message, $title = '', $args = array() ) {
+	$defaults = array(
+		'response' => 200,
+	);
+	$r = mn_parse_args( $args, $defaults );
+
+	if ( ! headers_sent() && null !== $r['response'] ) {
+		status_header( $r['response'] );
+	}
+
 	if ( is_scalar( $message ) )
 		die( (string) $message );
 	die( '0' );
@@ -3054,33 +3100,44 @@ function _mn_json_prepare_data( $data ) {
  * Send a JSON response back to an Ajax request.
  *
  * @since 3.5.0
+ * @since 4.7.0 The `$status_code` parameter was added.
  *
- * @param mixed $response Variable (usually an array or object) to encode as JSON,
- *                        then print and die.
+ * @param mixed $response    Variable (usually an array or object) to encode as JSON,
+ *                           then print and die.
+ * @param int   $status_code The HTTP status code to output.
  */
-function mn_send_json( $response ) {
+function mn_send_json( $response, $status_code = null ) {
 	@header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+	if ( null !== $status_code ) {
+		status_header( $status_code );
+	}
 	echo mn_json_encode( $response );
-	if ( defined( 'DOING_AJAX' ) && DOING_AJAX )
-		mn_die();
-	else
+
+	if ( mn_doing_ajax() ) {
+		mn_die( '', '', array(
+			'response' => null,
+		) );
+	} else {
 		die;
+	}
 }
 
 /**
  * Send a JSON response back to an Ajax request, indicating success.
  *
  * @since 3.5.0
+ * @since 4.7.0 The `$status_code` parameter was added.
  *
- * @param mixed $data Data to encode as JSON, then print and die.
+ * @param mixed $data        Data to encode as JSON, then print and die.
+ * @param int   $status_code The HTTP status code to output.
  */
-function mn_send_json_success( $data = null ) {
+function mn_send_json_success( $data = null, $status_code = null ) {
 	$response = array( 'success' => true );
 
 	if ( isset( $data ) )
 		$response['data'] = $data;
 
-	mn_send_json( $response );
+	mn_send_json( $response, $status_code );
 }
 
 /**
@@ -3093,10 +3150,12 @@ function mn_send_json_success( $data = null ) {
  *
  * @since 3.5.0
  * @since 4.1.0 The `$data` parameter is now processed if a MN_Error object is passed in.
+ * @since 4.7.0 The `$status_code` parameter was added.
  *
- * @param mixed $data Data to encode as JSON, then print and die.
+ * @param mixed $data        Data to encode as JSON, then print and die.
+ * @param int   $status_code The HTTP status code to output.
  */
-function mn_send_json_error( $data = null ) {
+function mn_send_json_error( $data = null, $status_code = null ) {
 	$response = array( 'success' => false );
 
 	if ( isset( $data ) ) {
@@ -3114,7 +3173,7 @@ function mn_send_json_error( $data = null ) {
 		}
 	}
 
-	mn_send_json( $response );
+	mn_send_json( $response, $status_code );
 }
 
 /**
@@ -3124,7 +3183,7 @@ function mn_send_json_error( $data = null ) {
  * function names. This helps to mitigate XSS attacks caused by directly
  * outputting user input.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @param string $callback Supplied JSONP callback function.
  * @return bool True if valid callback, otherwise false.
@@ -3134,7 +3193,7 @@ function mn_check_jsonp_callback( $callback ) {
 		return false;
 	}
 
-	$jsonp_callback = preg_replace( '/[^\w\.]/', '', $callback, -1, $illegal_char_count );
+	preg_replace( '/[^\w\.]/', '', $callback, -1, $illegal_char_count );
 
 	return 0 === $illegal_char_count;
 }
@@ -3179,6 +3238,16 @@ function _config_mn_siteurl( $url = '' ) {
 	if ( defined( 'MN_SITEURL' ) )
 		return untrailingslashit( MN_SITEURL );
 	return $url;
+}
+
+/**
+ * Delete the fresh site option.
+ *
+ * @since 4.7.0
+ * @access private
+ */
+function _delete_option_fresh_site() {
+	update_option( 'fresh_site', 0 );
 }
 
 /**
@@ -3295,6 +3364,18 @@ function smilies_init() {
 		);
 	}
 
+	/**
+	 * Filters all the smilies.
+	 *
+	 * This filter must be added before `smilies_init` is run, as
+	 * it is normally only run once to setup the smilies regex.
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param array $mnsmiliestrans List of the smilies.
+	 */
+	$mnsmiliestrans = apply_filters('smilies', $mnsmiliestrans);
+
 	if (count($mnsmiliestrans) == 0) {
 		return;
 	}
@@ -3341,9 +3422,10 @@ function smilies_init() {
  * to be merged into another array.
  *
  * @since 2.2.0
+ * @since 2.3.0 `$args` can now also be an object.
  *
- * @param string|array $args     Value to merge with $defaults
- * @param array        $defaults Optional. Array that serves as the defaults. Default empty.
+ * @param string|array|object $args     Value to merge with $defaults.
+ * @param array               $defaults Optional. Array that serves as the defaults. Default empty.
  * @return array Merged user defined values with defaults.
  */
 function mn_parse_args( $args, $defaults = '' ) {
@@ -3372,6 +3454,26 @@ function mn_parse_id_list( $list ) {
 		$list = preg_split('/[\s,]+/', $list);
 
 	return array_unique(array_map('absint', $list));
+}
+
+/**
+ * Clean up an array, comma- or space-separated list of slugs.
+ *
+ * @since 4.7.0
+ *
+ * @param  array|string $list List of slugs.
+ * @return array Sanitized array of slugs.
+ */
+function mn_parse_slug_list( $list ) {
+	if ( ! is_array( $list ) ) {
+		$list = preg_split( '/[\s,]+/', $list );
+	}
+
+	foreach ( $list as $key => $value ) {
+		$list[ $key ] = sanitize_title( $value );
+	}
+
+	return array_unique( $list );
 }
 
 /**
@@ -3414,6 +3516,7 @@ function mn_is_numeric_array( $data ) {
  * Filters a list of objects, based on a set of key => value arguments.
  *
  * @since 3.0.0
+ * @since 4.7.0 Uses MN_List_Util class.
  *
  * @param array       $list     An array of objects to filter
  * @param array       $args     Optional. An array of key => value arguments to match
@@ -3427,21 +3530,26 @@ function mn_is_numeric_array( $data ) {
  * @return array A list of objects or object fields.
  */
 function mn_filter_object_list( $list, $args = array(), $operator = 'and', $field = false ) {
-	if ( ! is_array( $list ) )
+	if ( ! is_array( $list ) ) {
 		return array();
+	}
 
-	$list = mn_list_filter( $list, $args, $operator );
+	$util = new MN_List_Util( $list );
 
-	if ( $field )
-		$list = mn_list_pluck( $list, $field );
+	$util->filter( $args, $operator );
 
-	return $list;
+	if ( $field ) {
+		$util->pluck( $field );
+	}
+
+	return $util->get_output();
 }
 
 /**
  * Filters a list of objects, based on a set of key => value arguments.
  *
  * @since 3.1.0
+ * @since 4.7.0 Uses MN_List_Util class.
  *
  * @param array  $list     An array of objects to filter.
  * @param array  $args     Optional. An array of key => value arguments to match
@@ -3453,33 +3561,12 @@ function mn_filter_object_list( $list, $args = array(), $operator = 'and', $fiel
  * @return array Array of found values.
  */
 function mn_list_filter( $list, $args = array(), $operator = 'AND' ) {
-	if ( ! is_array( $list ) )
+	if ( ! is_array( $list ) ) {
 		return array();
-
-	if ( empty( $args ) )
-		return $list;
-
-	$operator = strtoupper( $operator );
-	$count = count( $args );
-	$filtered = array();
-
-	foreach ( $list as $key => $obj ) {
-		$to_match = (array) $obj;
-
-		$matched = 0;
-		foreach ( $args as $m_key => $m_value ) {
-			if ( array_key_exists( $m_key, $to_match ) && $m_value == $to_match[ $m_key ] )
-				$matched++;
-		}
-
-		if ( ( 'AND' == $operator && $matched == $count )
-		  || ( 'OR' == $operator && $matched > 0 )
-		  || ( 'NOT' == $operator && 0 == $matched ) ) {
-			$filtered[$key] = $obj;
-		}
 	}
 
-	return $filtered;
+	$util = new MN_List_Util( $list );
+	return $util->filter( $args, $operator );
 }
 
 /**
@@ -3490,6 +3577,7 @@ function mn_list_filter( $list, $args = array(), $operator = 'AND' ) {
  *
  * @since 3.1.0
  * @since 4.0.0 $index_key parameter added.
+ * @since 4.7.0 Uses MN_List_Util class.
  *
  * @param array      $list      List of objects or arrays
  * @param int|string $field     Field from the object to place instead of the entire object
@@ -3500,43 +3588,30 @@ function mn_list_filter( $list, $args = array(), $operator = 'AND' ) {
  *               `$list` will be preserved in the results.
  */
 function mn_list_pluck( $list, $field, $index_key = null ) {
-	if ( ! $index_key ) {
-		/*
-		 * This is simple. Could at some point wrap array_column()
-		 * if we knew we had an array of arrays.
-		 */
-		foreach ( $list as $key => $value ) {
-			if ( is_object( $value ) ) {
-				$list[ $key ] = $value->$field;
-			} else {
-				$list[ $key ] = $value[ $field ];
-			}
-		}
-		return $list;
+	$util = new MN_List_Util( $list );
+	return $util->pluck( $field, $index_key );
+}
+
+/**
+ * Sorts a list of objects, based on one or more orderby arguments.
+ *
+ * @since 4.7.0
+ *
+ * @param array        $list          An array of objects to filter.
+ * @param string|array $orderby       Optional. Either the field name to order by or an array
+ *                                    of multiple orderby fields as $orderby => $order.
+ * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby
+ *                                    is a string.
+ * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
+ * @return array The sorted array.
+ */
+function mn_list_sort( $list, $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
+	if ( ! is_array( $list ) ) {
+		return array();
 	}
 
-	/*
-	 * When index_key is not set for a particular item, push the value
-	 * to the end of the stack. This is how array_column() behaves.
-	 */
-	$newlist = array();
-	foreach ( $list as $value ) {
-		if ( is_object( $value ) ) {
-			if ( isset( $value->$index_key ) ) {
-				$newlist[ $value->$index_key ] = $value->$field;
-			} else {
-				$newlist[] = $value->$field;
-			}
-		} else {
-			if ( isset( $value[ $index_key ] ) ) {
-				$newlist[ $value[ $index_key ] ] = $value[ $field ];
-			} else {
-				$newlist[] = $value[ $field ];
-			}
-		}
-	}
-
-	return $newlist;
+	$util = new MN_List_Util( $list );
+	return $util->sort( $orderby, $order, $preserve_keys );
 }
 
 /**
@@ -3622,13 +3697,13 @@ function dead_db() {
 	mn_load_translations_early();
 
 	// Load custom DB error template, if present.
-	if ( file_exists( MAIN . '/db-error.php' ) ) {
-		require_once( MAIN . '/db-error.php' );
+	if ( file_exists( MAIN_DIR . '/db-error.php' ) ) {
+		require_once( MAIN_DIR . '/db-error.php' );
 		die();
 	}
 
 	// If installing or in the admin, provide the verbose message.
-	if ( mn_installing() || defined( 'MN_ADMIN' ) )
+	if ( mn_installing() || defined( 'ADMIN' ) )
 		mn_die($mndb->error);
 
 	// Otherwise, be terse.
@@ -3703,15 +3778,19 @@ function _deprecated_function( $function, $version, $replacement = null ) {
 	 */
 	if ( MN_DEBUG && apply_filters( 'deprecated_function_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
-			if ( ! is_null( $replacement ) )
+			if ( ! is_null( $replacement ) ) {
+				/* translators: 1: PHP function name, 2: version number, 3: alternative function name */
 				trigger_error( sprintf( __('%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.'), $function, $version, $replacement ) );
-			else
+			} else {
+				/* translators: 1: PHP function name, 2: version number */
 				trigger_error( sprintf( __('%1$s is <strong>deprecated</strong> since version %2$s with no alternative available.'), $function, $version ) );
+			}
 		} else {
-			if ( ! is_null( $replacement ) )
+			if ( ! is_null( $replacement ) ) {
 				trigger_error( sprintf( '%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.', $function, $version, $replacement ) );
-			else
+			} else {
 				trigger_error( sprintf( '%1$s is <strong>deprecated</strong> since version %2$s with no alternative available.', $function, $version ) );
+			}
 		}
 	}
 }
@@ -3827,15 +3906,19 @@ function _deprecated_file( $file, $version, $replacement = null, $message = '' )
 	if ( MN_DEBUG && apply_filters( 'deprecated_file_trigger_error', true ) ) {
 		$message = empty( $message ) ? '' : ' ' . $message;
 		if ( function_exists( '__' ) ) {
-			if ( ! is_null( $replacement ) )
+			if ( ! is_null( $replacement ) ) {
+				/* translators: 1: PHP file name, 2: version number, 3: alternative file name */
 				trigger_error( sprintf( __('%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.'), $file, $version, $replacement ) . $message );
-			else
+			} else {
+				/* translators: 1: PHP file name, 2: version number */
 				trigger_error( sprintf( __('%1$s is <strong>deprecated</strong> since version %2$s with no alternative available.'), $file, $version ) . $message );
+			}
 		} else {
-			if ( ! is_null( $replacement ) )
+			if ( ! is_null( $replacement ) ) {
 				trigger_error( sprintf( '%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.', $file, $version, $replacement ) . $message );
-			else
+			} else {
 				trigger_error( sprintf( '%1$s is <strong>deprecated</strong> since version %2$s with no alternative available.', $file, $version ) . $message );
+			}
 		}
 	}
 }
@@ -3887,15 +3970,19 @@ function _deprecated_argument( $function, $version, $message = null ) {
 	 */
 	if ( MN_DEBUG && apply_filters( 'deprecated_argument_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
-			if ( ! is_null( $message ) )
+			if ( ! is_null( $message ) ) {
+				/* translators: 1: PHP function name, 2: version number, 3: optional message regarding the change */
 				trigger_error( sprintf( __('%1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s'), $function, $version, $message ) );
-			else
+			} else {
+				/* translators: 1: PHP function name, 2: version number */
 				trigger_error( sprintf( __('%1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.'), $function, $version ) );
+			}
 		} else {
-			if ( ! is_null( $message ) )
+			if ( ! is_null( $message ) ) {
 				trigger_error( sprintf( '%1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s', $function, $version, $message ) );
-			else
+			} else {
 				trigger_error( sprintf( '%1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.', $function, $version ) );
+			}
 		}
 	}
 }
@@ -3911,7 +3998,7 @@ function _deprecated_argument( $function, $version, $message = null ) {
  * This function is called by the do_action_deprecated() and apply_filters_deprecated()
  * functions, and so generally does not need to be called directly.
  *
- * @since 16.10.0
+ * @since 4.6.0
  * @access private
  *
  * @param string $hook        The hook that was used.
@@ -3923,7 +4010,7 @@ function _deprecated_hook( $hook, $version, $replacement = null, $message = null
 	/**
 	 * Fires when a deprecated hook is called.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param string $hook        The hook that was called.
 	 * @param string $replacement The hook that should be used as a replacement.
@@ -3935,7 +4022,7 @@ function _deprecated_hook( $hook, $version, $replacement = null, $message = null
 	/**
 	 * Filters whether to trigger deprecated hook errors.
 	 *
-	 * @since 16.10.0
+	 * @since 4.6.0
 	 *
 	 * @param bool $trigger Whether to trigger deprecated hook errors. Requires
 	 *                      `MN_DEBUG` to be defined true.
@@ -3943,8 +4030,10 @@ function _deprecated_hook( $hook, $version, $replacement = null, $message = null
 	if ( MN_DEBUG && apply_filters( 'deprecated_hook_trigger_error', true ) ) {
 		$message = empty( $message ) ? '' : ' ' . $message;
 		if ( ! is_null( $replacement ) ) {
+			/* translators: 1: Mtaandao hook name, 2: version number, 3: alternative hook name */
 			trigger_error( sprintf( __( '%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ), $hook, $version, $replacement ) . $message );
 		} else {
+			/* translators: 1: Mtaandao hook name, 2: version number */
 			trigger_error( sprintf( __( '%1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ), $hook, $version ) . $message );
 		}
 	}
@@ -3988,16 +4077,26 @@ function _doing_it_wrong( $function, $message, $version ) {
 	 */
 	if ( MN_DEBUG && apply_filters( 'doing_it_wrong_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
-			$version = is_null( $version ) ? '' : sprintf( __( '(This message was added in version %s.)' ), $version );
+			if ( is_null( $version ) ) {
+				$version = '';
+			} else {
+				/* translators: %s: version number */
+				$version = sprintf( __( '(This message was added in version %s.)' ), $version );
+			}
 			/* translators: %s: Codex URL */
 			$message .= ' ' . sprintf( __( 'Please see <a href="%s">Debugging in Mtaandao</a> for more information.' ),
-				__( 'https://mtaandao.co.ke/docs/Debugging_in_Mtaandao' )
+				__( 'https://mtaandao.github.io/Debugging_in_Mtaandao' )
 			);
+			/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: Version information message */
 			trigger_error( sprintf( __( '%1$s was called <strong>incorrectly</strong>. %2$s %3$s' ), $function, $message, $version ) );
 		} else {
-			$version = is_null( $version ) ? '' : sprintf( '(This message was added in version %s.)', $version );
+			if ( is_null( $version ) ) {
+				$version = '';
+			} else {
+				$version = sprintf( '(This message was added in version %s.)', $version );
+			}
 			$message .= sprintf( ' Please see <a href="%s">Debugging in Mtaandao</a> for more information.',
-				'https://mtaandao.co.ke/docs/Debugging_in_Mtaandao'
+				'https://mtaandao.github.io/Debugging_in_Mtaandao'
 			);
 			trigger_error( sprintf( '%1$s was called <strong>incorrectly</strong>. %2$s %3$s', $function, $message, $version ) );
 		}
@@ -4139,7 +4238,7 @@ function force_ssl_admin( $force = null ) {
 /**
  * Guess the URL for the site.
  *
- * Will remove mn-admin links to retrieve only return URLs not in the mn-admin
+ * Will remove admin links to retrieve only return URLs not in the admin
  * directory.
  *
  * @since 2.6.0
@@ -4238,23 +4337,18 @@ function mn_suspend_cache_invalidation( $suspend = true ) {
  *
  * @since 3.0.0
  *
- * @global object $current_site
- *
  * @param int $site_id Optional. Site ID to test. Defaults to current site.
  * @return bool True if $site_id is the main site of the network, or if not
  *              running Multisite.
  */
 function is_main_site( $site_id = null ) {
-	// This is the current network's information; 'site' is old terminology.
-	global $current_site;
-
 	if ( ! is_multisite() )
 		return true;
 
 	if ( ! $site_id )
 		$site_id = get_current_blog_id();
 
-	return (int) $site_id === (int) $current_site->blog_id;
+	return (int) $site_id === (int) get_network()->site_id;
 }
 
 /**
@@ -4270,10 +4364,8 @@ function is_main_network( $network_id = null ) {
 		return true;
 	}
 
-	$current_network_id = (int) get_current_site()->id;
-
 	if ( null === $network_id ) {
-		$network_id = $current_network_id;
+		$network_id = get_current_network_id();
 	}
 
 	$network_id = (int) $network_id;
@@ -4286,31 +4378,23 @@ function is_main_network( $network_id = null ) {
  *
  * @since 4.3.0
  *
- * @global mndb $mndb Mtaandao database abstraction object.
- *
  * @return int The ID of the main network.
  */
 function get_main_network_id() {
-	global $mndb;
-
 	if ( ! is_multisite() ) {
 		return 1;
 	}
 
-	$current_site = get_current_site();
+	$current_network = get_network();
 
 	if ( defined( 'PRIMARY_NETWORK_ID' ) ) {
 		$main_network_id = PRIMARY_NETWORK_ID;
-	} elseif ( isset( $current_site->id ) && 1 === (int) $current_site->id ) {
+	} elseif ( isset( $current_network->id ) && 1 === (int) $current_network->id ) {
 		// If the current network has an ID of 1, assume it is the main network.
 		$main_network_id = 1;
 	} else {
-		$main_network_id = mn_cache_get( 'primary_network_id', 'site-options' );
-
-		if ( false === $main_network_id ) {
-			$main_network_id = (int) $mndb->get_var( "SELECT id FROM {$mndb->site} ORDER BY id LIMIT 1" );
-			mn_cache_add( 'primary_network_id', $main_network_id, 'site-options' );
-		}
+		$_networks = get_networks( array( 'fields' => 'ids', 'number' => 1 ) );
+		$main_network_id = array_shift( $_networks );
 	}
 
 	/**
@@ -4432,21 +4516,25 @@ function _mn_timezone_choice_usort_callback( $a, $b ) {
  * Gives a nicely-formatted list of timezone strings.
  *
  * @since 2.9.0
+ * @since 4.7.0 Added the `$locale` parameter.
  *
  * @staticvar bool $mo_loaded
+ * @staticvar string $locale_loaded
  *
  * @param string $selected_zone Selected timezone.
+ * @param string $locale        Optional. Locale to load the timezones in. Default current site locale.
  * @return string
  */
-function mn_timezone_choice( $selected_zone ) {
-	static $mo_loaded = false;
+function mn_timezone_choice( $selected_zone, $locale = null ) {
+	static $mo_loaded = false, $locale_loaded = null;
 
 	$continents = array( 'Africa', 'America', 'Antarctica', 'Arctic', 'Asia', 'Atlantic', 'Australia', 'Europe', 'Indian', 'Pacific');
 
-	// Load translations for continents and cities
-	if ( !$mo_loaded ) {
-		$locale = get_locale();
-		$mofile = MN_LANG_DIR . '/continents-cities-' . $locale . '.mo';
+	// Load translations for continents and cities.
+	if ( ! $mo_loaded || $locale !== $locale_loaded ) {
+		$locale_loaded = $locale ? $locale : get_locale();
+		$mofile = MN_LANG_DIR . '/continents-cities-' . $locale_loaded . '.mo';
+		unload_textdomain( 'continents-cities' );
 		load_textdomain( 'continents-cities', $mofile );
 		$mo_loaded = true;
 	}
@@ -4634,7 +4722,7 @@ function mn_scheduled_delete() {
  * If the file data is not within that first 8kiB, then the author should correct
  * their plugin file and move the data headers to the top.
  *
- * @link https://mtaandao.co.ke/docs/File_Header
+ * @link https://mtaandao.github.io/File_Header
  *
  * @since 2.9.0
  *
@@ -4890,6 +4978,7 @@ function send_frame_options_header() {
  *
  * @since 3.3.0
  * @since 4.3.0 Added 'webcal' to the protocols array.
+ * @since 4.7.0 Added 'urn' to the protocols array.
  *
  * @see mn_kses()
  * @see esc_url()
@@ -4898,13 +4987,13 @@ function send_frame_options_header() {
  *
  * @return array Array of allowed protocols. Defaults to an array containing 'http', 'https',
  *               'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet',
- *               'mms', 'rtsp', 'svn', 'tel', 'fax', 'xmpp', and 'webcal'.
+ *               'mms', 'rtsp', 'svn', 'tel', 'fax', 'xmpp', 'webcal', and 'urn'.
  */
 function mn_allowed_protocols() {
 	static $protocols = array();
 
 	if ( empty( $protocols ) ) {
-		$protocols = array( 'http', 'https', 'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet', 'mms', 'rtsp', 'svn', 'tel', 'fax', 'xmpp', 'webcal' );
+		$protocols = array( 'http', 'https', 'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet', 'mms', 'rtsp', 'svn', 'tel', 'fax', 'xmpp', 'webcal', 'urn' );
 
 		/**
 		 * Filters the list of protocols allowed in HTML attributes.
@@ -4958,7 +5047,7 @@ function mn_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 			if ( in_array( $call['function'], array( 'do_action', 'apply_filters' ) ) ) {
 				$caller[] = "{$call['function']}('{$call['args'][0]}')";
 			} elseif ( in_array( $call['function'], array( 'include', 'include_once', 'require', 'require_once' ) ) ) {
-				$caller[] = $call['function'] . "('" . str_replace( array( MAIN, ABSPATH ) , '', $call['args'][0] ) . "')";
+				$caller[] = $call['function'] . "('" . str_replace( array( MAIN_DIR, ABSPATH ) , '', $call['args'][0] ) . "')";
 			} else {
 				$caller[] = $call['function'];
 			}
@@ -5193,13 +5282,15 @@ function get_tag_regex( $tag ) {
  * @return string The canonical form of the charset.
  */
 function _canonical_charset( $charset ) {
-	if ( 'UTF-8' === $charset || 'utf-8' === $charset || 'utf8' === $charset ||
-		'UTF8' === $charset )
-		return 'UTF-8';
+	if ( 'utf-8' === strtolower( $charset ) || 'utf8' === strtolower( $charset) ) {
 
-	if ( 'ISO-8859-1' === $charset || 'iso-8859-1' === $charset ||
-		'iso8859-1' === $charset || 'ISO8859-1' === $charset )
+		return 'UTF-8';
+	}
+
+	if ( 'iso-8859-1' === strtolower( $charset ) || 'iso8859-1' === strtolower( $charset ) ) {
+
 		return 'ISO-8859-1';
+	}
 
 	return $charset;
 }
@@ -5363,7 +5454,7 @@ function mysql_to_rfc3339( $date_string ) {
  *
  * Only allows raising the existing limit and prevents lowering it.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @param string $context Optional. Context in which the function is called. Accepts either 'admin',
  *                        'image', or an arbitrary other context. If an arbitrary context is passed,
@@ -5403,7 +5494,7 @@ function mn_raise_memory_limit( $context = 'admin' ) {
 			 * this is higher.
 			 *
 			 * @since 3.0.0
-			 * @since 16.10.0 The default now takes the original `memory_limit` into account.
+			 * @since 4.6.0 The default now takes the original `memory_limit` into account.
 			 *
 			 * @param int|string $filtered_limit The maximum Mtaandao memory limit. Accepts an integer
 			 *                                   (bytes), or a shorthand string notation, such as '256M'.
@@ -5416,7 +5507,7 @@ function mn_raise_memory_limit( $context = 'admin' ) {
 			 * Filters the memory limit allocated for image manipulation.
 			 *
 			 * @since 3.5.0
-			 * @since 16.10.0 The default now takes the original `memory_limit` into account.
+			 * @since 4.6.0 The default now takes the original `memory_limit` into account.
 			 *
 			 * @param int|string $filtered_limit Maximum memory limit to allocate for images.
 			 *                                   Default `MN_MAX_MEMORY_LIMIT` or the original
@@ -5435,7 +5526,7 @@ function mn_raise_memory_limit( $context = 'admin' ) {
 			 * context passed on calling the function. This allows for plugins to define
 			 * their own contexts for raising the memory limit.
 			 *
-			 * @since 16.10.0
+			 * @since 4.6.0
 			 *
 			 * @param int|string $filtered_limit Maximum memory limit to allocate for images.
 			 *                                   Default '256M' or the original php.ini `memory_limit`,
@@ -5463,4 +5554,41 @@ function mn_raise_memory_limit( $context = 'admin' ) {
 	}
 
 	return false;
+}
+
+/**
+ * Generate a random UUID (version 4).
+ *
+ * @since 4.7.0
+ *
+ * @return string UUID.
+ */
+function mn_generate_uuid4() {
+	return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+		mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ),
+		mt_rand( 0, 0xffff ),
+		mt_rand( 0, 0x0fff ) | 0x4000,
+		mt_rand( 0, 0x3fff ) | 0x8000,
+		mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff )
+	);
+}
+
+/**
+ * Get last changed date for the specified cache group.
+ *
+ * @since 4.7.0
+ *
+ * @param $group Where the cache contents are grouped.
+ *
+ * @return string $last_changed UNIX timestamp with microseconds representing when the group was last changed.
+ */
+function mn_cache_get_last_changed( $group ) {
+	$last_changed = mn_cache_get( 'last_changed', $group );
+
+	if ( ! $last_changed ) {
+		$last_changed = microtime();
+		mn_cache_set( 'last_changed', $last_changed, $group );
+	}
+
+	return $last_changed;
 }

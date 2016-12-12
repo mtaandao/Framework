@@ -30,7 +30,7 @@ function get_header( $name = null ) {
 	 * @since 2.1.0
 	 * @since 2.8.0 $name parameter added.
 	 *
-	 * @param string $name Name of the specific header file to use.
+	 * @param string|null $name Name of the specific header file to use. null for the default header.
 	 */
 	do_action( 'get_header', $name );
 
@@ -69,7 +69,7 @@ function get_footer( $name = null ) {
 	 * @since 2.1.0
 	 * @since 2.8.0 $name parameter added.
 	 *
-	 * @param string $name Name of the specific footer file to use.
+	 * @param string|null $name Name of the specific footer file to use. null for the default footer.
 	 */
 	do_action( 'get_footer', $name );
 
@@ -108,7 +108,7 @@ function get_sidebar( $name = null ) {
 	 * @since 2.2.0
 	 * @since 2.8.0 $name parameter added.
 	 *
-	 * @param string $name Name of the specific sidebar file to use.
+	 * @param string|null $name Name of the specific sidebar file to use. null for the default sidebar.
 	 */
 	do_action( 'get_sidebar', $name );
 
@@ -152,8 +152,8 @@ function get_template_part( $slug, $name = null ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string $slug The slug name for the generic template.
-	 * @param string $name The name of the specialized template.
+	 * @param string      $slug The slug name for the generic template.
+	 * @param string|null $name The name of the specialized template.
 	 */
 	do_action( "get_template_part_{$slug}", $slug, $name );
 
@@ -383,7 +383,7 @@ function mn_registration_url() {
  *     @type string $redirect       URL to redirect to. Must be absolute, as in "https://example.com/mypage/".
  *                                  Default is to redirect back to the request URI.
  *     @type string $form_id        ID attribute value for the form. Default 'loginform'.
- *     @type string $label_username Label for the username or email address field. Default 'Username or Email'.
+ *     @type string $label_username Label for the username or email address field. Default 'Username or Email Address'.
  *     @type string $label_password Label for the password field. Default 'Password'.
  *     @type string $label_remember Label for the remember field. Default 'Remember Me'.
  *     @type string $label_log_in   Label for the submit button. Default 'Log In'.
@@ -405,7 +405,7 @@ function mn_login_form( $args = array() ) {
 		// Default 'redirect' value takes the user back to the request URI.
 		'redirect' => ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
 		'form_id' => 'loginform',
-		'label_username' => __( 'Username or Email' ),
+		'label_username' => __( 'Username or Email Address' ),
 		'label_password' => __( 'Password' ),
 		'label_remember' => __( 'Remember Me' ),
 		'label_log_in' => __( 'Log In' ),
@@ -481,7 +481,7 @@ function mn_login_form( $args = array() ) {
 			' . $login_form_middle . '
 			' . ( $args['remember'] ? '<p class="login-remember"><label><input name="rememberme" type="checkbox" id="' . esc_attr( $args['id_remember'] ) . '" value="forever"' . ( $args['value_remember'] ? ' checked="checked"' : '' ) . ' /> ' . esc_html( $args['label_remember'] ) . '</label></p>' : '' ) . '
 			<p class="login-submit">
-				<input type="submit" name="mn-submit" id="' . esc_attr( $args['id_submit'] ) . '" class="button-primary" value="' . esc_attr( $args['label_log_in'] ) . '" />
+				<input type="submit" name="mn-submit" id="' . esc_attr( $args['id_submit'] ) . '" class="button button-primary" value="' . esc_attr( $args['label_log_in'] ) . '" />
 				<input type="hidden" name="redirect_to" value="' . esc_url( $args['redirect'] ) . '" />
 			</p>
 			' . $login_form_bottom . '
@@ -783,8 +783,11 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
  * @return string Site Icon URL.
  */
 function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
-	if ( is_multisite() && (int) $blog_id !== get_current_blog_id() ) {
+	$switched_blog = false;
+
+	if ( is_multisite() && ! empty( $blog_id ) && (int) $blog_id !== get_current_blog_id() ) {
 		switch_to_blog( $blog_id );
+		$switched_blog = true;
 	}
 
 	$site_icon_id = get_option( 'site_icon' );
@@ -798,7 +801,7 @@ function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
 		$url = mn_get_attachment_image_url( $site_icon_id, $size_data );
 	}
 
-	if ( is_multisite() && ms_is_switched() ) {
+	if ( $switched_blog ) {
 		restore_current_blog();
 	}
 
@@ -848,13 +851,16 @@ function has_site_icon( $blog_id = 0 ) {
  * @return bool Whether the site has a custom logo or not.
  */
 function has_custom_logo( $blog_id = 0 ) {
-	if ( is_multisite() && (int) $blog_id !== get_current_blog_id() ) {
+	$switched_blog = false;
+
+	if ( is_multisite() && ! empty( $blog_id ) && (int) $blog_id !== get_current_blog_id() ) {
 		switch_to_blog( $blog_id );
+		$switched_blog = true;
 	}
 
 	$custom_logo_id = get_theme_mod( 'custom_logo' );
 
-	if ( is_multisite() && ms_is_switched() ) {
+	if ( $switched_blog ) {
 		restore_current_blog();
 	}
 
@@ -871,9 +877,11 @@ function has_custom_logo( $blog_id = 0 ) {
  */
 function get_custom_logo( $blog_id = 0 ) {
 	$html = '';
+	$switched_blog = false;
 
-	if ( is_multisite() && (int) $blog_id !== get_current_blog_id() ) {
+	if ( is_multisite() && ! empty( $blog_id ) && (int) $blog_id !== get_current_blog_id() ) {
 		switch_to_blog( $blog_id );
+		$switched_blog = true;
 	}
 
 	$custom_logo_id = get_theme_mod( 'custom_logo' );
@@ -896,7 +904,7 @@ function get_custom_logo( $blog_id = 0 ) {
 		);
 	}
 
-	if ( is_multisite() && ms_is_switched() ) {
+	if ( $switched_blog ) {
 		restore_current_blog();
 	}
 
@@ -904,7 +912,7 @@ function get_custom_logo( $blog_id = 0 ) {
 	 * Filters the custom logo output.
 	 *
 	 * @since 4.5.0
-	 * @since 16.10.0 Added the `$blog_id` parameter.
+	 * @since 4.6.0 Added the `$blog_id` parameter.
 	 *
 	 * @param string $html    Custom logo HTML output.
 	 * @param int    $blog_id ID of the blog to get the custom logo for.
@@ -1453,16 +1461,22 @@ function the_archive_title( $before = '', $after = '' ) {
  */
 function get_the_archive_title() {
 	if ( is_category() ) {
+		/* translators: Category archive title. 1: Category name */
 		$title = sprintf( __( 'Category: %s' ), single_cat_title( '', false ) );
 	} elseif ( is_tag() ) {
+		/* translators: Tag archive title. 1: Tag name */
 		$title = sprintf( __( 'Tag: %s' ), single_tag_title( '', false ) );
 	} elseif ( is_author() ) {
+		/* translators: Author archive title. 1: Author name */
 		$title = sprintf( __( 'Author: %s' ), '<span class="vcard">' . get_the_author() . '</span>' );
 	} elseif ( is_year() ) {
+		/* translators: Yearly archive title. 1: Year */
 		$title = sprintf( __( 'Year: %s' ), get_the_date( _x( 'Y', 'yearly archives date format' ) ) );
 	} elseif ( is_month() ) {
+		/* translators: Monthly archive title. 1: Month name and year */
 		$title = sprintf( __( 'Month: %s' ), get_the_date( _x( 'F Y', 'monthly archives date format' ) ) );
 	} elseif ( is_day() ) {
+		/* translators: Daily archive title. 1: Date */
 		$title = sprintf( __( 'Day: %s' ), get_the_date( _x( 'F j, Y', 'daily archives date format' ) ) );
 	} elseif ( is_tax( 'post_format' ) ) {
 		if ( is_tax( 'post_format', 'post-format-aside' ) ) {
@@ -1485,10 +1499,11 @@ function get_the_archive_title() {
 			$title = _x( 'Chats', 'post format archive title' );
 		}
 	} elseif ( is_post_type_archive() ) {
+		/* translators: Post type archive title. 1: Post type name */
 		$title = sprintf( __( 'Archives: %s' ), post_type_archive_title( '', false ) );
 	} elseif ( is_tax() ) {
 		$tax = get_taxonomy( get_queried_object()->taxonomy );
-		/* translators: 1: Taxonomy singular name, 2: Current taxonomy term */
+		/* translators: Taxonomy term archive title. 1: Taxonomy singular name, 2: Current taxonomy term */
 		$title = sprintf( __( '%1$s: %2$s' ), $tax->labels->singular_name, single_term_title( '', false ) );
 	} else {
 		$title = __( 'Archives' );
@@ -1505,7 +1520,7 @@ function get_the_archive_title() {
 }
 
 /**
- * Display category, tag, or term description.
+ * Display category, tag, term, or author description.
  *
  * @since 4.1.0
  *
@@ -1522,23 +1537,30 @@ function the_archive_description( $before = '', $after = '' ) {
 }
 
 /**
- * Retrieve category, tag, or term description.
+ * Retrieve category, tag, term, or author description.
  *
  * @since 4.1.0
+ * @since 4.7.0 Added support for author archives.
+ *
+ * @see term_description()
  *
  * @return string Archive description.
  */
 function get_the_archive_description() {
+	if ( is_author() ) {
+		$description = get_the_author_meta( 'description' );
+	} else {
+		$description = term_description();
+	}
+
 	/**
 	 * Filters the archive description.
 	 *
 	 * @since 4.1.0
 	 *
-	 * @see term_description()
-	 *
 	 * @param string $description Archive description to be displayed.
 	 */
-	return apply_filters( 'get_the_archive_description', term_description() );
+	return apply_filters( 'get_the_archive_description', $description );
 }
 
 /**
@@ -1698,11 +1720,7 @@ function mn_get_archives( $args = '' ) {
 
 	$output = '';
 
-	$last_changed = mn_cache_get( 'last_changed', 'posts' );
-	if ( ! $last_changed ) {
-		$last_changed = microtime();
-		mn_cache_set( 'last_changed', $last_changed, 'posts' );
-	}
+	$last_changed = mn_cache_get_last_changed( 'posts' );
 
 	$limit = $r['limit'];
 
@@ -2040,6 +2058,7 @@ function get_calendar( $initial = true, $echo = true ) {
 		if ( in_array( $day, $daywithpost ) ) {
 			// any posts today?
 			$date_format = date( _x( 'F j, Y', 'daily archives date format' ), strtotime( "{$thisyear}-{$thismonth}-{$day}" ) );
+			/* translators: Post calendar label. 1: Date */
 			$label = sprintf( __( 'Posts published on %s' ), $date_format );
 			$calendar_output .= sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
@@ -2255,7 +2274,7 @@ function the_modified_date( $d = '', $before = '', $after = '', $echo = true ) {
  * Retrieve the date on which the post was last modified.
  *
  * @since 2.1.0
- * @since 16.10.0 Added the `$post` parameter.
+ * @since 4.6.0 Added the `$post` parameter.
  *
  * @param string      $d    Optional. PHP date format defaults to the date_format option if not specified.
  * @param int|MN_Post $post Optional. Post ID or MN_Post object. Default current post.
@@ -2277,7 +2296,7 @@ function get_the_modified_date( $d = '', $post = null ) {
 	 * Filters the date a post was last modified.
 	 *
 	 * @since 2.1.0
-	 * @since 16.10.0 Added the `$post` parameter.
+	 * @since 4.6.0 Added the `$post` parameter.
 	 *
 	 * @param string  $the_time The formatted date.
 	 * @param string  $d        PHP date format. Defaults to value specified in
@@ -2408,7 +2427,7 @@ function the_modified_time($d = '') {
  * Retrieve the time at which the post was last modified.
  *
  * @since 2.0.0
- * @since 16.10.0 Added the `$post` parameter.
+ * @since 4.6.0 Added the `$post` parameter.
  *
  * @param string      $d     Optional. Format to use for retrieving the time the post
  *                           was modified. Either 'G', 'U', or php date format defaults
@@ -2432,7 +2451,7 @@ function get_the_modified_time( $d = '', $post = null ) {
 	 * Filters the localized time a post was last modified.
 	 *
 	 * @since 2.0.0
-	 * @since 16.10.0 Added the `$post` parameter.
+	 * @since 4.6.0 Added the `$post` parameter.
 	 *
 	 * @param string $the_time The formatted time.
 	 * @param string $d        Format to use for retrieving the time the post was
@@ -2717,7 +2736,7 @@ function rsd_link() {
  */
 function wlwmanifest_link() {
 	echo '<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="',
-		includes_url( 'wlwmanifest.xml' ), '" /> ', "\n";
+		res_url( 'wlwmanifest.xml' ), '" /> ', "\n";
 }
 
 /**
@@ -2765,12 +2784,26 @@ function mn_site_icon() {
 		return;
 	}
 
-	$meta_tags = array(
-		sprintf( '<link rel="icon" href="%s" sizes="32x32" />', esc_url( get_site_icon_url( 32 ) ) ),
-		sprintf( '<link rel="icon" href="%s" sizes="192x192" />', esc_url( get_site_icon_url( 192 ) ) ),
-		sprintf( '<link rel="apple-touch-icon-precomposed" href="%s" />', esc_url( get_site_icon_url( 180 ) ) ),
-		sprintf( '<meta name="msapplication-TileImage" content="%s" />', esc_url( get_site_icon_url( 270 ) ) ),
-	);
+	$meta_tags = array();
+	$icon_32 = get_site_icon_url( 32 );
+	if ( empty( $icon_32 ) && is_customize_preview() ) {
+		$icon_32 = '/favicon.ico'; // Serve default favicon URL in customizer so element can be updated for preview.
+	}
+	if ( $icon_32 ) {
+		$meta_tags[] = sprintf( '<link rel="icon" href="%s" sizes="32x32" />', esc_url( $icon_32 ) );
+	}
+	$icon_192 = get_site_icon_url( 192 );
+	if ( $icon_192 ) {
+		$meta_tags[] = sprintf( '<link rel="icon" href="%s" sizes="192x192" />', esc_url( $icon_192 ) );
+	}
+	$icon_180 = get_site_icon_url( 180 );
+	if ( $icon_180 ) {
+		$meta_tags[] = sprintf( '<link rel="apple-touch-icon-precomposed" href="%s" />', esc_url( $icon_180 ) );
+	}
+	$icon_270 = get_site_icon_url( 270 );
+	if ( $icon_270 ) {
+		$meta_tags[] = sprintf( '<meta name="msapplication-TileImage" content="%s" />', esc_url( $icon_270 ) );
+	}
 
 	/**
 	 * Filters the site icon meta tags, so Plugins can add their own.
@@ -2797,7 +2830,7 @@ function mn_site_icon() {
  *
  * These performance improving indicators work by using `<link rel"…">`.
  *
- * @since 16.10.0
+ * @since 4.6.0
  */
 function mn_resource_hints() {
 	$hints = array(
@@ -2812,13 +2845,15 @@ function mn_resource_hints() {
 	 * The path is removed in the foreach loop below.
 	 */
 	/** This filter is documented in res/formatting.php */
-	$hints['dns-prefetch'][] = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/2/svg/' );
+	$hints['dns-prefetch'][] = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/2.2.1/svg/' );
 
 	foreach ( $hints as $relation_type => $urls ) {
+		$unique_urls = array();
+
 		/**
 		 * Filters domains and URLs for resource hints of relation type.
 		 *
-		 * @since 16.10.0
+		 * @since 4.6.0
 		 *
 		 * @param array  $urls          URLs to print for resource hints.
 		 * @param string $relation_type The relation type the URLs are printed for, e.g. 'preconnect' or 'prerender'.
@@ -2826,16 +2861,31 @@ function mn_resource_hints() {
 		$urls = apply_filters( 'mn_resource_hints', $urls, $relation_type );
 
 		foreach ( $urls as $key => $url ) {
+			$atts = array();
+
+			if ( is_array( $url ) ) {
+				if ( isset( $url['href'] ) ) {
+					$atts = $url;
+					$url  = $url['href'];
+				} else {
+					continue;
+				}
+			}
+
 			$url = esc_url( $url, array( 'http', 'https' ) );
+
 			if ( ! $url ) {
-				unset( $urls[ $key ] );
+				continue;
+			}
+
+			if ( isset( $unique_urls[ $url ] ) ) {
 				continue;
 			}
 
 			if ( in_array( $relation_type, array( 'preconnect', 'dns-prefetch' ) ) ) {
 				$parsed = mn_parse_url( $url );
+
 				if ( empty( $parsed['host'] ) ) {
-					unset( $urls[ $key ] );
 					continue;
 				}
 
@@ -2847,13 +2897,34 @@ function mn_resource_hints() {
 				}
 			}
 
-			$urls[ $key ] = $url;
+			$atts['rel'] = $relation_type;
+			$atts['href'] = $url;
+
+			$unique_urls[ $url ] = $atts;
 		}
 
-		$urls = array_unique( $urls );
+		foreach ( $unique_urls as $atts ) {
+			$html = '';
 
-		foreach ( $urls as $url ) {
-			printf( "<link rel='%s' href='%s' />\n", $relation_type, $url );
+			foreach ( $atts as $attr => $value ) {
+				if ( ! is_scalar( $value ) ||
+				     ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'pr', 'rel', 'type' ), true ) && ! is_numeric( $attr ))
+				) {
+					continue;
+				}
+
+				$value = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
+
+				if ( ! is_string( $attr ) ) {
+					$html .= " $value";
+				} else {
+					$html .= " $attr='$value'";
+				}
+			}
+
+			$html = trim( $html );
+
+			echo "<link $html />\n";
 		}
 	}
 }
@@ -2861,7 +2932,7 @@ function mn_resource_hints() {
 /**
  * Retrieves a list of unique hosts of all enqueued scripts and styles.
  *
- * @since 16.10.0
+ * @since 4.6.0
  *
  * @return array A list of unique hosts of enqueued scripts and styles.
  */
@@ -2892,21 +2963,21 @@ function mn_dependencies_unique_hosts() {
 }
 
 /**
- * Whether the user should have a WYSIWIG editor.
+ * Whether the user can access the visual editor.
  *
- * Checks that the user requires a WYSIWIG editor and that the editor is
- * supported in the users browser.
+ * Checks if the user can access the visual editor and that it's supported by the user's browser.
  *
  * @since 2.0.0
  *
- * @global bool $mn_rich_edit
- * @global bool $is_gecko
- * @global bool $is_opera
- * @global bool $is_safari
- * @global bool $is_chrome
- * @global bool $is_IE
+ * @global bool $mn_rich_edit Whether the user can access the visual editor.
+ * @global bool $is_gecko     Whether the browser is Gecko-based.
+ * @global bool $is_opera     Whether the browser is Opera.
+ * @global bool $is_safari    Whether the browser is Safari.
+ * @global bool $is_chrome    Whether the browser is Chrome.
+ * @global bool $is_IE        Whether the browser is Internet Explorer.
+ * @global bool $is_edge      Whether the browser is Microsoft Edge.
  *
- * @return bool
+ * @return bool True if the user can access the visual editor, false otherwise.
  */
 function user_can_richedit() {
 	global $mn_rich_edit, $is_gecko, $is_opera, $is_safari, $is_chrome, $is_IE, $is_edge;
@@ -2924,11 +2995,11 @@ function user_can_richedit() {
 	}
 
 	/**
-	 * Filters whether the user can access the rich (Visual) editor.
+	 * Filters whether the user can access the visual editor.
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param bool $mn_rich_edit Whether the user can access to the rich (Visual) editor.
+	 * @param bool $mn_rich_edit Whether the user can access the visual editor.
 	 */
 	return apply_filters( 'user_can_richedit', $mn_rich_edit );
 }
@@ -2955,7 +3026,7 @@ function mn_default_editor() {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param array $r An array of editors. Accepts 'tinymce', 'html', 'test'.
+	 * @param string $r Which editor should be displayed by default. Either 'tinymce', 'html', or 'test'.
 	 */
 	return apply_filters( 'mn_default_editor', $r );
 }
@@ -2982,7 +3053,6 @@ function mn_default_editor() {
 function mn_editor( $content, $editor_id, $settings = array() ) {
 	if ( ! class_exists( '_MN_Editors', false ) )
 		require( ABSPATH . RES . '/class-mn-editor.php' );
-
 	_MN_Editors::editor($content, $editor_id, $settings);
 }
 
@@ -3149,8 +3219,8 @@ function language_attributes( $doctype = 'html' ) {
  *                                      Default 1.
  *     @type int    $mid_size           How many numbers to either side of the current pages. Default 2.
  *     @type bool   $prev_next          Whether to include the previous and next links in the list. Default true.
- *     @type bool   $prev_text          The previous page text. Default '« Previous'.
- *     @type bool   $next_text          The next page text. Default '« Previous'.
+ *     @type bool   $prev_text          The previous page text. Default '&laquo; Previous'.
+ *     @type bool   $next_text          The next page text. Default 'Next &raquo;'.
  *     @type string $type               Controls format of the returned value. Possible values are 'plain',
  *                                      'array' and 'list'. Default is 'plain'.
  *     @type array  $add_args           An array of query args to add. Default false.
@@ -3276,7 +3346,7 @@ function paginate_links( $args = '' ) {
 			endif;
 		endif;
 	endfor;
-	if ( $args['prev_next'] && $current && ( $current < $total || -1 == $total ) ) :
+	if ( $args['prev_next'] && $current && $current < $total ) :
 		$link = str_replace( '%_%', $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current + 1, $link );
 		if ( $add_args )
@@ -3308,13 +3378,13 @@ function paginate_links( $args = '' ) {
  *
  * Allows a plugin to register a new admin colour scheme. For example:
  *
- *     mn_admin_css_color( 'classic', __( 'Classic' ), admin_url( "css/colors-classic.css" ), array(
+ *     admin_css_color( 'classic', __( 'Classic' ), admin_url( "css/colors-classic.css" ), array(
  *         '#07273E', '#14568A', '#D54E21', '#2683AE'
  *     ) );
  *
  * @since 2.5.0
  *
- * @global array $_mn_admin_css_colors
+ * @global array $_admin_css_colors
  *
  * @param string $key    The unique key for this theme.
  * @param string $name   The name of the theme.
@@ -3329,13 +3399,13 @@ function paginate_links( $args = '' ) {
  *     @type string $current SVG icon color of current admin menu link.
  * }
  */
-function mn_admin_css_color( $key, $name, $url, $colors = array(), $icons = array() ) {
-	global $_mn_admin_css_colors;
+function admin_css_color( $key, $name, $url, $colors = array(), $icons = array() ) {
+	global $_admin_css_colors;
 
-	if ( !isset($_mn_admin_css_colors) )
-		$_mn_admin_css_colors = array();
+	if ( !isset($_admin_css_colors) )
+		$_admin_css_colors = array();
 
-	$_mn_admin_css_colors[$key] = (object) array(
+	$_admin_css_colors[$key] = (object) array(
 		'name' => $name,
 		'url' => $url,
 		'colors' => $colors,
@@ -3347,60 +3417,59 @@ function mn_admin_css_color( $key, $name, $url, $colors = array(), $icons = arra
  * Registers the default Admin color schemes
  *
  * @since 3.0.0
- *
- * @global string $mn_version
  */
 function register_admin_color_schemes() {
 	$suffix = is_rtl() ? '-rtl' : '';
 	$suffix .= SCRIPT_DEBUG ? '' : '.min';
 
-	mn_admin_css_color( 'fresh', _x( 'Default', 'admin color scheme' ),
+	admin_css_color( 'fresh', _x( 'Default', 'admin color scheme' ),
 		false,
-		array( '#222', '#333', '#21b68e', '#cfcfcf' ),
-		array( 'base' => '#82878c', 'focus' => '#cfcfcf', 'current' => '#fff' )
+		array( '#222', '#333', '#21b16e', '#21b68e' ),
+		array( 'base' => '#82878c', 'focus' => '#21b68e', 'current' => '#fff' )
 	);
 
 	// Other color schemes are not available when running out of src
-	if ( false !== strpos( $GLOBALS['mn_version'], '-src' ) )
+	if ( false !== strpos( get_bloginfo( 'version' ), '-src' ) ) {
 		return;
+	}
 
-	mn_admin_css_color( 'light', _x( 'Light', 'admin color scheme' ),
+	admin_css_color( 'light', _x( 'Light', 'admin color scheme' ),
 		admin_url( "css/colors/light/colors$suffix.css" ),
 		array( '#e5e5e5', '#999', '#d64e07', '#04a4cc' ),
 		array( 'base' => '#999', 'focus' => '#ccc', 'current' => '#ccc' )
 	);
 
-	mn_admin_css_color( 'blue', _x( 'Blue', 'admin color scheme' ),
+	admin_css_color( 'blue', _x( 'Blue', 'admin color scheme' ),
 		admin_url( "css/colors/blue/colors$suffix.css" ),
 		array( '#096484', '#4796b3', '#52accc', '#74B6CE' ),
 		array( 'base' => '#e5f8ff', 'focus' => '#fff', 'current' => '#fff' )
 	);
 
-	mn_admin_css_color( 'midnight', _x( 'Midnight', 'admin color scheme' ),
+	admin_css_color( 'midnight', _x( 'Midnight', 'admin color scheme' ),
 		admin_url( "css/colors/midnight/colors$suffix.css" ),
 		array( '#25282b', '#363b3f', '#69a8bb', '#e14d43' ),
 		array( 'base' => '#f1f2f3', 'focus' => '#fff', 'current' => '#fff' )
 	);
 
-	mn_admin_css_color( 'sunrise', _x( 'Sunrise', 'admin color scheme' ),
+	admin_css_color( 'sunrise', _x( 'Sunrise', 'admin color scheme' ),
 		admin_url( "css/colors/sunrise/colors$suffix.css" ),
 		array( '#b43c38', '#cf4944', '#dd823b', '#ccaf0b' ),
 		array( 'base' => '#f3f1f1', 'focus' => '#fff', 'current' => '#fff' )
 	);
 
-	mn_admin_css_color( 'ectoplasm', _x( 'Ectoplasm', 'admin color scheme' ),
+	admin_css_color( 'ectoplasm', _x( 'Ectoplasm', 'admin color scheme' ),
 		admin_url( "css/colors/ectoplasm/colors$suffix.css" ),
 		array( '#413256', '#523f6d', '#a3b745', '#d46f15' ),
 		array( 'base' => '#ece6f6', 'focus' => '#fff', 'current' => '#fff' )
 	);
 
-	mn_admin_css_color( 'ocean', _x( 'Ocean', 'admin color scheme' ),
+	admin_css_color( 'ocean', _x( 'Ocean', 'admin color scheme' ),
 		admin_url( "css/colors/ocean/colors$suffix.css" ),
 		array( '#627c83', '#738e96', '#9ebaa0', '#aa9d88' ),
 		array( 'base' => '#f2fcff', 'focus' => '#fff', 'current' => '#fff' )
 	);
 
-	mn_admin_css_color( 'coffee', _x( 'Coffee', 'admin color scheme' ),
+	admin_css_color( 'coffee', _x( 'Coffee', 'admin color scheme' ),
 		admin_url( "css/colors/coffee/colors$suffix.css" ),
 		array( '#46403c', '#59524c', '#c7a589', '#9ea476' ),
 		array( 'base' => '#f3f2f1', 'focus' => '#fff', 'current' => '#fff' )
@@ -3418,7 +3487,7 @@ function register_admin_color_schemes() {
  * @param string $file file relative to admin/ without its ".css" extension.
  * @return string
  */
-function mn_admin_css_uri( $file = 'admin' ) {
+function admin_css_uri( $file = 'admin' ) {
 	if ( defined('MN_INSTALLING') ) {
 		$_file = "./$file.css";
 	} else {
@@ -3434,7 +3503,7 @@ function mn_admin_css_uri( $file = 'admin' ) {
 	 * @param string $_file Relative path to the file with query arguments attached.
 	 * @param string $file  Relative path to the file, minus its ".css" extension.
 	 */
-	return apply_filters( 'mn_admin_css_uri', $_file, $file );
+	return apply_filters( 'admin_css_uri', $_file, $file );
 }
 
 /**
@@ -3457,7 +3526,7 @@ function mn_admin_css_uri( $file = 'admin' ) {
  * 	                         to admin/. Defaults to 'admin'.
  * @param bool   $force_echo Optional. Force the stylesheet link to be printed rather than enqueued.
  */
-function mn_admin_css( $file = 'admin', $force_echo = false ) {
+function admin_css( $file = 'admin', $force_echo = false ) {
 	// For backward compatibility
 	$handle = 0 === strpos( $file, 'css/' ) ? substr( $file, 4 ) : $file;
 
@@ -3480,11 +3549,11 @@ function mn_admin_css( $file = 'admin', $force_echo = false ) {
 	 * @param string $file Style handle name or filename (without ".css" extension)
 	 *                     relative to admin/. Defaults to 'admin'.
 	 */
-	echo apply_filters( 'mn_admin_css', "<link rel='stylesheet' href='" . esc_url( mn_admin_css_uri( $file ) ) . "' type='text/css' />\n", $file );
+	echo apply_filters( 'admin_css', "<link rel='stylesheet' href='" . esc_url( admin_css_uri( $file ) ) . "' type='text/css' />\n", $file );
 
 	if ( function_exists( 'is_rtl' ) && is_rtl() ) {
 		/** This filter is documented in res/general-template.php */
-		echo apply_filters( 'mn_admin_css', "<link rel='stylesheet' href='" . esc_url( mn_admin_css_uri( "$file-rtl" ) ) . "' type='text/css' />\n", "$file-rtl" );
+		echo apply_filters( 'admin_css', "<link rel='stylesheet' href='" . esc_url( admin_css_uri( "$file-rtl" ) ) . "' type='text/css' />\n", "$file-rtl" );
 	}
 }
 

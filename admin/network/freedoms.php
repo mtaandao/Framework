@@ -10,7 +10,4 @@
 /** Load Mtaandao Administration Bootstrap */
 require_once( dirname( __FILE__ ) . '/admin.php' );
 
-if ( ! is_multisite() )
-	mn_die( __( 'Multisite support is not enabled.' ) );
-
 require( ABSPATH . 'admin/freedoms.php' );

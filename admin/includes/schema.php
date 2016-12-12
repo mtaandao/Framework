@@ -165,7 +165,7 @@ CREATE TABLE $mndb->posts (
   post_status varchar(20) NOT NULL default 'publish',
   comment_status varchar(20) NOT NULL default 'open',
   ping_status varchar(20) NOT NULL default 'open',
-  post_password varchar(20) NOT NULL default '',
+  post_password varchar(255) NOT NULL default '',
   post_name varchar(200) NOT NULL default '',
   to_ping text NOT NULL,
   pinged text NOT NULL,
@@ -365,14 +365,14 @@ function populate_options() {
 		$uploads_use_yearmonth_folders = 1;
 	}
 
-	// If MN_DEFAULT_THEME doesn't exist, fall back to the latest core default theme.
-	$stylesheet = $template = MN_DEFAULT_THEME;
-	$theme = mn_get_theme( MN_DEFAULT_THEME );
+	// If DEFAULT_THEME doesn't exist, fall back to the latest core default theme.
+	$stylesheet = $template = DEFAULT_THEME;
+	$theme = mn_get_theme( DEFAULT_THEME );
 	if ( ! $theme->exists() ) {
 		$theme = MN_Theme::get_core_default_theme();
 	}
 
-	// If we can't find a core default theme, MN_DEFAULT_THEME is the best we can do.
+	// If we can't find a core default theme, DEFAULT_THEME is the best we can do.
 	if ( $theme ) {
 		$stylesheet = $theme->get_stylesheet();
 		$template   = $theme->get_template();
@@ -527,7 +527,7 @@ function populate_options() {
 	// 3.0 multisite
 	if ( is_multisite() ) {
 		/* translators: site tagline */
-		$options[ 'blogdescription' ] = sprintf(__('Powered by %s'), get_current_site()->site_name );
+		$options[ 'blogdescription' ] = sprintf(__('Powered by %s'), get_network()->site_name );
 		$options[ 'permalink_structure' ] = '/%year%/%monthnum%/%day%/%postname%/';
 	}
 
@@ -930,12 +930,12 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		$allowed_themes[ $template ] = true;
 	}
 
-	if ( MN_DEFAULT_THEME != $stylesheet && MN_DEFAULT_THEME != $template ) {
-		$allowed_themes[ MN_DEFAULT_THEME ] = true;
+	if ( DEFAULT_THEME != $stylesheet && DEFAULT_THEME != $template ) {
+		$allowed_themes[ DEFAULT_THEME ] = true;
 	}
 
-	// If MN_DEFAULT_THEME doesn't exist, also whitelist the latest core default theme.
-	if ( ! mn_get_theme( MN_DEFAULT_THEME )->exists() ) {
+	// If DEFAULT_THEME doesn't exist, also whitelist the latest core default theme.
+	if ( ! mn_get_theme( DEFAULT_THEME )->exists() ) {
 		if ( $core_default = MN_Theme::get_core_default_theme() ) {
 			$allowed_themes[ $core_default->get_stylesheet() ] = true;
 		}

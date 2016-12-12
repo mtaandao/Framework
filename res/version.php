@@ -4,21 +4,21 @@
  *
  * @global string $mn_version
  */
-$mn_version = '16.10';
+$mn_version = '17.01';
 
 /**
  * Holds the Mtaandao DB revision, increments when changes are made to the Mtaandao DB schema.
  *
  * @global int $mn_db_version
  */
-$mn_db_version = 37965;
+$mn_db_version = 38590;
 
 /**
  * Holds the TinyMCE version
  *
  * @global string $tinymce_version
  */
-$tinymce_version = '4401-20160726';
+$tinymce_version = '4403-20160901';
 
 /**
  * Holds the required PHP version

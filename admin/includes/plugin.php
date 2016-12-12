@@ -119,7 +119,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
  */
 function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup = true, $translate = true ) {
 
-	// Sanitize the plugin filename to a MN_PLUGIN_DIR relative path
+	// Sanitize the plugin filename to a PLUGIN_DIR relative path
 	$plugin_file = plugin_basename( $plugin_file );
 
 	// Translate fields
@@ -191,10 +191,10 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
  * @return array List of files relative to the plugin root.
  */
 function get_plugin_files($plugin) {
-	$plugin_file = MN_PLUGIN_DIR . '/' . $plugin;
+	$plugin_file = PLUGIN_DIR . '/' . $plugin;
 	$dir = dirname($plugin_file);
 	$plugin_files = array($plugin);
-	if ( is_dir($dir) && $dir != MN_PLUGIN_DIR ) {
+	if ( is_dir($dir) && $dir != PLUGIN_DIR ) {
 		$plugins_dir = @ opendir( $dir );
 		if ( $plugins_dir ) {
 			while (($file = readdir( $plugins_dir ) ) !== false ) {
@@ -251,7 +251,7 @@ function get_plugins($plugin_folder = '') {
 		return $cache_plugins[ $plugin_folder ];
 
 	$mn_plugins = array ();
-	$plugin_root = MN_PLUGIN_DIR;
+	$plugin_root = PLUGIN_DIR;
 	if ( !empty($plugin_folder) )
 		$plugin_root .= $plugin_folder;
 
@@ -376,7 +376,7 @@ function get_dropins() {
 	$_dropins = _get_dropins();
 
 	// These exist in the main directory
-	if ( $plugins_dir = @ opendir( MAIN ) ) {
+	if ( $plugins_dir = @ opendir( MAIN_DIR ) ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
 			if ( isset( $_dropins[ $file ] ) )
 				$plugin_files[] = $file;
@@ -391,9 +391,9 @@ function get_dropins() {
 		return $dropins;
 
 	foreach ( $plugin_files as $plugin_file ) {
-		if ( !is_readable( MAIN . "/$plugin_file" ) )
+		if ( !is_readable( MAIN_DIR . "/$plugin_file" ) )
 			continue;
-		$plugin_data = get_plugin_data( MAIN . "/$plugin_file", false, false ); //Do not apply markup/translate as it'll be cached.
+		$plugin_data = get_plugin_data( MAIN_DIR . "/$plugin_file", false, false ); //Do not apply markup/translate as it'll be cached.
 		if ( empty( $plugin_data['Name'] ) )
 			$plugin_data['Name'] = $plugin_file;
 		$dropins[ $plugin_file ] = $plugin_data;
@@ -503,7 +503,7 @@ function is_plugin_active_for_network( $plugin ) {
  * @return bool True if plugin is network only, false otherwise.
  */
 function is_network_only_plugin( $plugin ) {
-	$plugin_data = get_plugin_data( MN_PLUGIN_DIR . '/' . $plugin );
+	$plugin_data = get_plugin_data( PLUGIN_DIR . '/' . $plugin );
 	if ( $plugin_data )
 		return $plugin_data['Network'];
 	return false;
@@ -555,9 +555,9 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 		if ( !empty($redirect) )
 			mn_redirect(add_query_arg('_error_nonce', mn_create_nonce('plugin-activation-error_' . $plugin), $redirect)); // we'll override this later if the plugin can be included without fatal error
 		ob_start();
-		mn_register_plugin_realpath( MN_PLUGIN_DIR . '/' . $plugin );
+		mn_register_plugin_realpath( PLUGIN_DIR . '/' . $plugin );
 		$_mn_plugin_file = $plugin;
-		include_once( MN_PLUGIN_DIR . '/' . $plugin );
+		include_once( PLUGIN_DIR . '/' . $plugin );
 		$plugin = $_mn_plugin_file; // Avoid stomping of the $plugin variable in a plugin.
 
 		if ( ! $silent ) {
@@ -588,7 +588,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			 * @param bool $network_wide Whether to enable the plugin for all sites in the network
 			 *                           or just the current site. Multisite only. Default is false.
 			 */
-			do_action( 'activate_' . $plugin, $network_wide );
+			do_action( "activate_{$plugin}", $network_wide );
 		}
 
 		if ( $network_wide ) {
@@ -701,7 +701,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 			 * @param bool $network_deactivating Whether the plugin is deactivated for all sites in the network
 			 *                                   or just the current site. Multisite only. Default is false.
 			 */
-			do_action( 'deactivate_' . $plugin, $network_deactivating );
+			do_action( "deactivate_{$plugin}", $network_deactivating );
 
 			/**
 			 * Fires after a plugin is deactivated.
@@ -950,7 +950,7 @@ function validate_active_plugins() {
 function validate_plugin($plugin) {
 	if ( validate_file($plugin) )
 		return new MN_Error('plugin_invalid', __('Invalid plugin path.'));
-	if ( ! file_exists(MN_PLUGIN_DIR . '/' . $plugin) )
+	if ( ! file_exists(PLUGIN_DIR . '/' . $plugin) )
 		return new MN_Error('plugin_not_found', __('Plugin file does not exist.'));
 
 	$installed_plugins = get_plugins();
@@ -971,7 +971,7 @@ function is_uninstallable_plugin($plugin) {
 	$file = plugin_basename($plugin);
 
 	$uninstallable_plugins = (array) get_option('uninstall_plugins');
-	if ( isset( $uninstallable_plugins[$file] ) || file_exists( MN_PLUGIN_DIR . '/' . dirname($file) . '/uninstall.php' ) )
+	if ( isset( $uninstallable_plugins[$file] ) || file_exists( PLUGIN_DIR . '/' . dirname($file) . '/uninstall.php' ) )
 		return true;
 
 	return false;
@@ -1002,7 +1002,7 @@ function uninstall_plugin($plugin) {
 	 */
 	do_action( 'pre_uninstall_plugin', $plugin, $uninstallable_plugins );
 
-	if ( file_exists( MN_PLUGIN_DIR . '/' . dirname($file) . '/uninstall.php' ) ) {
+	if ( file_exists( PLUGIN_DIR . '/' . dirname($file) . '/uninstall.php' ) ) {
 		if ( isset( $uninstallable_plugins[$file] ) ) {
 			unset($uninstallable_plugins[$file]);
 			update_option('uninstall_plugins', $uninstallable_plugins);
@@ -1010,8 +1010,8 @@ function uninstall_plugin($plugin) {
 		unset($uninstallable_plugins);
 
 		define('MN_UNINSTALL_PLUGIN', $file);
-		mn_register_plugin_realpath( MN_PLUGIN_DIR . '/' . $file );
-		include( MN_PLUGIN_DIR . '/' . dirname($file) . '/uninstall.php' );
+		mn_register_plugin_realpath( PLUGIN_DIR . '/' . $file );
+		include( PLUGIN_DIR . '/' . dirname($file) . '/uninstall.php' );
 
 		return true;
 	}
@@ -1022,8 +1022,8 @@ function uninstall_plugin($plugin) {
 		update_option('uninstall_plugins', $uninstallable_plugins);
 		unset($uninstallable_plugins);
 
-		mn_register_plugin_realpath( MN_PLUGIN_DIR . '/' . $file );
-		include( MN_PLUGIN_DIR . '/' . $file );
+		mn_register_plugin_realpath( PLUGIN_DIR . '/' . $file );
+		include( PLUGIN_DIR . '/' . $file );
 
 		add_action( 'uninstall_' . $file, $callable );
 
@@ -1765,67 +1765,6 @@ function user_can_access_admin_page() {
 /* Whitelist functions */
 
 /**
- * Register a setting and its sanitization callback
- *
- * @since 2.7.0
- *
- * @global array $new_whitelist_options
- *
- * @param string $option_group A settings group name. Should correspond to a whitelisted option key name.
- * 	Default whitelisted option key names include "general," "discussion," and "reading," among others.
- * @param string $option_name The name of an option to sanitize and save.
- * @param callable $sanitize_callback A callback function that sanitizes the option's value.
- */
-function register_setting( $option_group, $option_name, $sanitize_callback = '' ) {
-	global $new_whitelist_options;
-
-	if ( 'misc' == $option_group ) {
-		_deprecated_argument( __FUNCTION__, '3.0.0', sprintf( __( 'The "%s" options group has been removed. Use another settings group.' ), 'misc' ) );
-		$option_group = 'general';
-	}
-
-	if ( 'privacy' == $option_group ) {
-		_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( 'The "%s" options group has been removed. Use another settings group.' ), 'privacy' ) );
-		$option_group = 'reading';
-	}
-
-	$new_whitelist_options[ $option_group ][] = $option_name;
-	if ( $sanitize_callback != '' )
-		add_filter( "sanitize_option_{$option_name}", $sanitize_callback );
-}
-
-/**
- * Unregister a setting
- *
- * @since 2.7.0
- *
- * @global array $new_whitelist_options
- *
- * @param string   $option_group
- * @param string   $option_name
- * @param callable $sanitize_callback
- */
-function unregister_setting( $option_group, $option_name, $sanitize_callback = '' ) {
-	global $new_whitelist_options;
-
-	if ( 'misc' == $option_group ) {
-		_deprecated_argument( __FUNCTION__, '3.0.0', sprintf( __( 'The "%s" options group has been removed. Use another settings group.' ), 'misc' ) );
-		$option_group = 'general';
-	}
-
-	if ( 'privacy' == $option_group ) {
-		_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( 'The "%s" options group has been removed. Use another settings group.' ), 'privacy' ) );
-		$option_group = 'reading';
-	}
-
-	$pos = array_search( $option_name, (array) $new_whitelist_options[ $option_group ] );
-	if ( $pos !== false )
-		unset( $new_whitelist_options[ $option_group ][ $pos ] );
-	if ( $sanitize_callback != '' )
-		remove_filter( "sanitize_option_{$option_name}", $sanitize_callback );
-}
-
-/**
  * Refreshes the value of the options whitelist available via the 'whitelist_options' hook.
  *
  * See the {@see 'whitelist_options'} filter.
@@ -1939,6 +1878,6 @@ function mn_clean_plugins_cache( $clear_update_cache = true ) {
  * @param string $plugin
  */
 function plugin_sandbox_scrape( $plugin ) {
-	mn_register_plugin_realpath( MN_PLUGIN_DIR . '/' . $plugin );
-	include( MN_PLUGIN_DIR . '/' . $plugin );
+	mn_register_plugin_realpath( PLUGIN_DIR . '/' . $plugin );
+	include( PLUGIN_DIR . '/' . $plugin );
 }

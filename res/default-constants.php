@@ -1,6 +1,6 @@
 <?php
 /**
- * Defines constants and global variables that can be overridden, generally in configuration.php.
+ * Defines constants and global variables that can be overridden, generally in db.php.
  *
  * @package Mtaandao
  */
@@ -61,14 +61,14 @@ function mn_initial_constants() {
 	if ( ! isset($blog_id) )
 		$blog_id = 1;
 
-	if ( !defined('MAIN') )
-		define( 'MAIN', ABSPATH . 'main' ); // no trailing slash, full paths only - MN_CONTENT_URL is defined further down
+	if ( !defined('MAIN_DIR') )
+		define( 'MAIN_DIR', ABSPATH . 'main' ); // no trailing slash, full paths only - MAIN_URL is defined further down
 
-	// Add define('MN_DEBUG', true); to configuration.php to enable display of notices during development.
+	// Add define('MN_DEBUG', true); to db.php to enable display of notices during development.
 	if ( !defined('MN_DEBUG') )
 		define( 'MN_DEBUG', false );
 
-	// Add define('MN_DEBUG_DISPLAY', null); to configuration.php use the globally configured setting for
+	// Add define('MN_DEBUG_DISPLAY', null); to db.php use the globally configured setting for
 	// display_errors and not force errors to be displayed. Use false to force display_errors off.
 	if ( !defined('MN_DEBUG_DISPLAY') )
 		define( 'MN_DEBUG_DISPLAY', true );
@@ -80,7 +80,7 @@ function mn_initial_constants() {
 	if ( !defined('MN_CACHE') )
 		define('MN_CACHE', false);
 
-	// Add define('SCRIPT_DEBUG', true); to configuration.php to enable loading of non-minified,
+	// Add define('SCRIPT_DEBUG', true); to db.php to enable loading of non-minified,
 	// non-concatenated scripts and stylesheets.
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 		if ( ! empty( $GLOBALS['mn_version'] ) ) {
@@ -134,24 +134,24 @@ function mn_initial_constants() {
  * @since 3.0.0
  */
 function mn_plugin_directory_constants() {
-	if ( !defined('MN_CONTENT_URL') )
-		define( 'MN_CONTENT_URL', get_option('siteurl') . '/main'); // full url - MAIN is defined further up
+	if ( !defined('MAIN_URL') )
+		define( 'MAIN_URL', get_option('siteurl') . '/main'); // full url - MAIN_DIR is defined further up
 
 	/**
 	 * Allows for the plugins directory to be moved from the default location.
 	 *
 	 * @since 2.6.0
 	 */
-	if ( !defined('MN_PLUGIN_DIR') )
-		define( 'MN_PLUGIN_DIR', MAIN . '/plugins' ); // full path, no trailing slash
+	if ( !defined('PLUGIN_DIR') )
+		define( 'PLUGIN_DIR', MAIN_DIR . '/plugins' ); // full path, no trailing slash
 
 	/**
 	 * Allows for the plugins directory to be moved from the default location.
 	 *
 	 * @since 2.6.0
 	 */
-	if ( !defined('MN_PLUGIN_URL') )
-		define( 'MN_PLUGIN_URL', MN_CONTENT_URL . '/plugins' ); // full url, no trailing slash
+	if ( !defined('PLUGIN_URL') )
+		define( 'PLUGIN_URL', MAIN_URL . '/plugins' ); // full url, no trailing slash
 
 	/**
 	 * Allows for the plugins directory to be moved from the default location.
@@ -168,15 +168,15 @@ function mn_plugin_directory_constants() {
 	 * @since 2.8.0
 	 */
 	if ( !defined('MNMU_PLUGIN_DIR') )
-		define( 'MNMU_PLUGIN_DIR', MAIN . '/mu-plugins' ); // full path, no trailing slash
+		define( 'MNMU_PLUGIN_DIR', MAIN_DIR . '/mu-plugins' ); // full path, no trailing slash
 
 	/**
 	 * Allows for the mu-plugins directory to be moved from the default location.
 	 *
 	 * @since 2.8.0
 	 */
-	if ( !defined('MNMU_PLUGIN_URL') )
-		define( 'MNMU_PLUGIN_URL', MN_CONTENT_URL . '/mu-plugins' ); // full url, no trailing slash
+	if ( !defined('MU_PLUGIN_URL') )
+		define( 'MU_PLUGIN_URL', MAIN_URL . '/mu-plugins' ); // full url, no trailing slash
 
 	/**
 	 * Allows for the mu-plugins directory to be moved from the default location.
@@ -205,44 +205,44 @@ function mn_cookie_constants() {
 		if ( $siteurl )
 			define( 'COOKIEHASH', md5( $siteurl ) );
 		else
-			define( 'COOKIEHASH', '' );
+			define( 'COOKIEHASH', md5( mn_guess_url() ) );
 	}
 
 	/**
 	 * @since 2.0.0
 	 */
 	if ( !defined('USER_COOKIE') )
-		define('USER_COOKIE', 'Mtaandaouser_' . COOKIEHASH);
+		define('USER_COOKIE', 'mtaandaouser_' . COOKIEHASH);
 
 	/**
 	 * @since 2.0.0
 	 */
 	if ( !defined('PASS_COOKIE') )
-		define('PASS_COOKIE', 'Mtaandaopass_' . COOKIEHASH);
+		define('PASS_COOKIE', 'mtaandaopass_' . COOKIEHASH);
 
 	/**
 	 * @since 2.5.0
 	 */
 	if ( !defined('AUTH_COOKIE') )
-		define('AUTH_COOKIE', 'Mtaandao_' . COOKIEHASH);
+		define('AUTH_COOKIE', 'mtaandao_' . COOKIEHASH);
 
 	/**
 	 * @since 2.6.0
 	 */
 	if ( !defined('SECURE_AUTH_COOKIE') )
-		define('SECURE_AUTH_COOKIE', 'Mtaandao_sec_' . COOKIEHASH);
+		define('SECURE_AUTH_COOKIE', 'mtaandao_sec_' . COOKIEHASH);
 
 	/**
 	 * @since 2.6.0
 	 */
 	if ( !defined('LOGGED_IN_COOKIE') )
-		define('LOGGED_IN_COOKIE', 'Mtaandao_logged_in_' . COOKIEHASH);
+		define('LOGGED_IN_COOKIE', 'mtaandao_logged_in_' . COOKIEHASH);
 
 	/**
 	 * @since 2.3.0
 	 */
 	if ( !defined('TEST_COOKIE') )
-		define('TEST_COOKIE', 'Mtaandao_test_cookie');
+		define('TEST_COOKIE', 'mtaandao_test_cookie');
 
 	/**
 	 * @since 1.2.0
@@ -266,7 +266,7 @@ function mn_cookie_constants() {
 	 * @since 2.6.0
 	 */
 	if ( !defined('PLUGINS_COOKIE_PATH') )
-		define( 'PLUGINS_COOKIE_PATH', preg_replace('|https?://[^/]+|i', '', MN_PLUGIN_URL)  );
+		define( 'PLUGINS_COOKIE_PATH', preg_replace('|https?://[^/]+|i', '', PLUGIN_URL)  );
 
 	/**
 	 * @since 2.0.0
@@ -356,7 +356,7 @@ function mn_templating_constants() {
 	 * @since 3.0.0
 	 * @see MN_Theme::get_core_default_theme()
 	 */
-	if ( !defined('MN_DEFAULT_THEME') )
-		define( 'MN_DEFAULT_THEME', 'ese' );
+	if ( !defined('DEFAULT_THEME') )
+		define( 'DEFAULT_THEME', 'ese' );
 
 }

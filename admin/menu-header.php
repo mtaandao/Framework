@@ -147,7 +147,7 @@ function _mn_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 			$menu_file = $submenu_items[0][2];
 			if ( false !== ( $pos = strpos( $menu_file, '?' ) ) )
 				$menu_file = substr( $menu_file, 0, $pos );
-			if ( ! empty( $menu_hook ) || ( ( 'index.php' != $submenu_items[0][2] ) && file_exists( MN_PLUGIN_DIR . "/$menu_file" ) && ! file_exists( ABSPATH . "/admin/$menu_file" ) ) ) {
+			if ( ! empty( $menu_hook ) || ( ( 'index.php' != $submenu_items[0][2] ) && file_exists( PLUGIN_DIR . "/$menu_file" ) && ! file_exists( ABSPATH . "/admin/$menu_file" ) ) ) {
 				$admin_is_parent = true;
 				echo "<a href='admin.php?page={$submenu_items[0][2]}'$class $aria_attributes>$arrow<div class='mn-menu-image$img_class'$img_style>$img</div><div class='mn-menu-name'>$title</div></a>";
 			} else {
@@ -158,7 +158,7 @@ function _mn_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 			$menu_file = $item[2];
 			if ( false !== ( $pos = strpos( $menu_file, '?' ) ) )
 				$menu_file = substr( $menu_file, 0, $pos );
-			if ( ! empty( $menu_hook ) || ( ( 'index.php' != $item[2] ) && file_exists( MN_PLUGIN_DIR . "/$menu_file" ) && ! file_exists( ABSPATH . "/admin/$menu_file" ) ) ) {
+			if ( ! empty( $menu_hook ) || ( ( 'index.php' != $item[2] ) && file_exists( PLUGIN_DIR . "/$menu_file" ) && ! file_exists( ABSPATH . "/admin/$menu_file" ) ) ) {
 				$admin_is_parent = true;
 				echo "\n\t<a href='admin.php?page={$item[2]}'$class $aria_attributes>$arrow<div class='mn-menu-image$img_class'$img_style>$img</div><div class='mn-menu-name'>{$item[0]}</div></a>";
 			} else {
@@ -216,9 +216,9 @@ function _mn_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 				$title = mntexturize($sub_item[0]);
 
-				if ( ! empty( $menu_hook ) || ( ( 'index.php' != $sub_item[2] ) && file_exists( MN_PLUGIN_DIR . "/$sub_file" ) && ! file_exists( ABSPATH . "/admin/$sub_file" ) ) ) {
+				if ( ! empty( $menu_hook ) || ( ( 'index.php' != $sub_item[2] ) && file_exists( PLUGIN_DIR . "/$sub_file" ) && ! file_exists( ABSPATH . "/admin/$sub_file" ) ) ) {
 					// If admin.php is the current page or if the parent exists as a file in the plugins or admin dir
-					if ( ( ! $admin_is_parent && file_exists( MN_PLUGIN_DIR . "/$menu_file" ) && ! is_dir( MN_PLUGIN_DIR . "/{$item[2]}" ) ) || file_exists( $menu_file ) )
+					if ( ( ! $admin_is_parent && file_exists( PLUGIN_DIR . "/$menu_file" ) && ! is_dir( PLUGIN_DIR . "/{$item[2]}" ) ) || file_exists( $menu_file ) )
 						$sub_item_url = add_query_arg( array( 'page' => $sub_item[2] ), $item[2] );
 					else
 						$sub_item_url = add_query_arg( array( 'page' => $sub_item[2] ), 'admin.php' );
@@ -234,9 +234,11 @@ function _mn_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		echo "</li>";
 	}
 
-	echo '<li id="collapse-menu" class="hide-if-no-js"><div id="collapse-button"><div></div></div>';
-	echo '<span>' . esc_html__( 'Collapse menu' ) . '</span>';
-	echo '</li>';
+	echo '<li id="collapse-menu" class="hide-if-no-js">' .
+		'<button type="button" id="collapse-button" aria-label="' . esc_attr__( 'Collapse Main menu' ) . '" aria-expanded="true">' .
+		'<span class="collapse-button-icon" aria-hidden="true"></span>' .
+		'<span class="collapse-button-label">' . __( 'Hide Labels' ) . '</span>' .
+		'</button></li>';
 }
 
 ?>
